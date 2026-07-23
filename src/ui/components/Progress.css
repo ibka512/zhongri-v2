@@ -1,0 +1,49 @@
+.zr-progress {
+  display: grid;
+  gap: var(--zr-space-2);
+  color: var(--zr-text-secondary);
+  font-size: var(--zr-font-size-body-sm);
+  line-height: var(--zr-line-height-body-sm);
+}
+
+.zr-progress__labels {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--zr-space-3);
+}
+
+.zr-progress progress {
+  width: 100%;
+  height: var(--zr-size-progress-track);
+  overflow: hidden;
+  border: var(--zr-space-0);
+  border-radius: var(--zr-radius-full);
+  appearance: none;
+  background: var(--zr-surface-muted);
+}
+
+.zr-progress progress::-webkit-progress-bar {
+  border-radius: var(--zr-radius-full);
+  background: var(--zr-surface-muted);
+}
+
+.zr-progress progress::-webkit-progress-value {
+  border-radius: var(--zr-radius-full);
+  background: var(--zr-brand-primary);
+  transition: inline-size var(--zr-motion-normal) var(--zr-ease-in-out);
+}
+
+.zr-progress progress::-moz-progress-bar {
+  border-radius: var(--zr-radius-full);
+  background: var(--zr-brand-primary);
+  transition: inline-size var(--zr-motion-normal) var(--zr-ease-in-out);
+}
+
+.zr-progress[data-kind='time'] progress::-webkit-progress-value {
+  background: var(--zr-ai-core);
+}
+
+.zr-progress[data-kind='time'] progress::-moz-progress-bar {
+  background: var(--zr-ai-core);
+}

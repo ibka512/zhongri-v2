@@ -1,0 +1,43 @@
+.zr-icon-button {
+  display: inline-grid;
+  width: var(--zr-size-touch);
+  min-width: var(--zr-size-touch);
+  height: var(--zr-size-touch);
+  padding: var(--zr-space-0);
+  border: var(--zr-size-border) solid var(--zr-border-subtle);
+  border-radius: var(--zr-radius-sm);
+  background: var(--zr-surface-paper);
+  color: var(--zr-brand-primary);
+  cursor: pointer;
+  place-items: center;
+  transition:
+    transform var(--zr-motion-fast) var(--zr-ease-out),
+    background-color var(--zr-motion-fast) var(--zr-ease-out),
+    border-color var(--zr-motion-fast) var(--zr-ease-out);
+}
+
+.zr-icon-button > svg {
+  width: var(--zr-size-icon-lg);
+  height: var(--zr-size-icon-lg);
+}
+
+.zr-icon-button:active:not(:disabled),
+.zr-icon-button[data-state='pressed'] {
+  transform: scale(var(--zr-press-scale));
+  border-color: var(--zr-brand-primary);
+  background: var(--zr-brand-container);
+}
+
+.zr-icon-button:disabled {
+  border-color: var(--zr-border-subtle);
+  background: var(--zr-surface-muted);
+  color: var(--zr-text-tertiary);
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (hover: hover) {
+  .zr-icon-button:hover:not(:disabled) {
+    background: var(--zr-surface-subtle);
+  }
+}

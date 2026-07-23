@@ -1,0 +1,104 @@
+:root {
+  --zr-paper-0: #ffffff;
+  --zr-paper-50: #fffefb;
+  --zr-paper-100: #f7f5ef;
+  --zr-cyan-50: #eef4f3;
+  --zr-slate-50: #f2f4f5;
+  --zr-slate-200: #d8e0e0;
+  --zr-slate-500: #586675;
+  --zr-slate-800: #1e2b38;
+  --zr-slate-900: #101820;
+  --zr-blue-50: #e9f2f7;
+  --zr-blue-500: #356f9f;
+  --zr-blue-600: #2b5f89;
+  --zr-purple-50: #f1eefa;
+  --zr-purple-600: #6352a9;
+  --zr-green-50: #eaf5ef;
+  --zr-green-600: #2f7658;
+  --zr-red-50: #fbedee;
+  --zr-red-600: #a33f4b;
+  --zr-amber-50: #fff3d8;
+  --zr-amber-700: #8a5a00;
+}
+
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+  --zr-bg-canvas: var(--zr-paper-100);
+  --zr-surface-paper: var(--zr-paper-50);
+  --zr-surface-subtle: var(--zr-cyan-50);
+  --zr-surface-muted: #e8ecec;
+  --zr-surface-elevated: var(--zr-paper-0);
+  --zr-text-primary: var(--zr-slate-800);
+  --zr-text-secondary: var(--zr-slate-500);
+  --zr-text-tertiary: #6d7b88;
+  --zr-text-on-brand: var(--zr-paper-0);
+  --zr-border-subtle: var(--zr-slate-200);
+  --zr-border-strong: #9caaae;
+  --zr-brand-primary: var(--zr-blue-500);
+  --zr-brand-strong: var(--zr-blue-600);
+  --zr-brand-container: var(--zr-blue-50);
+  --zr-ai-core: var(--zr-purple-600);
+  --zr-ai-container: var(--zr-purple-50);
+  --zr-ai-glow: rgb(99 82 169 / 22%);
+  --zr-success: var(--zr-green-600);
+  --zr-success-container: var(--zr-green-50);
+  --zr-error: var(--zr-red-600);
+  --zr-error-container: var(--zr-red-50);
+  --zr-warning: var(--zr-amber-700);
+  --zr-warning-container: var(--zr-amber-50);
+  --zr-info: var(--zr-blue-500);
+  --zr-info-container: var(--zr-blue-50);
+  --zr-focus: var(--zr-purple-600);
+  --zr-glass-surface: rgb(255 255 255 / 78%);
+  --zr-glass-border: rgb(255 255 255 / 86%);
+  --zr-glass-fallback: var(--zr-surface-elevated);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --zr-bg-canvas: var(--zr-slate-900);
+  --zr-surface-paper: #17222c;
+  --zr-surface-subtle: #1b2934;
+  --zr-surface-muted: #22313d;
+  --zr-surface-elevated: #263541;
+  --zr-text-primary: var(--zr-slate-50);
+  --zr-text-secondary: #bcc7d0;
+  --zr-text-tertiary: #93a3b0;
+  --zr-text-on-brand: #132533;
+  --zr-border-subtle: #354654;
+  --zr-border-strong: #647988;
+  --zr-brand-primary: #78b8e8;
+  --zr-brand-strong: #9acbf0;
+  --zr-brand-container: #1d3c52;
+  --zr-ai-core: #b8a8ff;
+  --zr-ai-container: #2b2443;
+  --zr-ai-glow: rgb(184 168 255 / 24%);
+  --zr-success: #72c79e;
+  --zr-success-container: #183c2d;
+  --zr-error: #ff9aa4;
+  --zr-error-container: #4a2228;
+  --zr-warning: #ebc46e;
+  --zr-warning-container: #493817;
+  --zr-info: #78b8e8;
+  --zr-info-container: #1d3c52;
+  --zr-focus: #b8a8ff;
+  --zr-glass-surface: rgb(23 34 44 / 84%);
+  --zr-glass-border: rgb(255 255 255 / 14%);
+  --zr-glass-fallback: var(--zr-surface-elevated);
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --zr-border-subtle: var(--zr-border-strong);
+    --zr-glass-surface: var(--zr-glass-fallback);
+    --zr-glass-border: var(--zr-border-strong);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --zr-glass-surface: var(--zr-glass-fallback);
+    --zr-glass-border: var(--zr-border-subtle);
+  }
+}

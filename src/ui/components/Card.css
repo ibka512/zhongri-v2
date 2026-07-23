@@ -1,0 +1,7 @@
+.zr-card {
+  padding: var(--zr-space-6);
+  border: var(--zr-size-border) solid var(--zr-border-subtle);
+  border-radius: var(--zr-radius-card);
+  background: var(--zr-surface-paper);
+  color: var(--zr-text-primary);
+}

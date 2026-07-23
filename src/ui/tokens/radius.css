@@ -1,0 +1,8 @@
+:root {
+  --zr-radius-sm: 0.625rem;
+  --zr-radius-md: 0.875rem;
+  --zr-radius-card: 1.125rem;
+  --zr-radius-float: 1.375rem;
+  --zr-radius-overlay: 1.5rem;
+  --zr-radius-full: 999rem;
+}

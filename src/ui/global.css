@@ -1,0 +1,67 @@
+@import './tokens/index.css';
+
+html {
+  min-width: 100%;
+  min-height: 100%;
+  background: var(--zr-bg-canvas);
+  color: var(--zr-text-primary);
+  font-family: var(--zr-font-ui);
+  font-synthesis: none;
+  text-rendering: optimizelegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 20rem;
+  min-height: 100vh;
+  margin: var(--zr-space-0);
+  background: var(--zr-bg-canvas);
+  color: var(--zr-text-primary);
+  font-size: var(--zr-font-size-body);
+  line-height: var(--zr-line-height-body);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: var(--zr-size-focus) solid var(--zr-focus);
+  outline-offset: var(--zr-size-focus-gap);
+}
+
+::selection {
+  background: var(--zr-brand-container);
+  color: var(--zr-text-primary);
+}
+
+.zr-sr-only {
+  position: absolute;
+  width: var(--zr-size-border);
+  height: var(--zr-size-border);
+  padding: var(--zr-space-0);
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: var(--zr-space-0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+}

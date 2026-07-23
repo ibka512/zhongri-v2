@@ -1,0 +1,22 @@
+:root {
+  --zr-shadow-content: 0 0.0625rem 0.125rem rgb(30 43 56 / 8%);
+  --zr-shadow-floating: 0 0.5rem 1.5rem -0.5rem rgb(30 43 56 / 18%);
+  --zr-shadow-glass: 0 1rem 2.5rem -0.875rem rgb(16 24 32 / 28%);
+  --zr-shadow-ai: 0 0.75rem 2rem -0.75rem var(--zr-ai-glow);
+  --zr-glass-blur: 1.125rem;
+  --zr-glass-saturation: 130%;
+}
+
+:root[data-theme='dark'] {
+  --zr-shadow-content: 0 0.0625rem 0.125rem rgb(0 0 0 / 18%);
+  --zr-shadow-floating: 0 0.5rem 1.5rem -0.5rem rgb(0 0 0 / 26%);
+  --zr-shadow-glass: 0 1rem 2.5rem -0.875rem rgb(0 0 0 / 34%);
+  --zr-glass-saturation: 100%;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --zr-glass-blur: var(--zr-space-0);
+    --zr-glass-saturation: 100%;
+  }
+}

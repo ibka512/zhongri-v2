@@ -1,0 +1,250 @@
+.zr-question-frame {
+  display: grid;
+  width: min(100%, var(--zr-layout-readable));
+  gap: var(--zr-space-6);
+  margin-inline: auto;
+}
+
+.zr-question-frame__header {
+  display: grid;
+  gap: var(--zr-space-3);
+}
+
+.zr-question-frame__type {
+  color: var(--zr-text-secondary);
+  font-size: var(--zr-font-size-caption);
+  font-weight: var(--zr-font-weight-medium);
+  line-height: var(--zr-line-height-caption);
+}
+
+.zr-question-frame__prompt {
+  padding-block: var(--zr-space-2);
+  text-align: center;
+}
+
+.zr-question-frame__audio {
+  display: flex;
+  justify-content: center;
+}
+
+.zr-question-frame__answer {
+  min-width: var(--zr-space-0);
+}
+
+.zr-question-frame__feedback {
+  min-height: var(--zr-space-0);
+}
+
+.zr-choice-answer {
+  display: grid;
+  gap: var(--zr-space-3);
+  min-width: var(--zr-space-0);
+  padding: var(--zr-space-0);
+  border: var(--zr-space-0);
+  margin: var(--zr-space-0);
+}
+
+.zr-choice-answer__option {
+  display: grid;
+  min-height: var(--zr-size-answer-min);
+  grid-template-columns: var(--zr-size-icon-lg) minmax(var(--zr-space-0), 1fr) auto;
+  align-items: center;
+  gap: var(--zr-space-3);
+  padding: var(--zr-space-3) var(--zr-space-4);
+  border: var(--zr-size-border) solid var(--zr-border-subtle);
+  border-radius: var(--zr-radius-md);
+  background: var(--zr-surface-paper);
+  color: var(--zr-text-primary);
+  text-align: start;
+  cursor: pointer;
+  transition:
+    transform var(--zr-motion-fast) var(--zr-ease-out),
+    background-color var(--zr-motion-fast) var(--zr-ease-out),
+    border-color var(--zr-motion-fast) var(--zr-ease-out);
+}
+
+.zr-choice-answer__option:active:not(:disabled) {
+  transform: scale(var(--zr-press-scale));
+}
+
+.zr-choice-answer__marker {
+  display: grid;
+  width: var(--zr-size-icon-lg);
+  height: var(--zr-size-icon-lg);
+  border: var(--zr-size-border) solid var(--zr-border-strong);
+  border-radius: var(--zr-radius-full);
+  color: var(--zr-text-secondary);
+  place-items: center;
+}
+
+.zr-choice-answer__marker svg {
+  width: var(--zr-size-icon);
+  height: var(--zr-size-icon);
+}
+
+.zr-choice-answer__option[data-state='selected'] {
+  border-width: var(--zr-size-border-strong);
+  border-color: var(--zr-brand-primary);
+  background: var(--zr-brand-container);
+}
+
+.zr-choice-answer__option[data-state='selected'] .zr-choice-answer__marker {
+  border-color: var(--zr-brand-primary);
+  background: var(--zr-brand-primary);
+  box-shadow: inset 0 0 0 var(--zr-space-1) var(--zr-brand-container);
+}
+
+.zr-choice-answer__option[data-state='correct'] {
+  border-color: var(--zr-success);
+  background: var(--zr-success-container);
+}
+
+.zr-choice-answer__option[data-state='correct'] .zr-choice-answer__marker {
+  border-color: var(--zr-success);
+  color: var(--zr-success);
+}
+
+.zr-choice-answer__option[data-state='incorrect'] {
+  border-color: var(--zr-error);
+  background: var(--zr-error-container);
+}
+
+.zr-choice-answer__option[data-state='incorrect'] .zr-choice-answer__marker {
+  border-color: var(--zr-error);
+  color: var(--zr-error);
+}
+
+.zr-choice-answer__option:disabled {
+  color: var(--zr-text-secondary);
+  cursor: default;
+}
+
+.zr-choice-answer__state-label {
+  color: currentcolor;
+  font-size: var(--zr-font-size-caption);
+  font-weight: var(--zr-font-weight-medium);
+  line-height: var(--zr-line-height-caption);
+}
+
+@media (hover: hover) {
+  .zr-choice-answer__option:hover:not(:disabled) {
+    background: var(--zr-surface-subtle);
+  }
+}
+
+.zr-text-answer {
+  display: grid;
+  gap: var(--zr-space-2);
+}
+
+.zr-text-answer label {
+  color: var(--zr-text-primary);
+  font-size: var(--zr-font-size-body-sm);
+  font-weight: var(--zr-font-weight-medium);
+  line-height: var(--zr-line-height-body-sm);
+}
+
+.zr-text-answer input {
+  width: 100%;
+  min-height: var(--zr-size-answer-min);
+  padding: var(--zr-space-3) var(--zr-space-4);
+  border: var(--zr-size-border) solid var(--zr-border-subtle);
+  border-radius: var(--zr-radius-md);
+  background: var(--zr-surface-paper);
+  color: var(--zr-text-primary);
+  font-size: var(--zr-font-size-body);
+  line-height: var(--zr-line-height-body);
+  transition:
+    border-color var(--zr-motion-fast) var(--zr-ease-out),
+    background-color var(--zr-motion-fast) var(--zr-ease-out);
+}
+
+.zr-text-answer input[aria-invalid='true'] {
+  border-color: var(--zr-error);
+  background: var(--zr-error-container);
+}
+
+.zr-text-answer input:disabled {
+  background: var(--zr-surface-muted);
+  color: var(--zr-text-secondary);
+}
+
+.zr-text-answer__error {
+  min-height: var(--zr-line-height-body-sm);
+  margin: var(--zr-space-0);
+  color: var(--zr-error);
+  font-size: var(--zr-font-size-body-sm);
+  line-height: var(--zr-line-height-body-sm);
+}
+
+.zr-text-answer .zr-button {
+  justify-self: start;
+}
+
+.zr-feedback {
+  display: grid;
+  grid-template-columns: var(--zr-size-icon-lg) minmax(var(--zr-space-0), 1fr);
+  gap: var(--zr-space-3);
+  padding: var(--zr-space-4);
+  border: var(--zr-size-border) solid var(--zr-info);
+  border-radius: var(--zr-radius-md);
+  background: var(--zr-info-container);
+  color: var(--zr-text-primary);
+  transition:
+    opacity var(--zr-motion-normal) var(--zr-ease-out),
+    transform var(--zr-motion-normal) var(--zr-ease-out);
+}
+
+.zr-feedback[data-tone='success'] {
+  border-color: var(--zr-success);
+  background: var(--zr-success-container);
+}
+
+.zr-feedback[data-tone='error'] {
+  border-color: var(--zr-error);
+  background: var(--zr-error-container);
+}
+
+.zr-feedback[data-tone='hint'] {
+  border-color: var(--zr-ai-core);
+  background: var(--zr-ai-container);
+}
+
+.zr-feedback__icon {
+  color: var(--zr-info);
+}
+
+.zr-feedback[data-tone='success'] .zr-feedback__icon {
+  color: var(--zr-success);
+}
+
+.zr-feedback[data-tone='error'] .zr-feedback__icon {
+  color: var(--zr-error);
+}
+
+.zr-feedback[data-tone='hint'] .zr-feedback__icon {
+  color: var(--zr-ai-core);
+}
+
+.zr-feedback__icon svg {
+  width: var(--zr-size-icon-lg);
+  height: var(--zr-size-icon-lg);
+}
+
+.zr-feedback h4 {
+  margin: var(--zr-space-0) var(--zr-space-0) var(--zr-space-1);
+  font-size: var(--zr-font-size-title-3);
+  line-height: var(--zr-line-height-title-3);
+}
+
+.zr-feedback__body {
+  color: var(--zr-text-secondary);
+}
+
+.zr-feedback__body > :first-child {
+  margin-top: var(--zr-space-0);
+}
+
+.zr-feedback__body > :last-child {
+  margin-bottom: var(--zr-space-0);
+}
