@@ -23,6 +23,34 @@ Task 可以执行。
 - 不自行开始未定义的 Task。
 - 修改实现后同步更新受影响的知识库文档。
 
+## 开发流程
+
+AI 修改代码前必须：
+
+1. 阅读 `docs/PROJECT_CONTEXT.md` 和 `docs/TASKS.md`。
+2. 阅读与当前修改相关的 ADR。
+3. 确认修改属于 UI、Application、Domain、Ports 或 Infrastructure 中的哪个架构层。
+4. 明确本次修改不包含的范围。
+
+修改后必须运行：
+
+```bash
+npm run lint
+npm run test
+npm run build
+```
+
+涉及 Markdown、CSS 或配置文件时，同时运行 `npm run format:check`。
+
+## 禁止行为
+
+- 创建职责不清的新大文件。
+- 绕过 Repository Port 访问业务数据。
+- 让组件直接调用 AI。
+- 让页面直接操作 IndexedDB。
+- 未经讨论新增依赖。
+- 修改 Schema 却不更新 ADR、兼容性说明和测试。
+
 ## 代码规则
 
 - 使用 TypeScript strict。
