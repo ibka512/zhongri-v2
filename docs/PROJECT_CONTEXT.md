@@ -31,16 +31,18 @@ FSRS 复习调度
 
 ## 当前阶段
 
-当前处于 **Phase 0：工程初始化与契约冻结**。
+当前进入 **Phase 1：核心学习闭环**。
 
-仓库已经具备可维护的 React + TypeScript + Vite 基础、三项核心数据契约和 UI Lab，
-当前工作单元为 **Task 003.5：GitHub 工程化增强**，尚未进入学习业务实现。
+仓库已经具备可维护的 React + TypeScript + Vite 基础、三项核心数据契约、UI Lab 和
+GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已实现并等待负责人验收。
 
 ## 已完成任务
 
 - **Task 001**：建立 React + TypeScript strict + Vite 工程、架构目录、质量工具和 CI。
 - **Task 002**：冻结 Question Schema v1、Judgement Schema v1、LearningEvent Schema v1。
 - **Task 003**：建立 Design Token、Theme Provider、核心展示组件和 `/ui-lab`。
+- **Task 003.5**：建立 GitHub Actions、Issue/PR 模板和开发状态文档。
+- **Task 004**：建立选择题判题、内存 QuestionFlow、LearningEvent 生成和 `/study-demo`。
 
 准确提交记录见 [TASKS.md](./TASKS.md)。
 
@@ -77,7 +79,7 @@ Infrastructure Adapters
 
 在负责人明确下达对应任务前，禁止：
 
-- 实现学习流程、数据库、Repository、FSRS 或数据迁移。
+- 接入数据库、Repository、FSRS 或数据迁移。
 - 接入 AI API、模型 SDK、聊天界面或真实音频服务。
 - 创建首页、词库、五十音、IPA、账号、同步、商业化或社区功能。
 - 让组件直接调用外部能力或把业务事实写入 Zustand、LocalStorage。
@@ -87,18 +89,19 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前执行 **Task 003.5：GitHub 工程化增强**，范围仅包括 CI 核对、Issue 与 Pull
-Request 模板、AI 协作规则和开发状态文档。
+当前等待 **Task 004：Application 层与第一个学习闭环** 验收。
 
-Task 003.5 不实现业务功能，不修改 Schema，不接入数据库、AI、FSRS 或学习引擎。
+范围仅包括选择题确定性判题、内存 QuestionFlow、LearningEvent 事实生成、三道日语
+Mock Question 和 `/study-demo` 技术验证页面。Task004 不修改 Schema，不接入数据库、
+AI、FSRS、账号、词库、迁移或真实音频。
 
-完成后等待产品负责人定义并确认 **Task 004** 的范围，不自行开始下一项业务开发。
+详细决策见 [ADR-002](./decisions/ADR-002-first-learning-loop.md)。
 
 ## 下一步路线
 
-1. 由产品负责人冻结 Task 004 的目标、边界和验收标准。
-2. Task 004 必须继续采用单一纵向范围、小步提交和全量验证。
-3. Phase 0 完成后才进入 Phase 1 核心学习闭环。
+1. 由产品负责人验收 Task004 的技术验证闭环。
+2. 下一项任务必须由产品负责人单独冻结，不从路线图推断。
+3. 持久化、FSRS 和正式学习功能仍需独立 Task。
 4. AI 增强属于 Phase 2；语音和高级能力属于 Phase 3。
 
 阶段路线见 [ROADMAP.md](./ROADMAP.md)。

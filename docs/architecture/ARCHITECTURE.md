@@ -31,5 +31,7 @@ Infrastructure Adapters
 5. Zustand 不能保存业务事实。
 6. 数据必须通过 Repository 访问。
 
-当前 Phase 0 只冻结工程边界、数据契约和 UI 基础设施，不实现 Repository、AI、
-数据库、FSRS 或学习业务。
+Task004 首次在该依赖方向中加入纯 TypeScript Domain 判题和 Application 内存会话编排。
+`/study-demo` 只消费 Application 快照，不直接执行业务规则。
+
+当前仍不实现 Repository、AI、数据库或 FSRS。

@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-Phase 0：工程初始化与契约冻结。
+Phase 1：核心学习闭环技术验证。
 
 已完成：
 
@@ -12,17 +12,19 @@ Phase 0：工程初始化与契约冻结。
 - Question、Judgement、LearningEvent v1 Schema。
 - Design Token、Theme Provider、核心 UI 组件和 `/ui-lab`。
 - 架构边界、ADR 和 AI 项目知识库。
+- 选择题 Domain Judge、Application QuestionFlow 和 `/study-demo` 内存闭环。
 
-尚未实现学习流程、数据库、AI、FSRS、词库或数据迁移。
+尚未实现正式学习功能、持久化、数据库、AI、FSRS、词库或数据迁移。
 
 ## 开发状态
 
-当前工作单元为 **Phase 0 - Task 003.5：GitHub 工程化增强**。
+**Phase 1 - Task 004：第一个学习闭环技术验证** 已完成并等待验收。
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
 - Task 003：UI Lab 与 Design System，已完成。
-- Task 004：Application 层与第一个学习闭环，尚未开始。
+- Task 003.5：GitHub 工程化增强，已完成。
+- Task 004：Application 层与第一个学习闭环，已完成。
 
 详细状态见 [开发状态](./docs/development/STATUS.md)。
 
@@ -72,6 +74,7 @@ npm run dev
 
 - 初始化页：`/`
 - UI Lab：`/ui-lab`
+- 学习闭环技术演示：`/study-demo`
 
 ## 基础检查
 

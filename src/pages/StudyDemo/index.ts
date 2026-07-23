@@ -1,0 +1,1 @@
+export { StudyDemoPage } from './StudyDemoPage';
