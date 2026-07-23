@@ -31,4 +31,5 @@ Infrastructure Adapters
 5. Zustand 不能保存业务事实。
 6. 数据必须通过 Repository 访问。
 
-本任务仅冻结工程边界，不实现 Repository、AI、数据库或学习业务。
+当前 Phase 0 只冻结工程边界、数据契约和 UI 基础设施，不实现 Repository、AI、
+数据库、FSRS 或学习业务。
