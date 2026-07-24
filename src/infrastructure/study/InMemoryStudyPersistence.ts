@@ -27,8 +27,31 @@ export class InMemoryStudyPersistence implements StudyPersistencePort {
   readonly #idempotencyRecords = new Map<string, IdempotencyRecord>();
   #nextFailure: Error | null = null;
 
-  failNextCommit(error = new Error('Injected transaction failure')): void {
+  failNextOperation(error = new Error('Injected transaction failure')): void {
     this.#nextFailure = error;
+  }
+
+  failNextCommit(error = new Error('Injected transaction failure')): void {
+    this.failNextOperation(error);
+  }
+
+  async clearSession(sessionId: string): Promise<void> {
+    this.#throwNextFailure();
+
+    for (const [eventId, event] of this.#events) {
+      if (event.sessionId === sessionId) {
+        this.#events.delete(eventId);
+      }
+    }
+
+    this.#checkpoints.delete(sessionId);
+    this.#sessionStates.delete(sessionId);
+
+    for (const [key, record] of this.#idempotencyRecords) {
+      if (record.checkpoint.sessionId === sessionId) {
+        this.#idempotencyRecords.delete(key);
+      }
+    }
   }
 
   async commitAnswer(input: CommitAnswerInput): Promise<CommitAnswerResult> {
@@ -66,11 +89,7 @@ export class InMemoryStudyPersistence implements StudyPersistencePort {
       }
     }
 
-    if (this.#nextFailure) {
-      const failure = this.#nextFailure;
-      this.#nextFailure = null;
-      throw failure;
-    }
+    this.#throwNextFailure();
 
     for (const event of events) {
       this.#events.set(event.id, event);
@@ -113,13 +132,19 @@ export class InMemoryStudyPersistence implements StudyPersistencePort {
   async saveSessionState(state: StudySessionState): Promise<StudySessionState> {
     const parsed = StudySessionStateSchema.parse(state);
 
-    if (this.#nextFailure) {
-      const failure = this.#nextFailure;
-      this.#nextFailure = null;
-      throw failure;
-    }
+    this.#throwNextFailure();
 
     this.#sessionStates.set(parsed.sessionId, parsed);
     return parsed;
+  }
+
+  #throwNextFailure(): void {
+    if (!this.#nextFailure) {
+      return;
+    }
+
+    const failure = this.#nextFailure;
+    this.#nextFailure = null;
+    throw failure;
   }
 }

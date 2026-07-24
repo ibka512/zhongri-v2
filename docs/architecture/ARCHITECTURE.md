@@ -33,6 +33,7 @@ Infrastructure Adapters
 
 Task004 首次在该依赖方向中加入纯 TypeScript Domain 判题和 Application 内存会话编排。
 Task005 加入学习持久化 Ports，以及共享同一契约测试的内存/Dexie 适配器。
+Task006 加入版本化会话状态和恢复；Task008 加入按会话清除与重新开始用例。
 `/study-demo` 只消费 Application 快照，不直接执行业务规则或访问数据库。
 
 ## Task005 学习事务
@@ -46,5 +47,13 @@ Task005 加入学习持久化 Ports，以及共享同一契约测试的内存/De
 5. 相同幂等键和指纹返回首次提交结果；相同键对应不同答案时拒绝。
 
 Dexie 只存在于 Infrastructure。Domain、页面和 UI 组件不得 import Dexie。
+
+## Task008 会话重新开始
+
+1. UI 先要求用户显式确认，不直接清除数据。
+2. Application 通过 `StudySessionRepositoryPort.clearSession(sessionId)` 发起重新开始。
+3. Infrastructure 在单一事务中清除该会话的事件、检查点、状态和幂等记录。
+4. 清除成功后 Application 创建全新的第一题会话；失败时原 `StudyUseCase` 和页面快照不变。
+5. 清除边界不得提供无条件全库删除，也不得影响其他 `sessionId`。
 
 当前仍不实现真实迁移、ReviewState、FSRS 或 AI。

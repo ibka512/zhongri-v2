@@ -4,14 +4,16 @@ import type { StudyUseCase } from '../application/study';
 import { StudyDemoPage } from '../pages/StudyDemo';
 import { UILabPage } from '../pages/UILab';
 import { App } from './App';
-import { createStudyDemoUseCase } from './studyDemo';
+import { createStudyDemoUseCase, restartStudyDemoUseCase } from './studyDemo';
 
 export interface AppRouteDependencies {
   createStudyDemoUseCase: () => Promise<StudyUseCase>;
+  restartStudyDemoUseCase: () => Promise<StudyUseCase>;
 }
 
 const defaultDependencies: AppRouteDependencies = {
   createStudyDemoUseCase,
+  restartStudyDemoUseCase,
 };
 
 export function createAppRoutes(
@@ -24,7 +26,12 @@ export function createAppRoutes(
     },
     {
       path: '/study-demo',
-      element: <StudyDemoPage createUseCase={dependencies.createStudyDemoUseCase} />,
+      element: (
+        <StudyDemoPage
+          createUseCase={dependencies.createStudyDemoUseCase}
+          restartUseCase={dependencies.restartStudyDemoUseCase}
+        />
+      ),
     },
     {
       path: '/ui-lab',

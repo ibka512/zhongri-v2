@@ -78,6 +78,7 @@ function createRecoverableHarness() {
   return {
     createUseCase: () => StudyUseCase.startOrResume(sessionInput, dependencies),
     persistence,
+    restartUseCase: () => StudyUseCase.restart(sessionInput, dependencies),
   };
 }
 
@@ -191,6 +192,28 @@ describe('StudyUseCase question flow', () => {
       status: 'completed',
     });
     expect(restored.getSnapshot().events).toHaveLength(6);
+  });
+
+  it('restarts an answered session from the first question with no event history', async () => {
+    const { createUseCase, persistence, restartUseCase } = createRecoverableHarness();
+    const useCase = await createUseCase();
+    await useCase.submitAnswer('neko', 'test-session:question-1');
+
+    const restarted = await restartUseCase();
+
+    expect(restarted.getSnapshot()).toMatchObject({
+      currentIndex: 0,
+      status: 'answering',
+      selectedAnswer: null,
+      events: [],
+    });
+    expect(await persistence.findBySessionId('test-session')).toEqual([]);
+    expect(await persistence.findCheckpoint('test-session')).toBeNull();
+    expect(await persistence.findSessionState('test-session')).toMatchObject({
+      currentIndex: 0,
+      status: 'answering',
+      eventIds: [],
+    });
   });
 
   it('does not advance the in-memory flow when saving progress fails', async () => {

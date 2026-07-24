@@ -35,7 +35,7 @@ FSRS 复习调度
 
 仓库已经具备可维护的 React + TypeScript + Vite 基础、核心数据契约、UI Lab 和
 GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已由产品负责人验收。
-Task 006 已完成，当前实施 **Task 007：GitHub Pages 开发预览部署**。
+Task 007 已完成，当前实施 **Task 008：学习会话重新开始与本地进度清除**。
 
 ## 已完成任务
 
@@ -46,6 +46,7 @@ Task 006 已完成，当前实施 **Task 007：GitHub Pages 开发预览部署**
 - **Task 004**：建立选择题判题、内存 QuestionFlow、LearningEvent 生成和 `/study-demo`，已验收。
 - **Task 005**：建立 Ports、幂等学习事务、内存/Dexie 适配器和基础 PWA App Shell。
 - **Task 006**：建立版本化学习会话状态、下一题/完成持久化和刷新恢复。
+- **Task 007**：建立 GitHub Pages 子路径构建、Hash 路由、产物校验和自动部署。
 
 准确提交记录见 [TASKS.md](./TASKS.md)。
 
@@ -92,16 +93,17 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **Task 007：GitHub Pages 开发预览部署**。
+当前任务是 **Task 008：学习会话重新开始与本地进度清除**。
 
-范围包括 Pages 子路径、Hash 路由、PWA 路径、托管产物校验和自动部署。Task007 不接入
-后端、账号、同步、自定义域名、公共 Beta、FSRS 或 AI。
+范围包括只清除指定会话的持久化边界、Application 重新开始用例、答题中与完成后的显式
+二次确认，以及失败后保留现有进度。Task008 不实现全局数据清除、撤销、导入导出、云同步、
+真实课程选择、FSRS 或 AI。
 
-详细决策见 [ADR-005](./decisions/ADR-005-github-pages-preview.md)。
+详细决策见 [ADR-006](./decisions/ADR-006-session-reset-boundary.md)。
 
 ## 下一步路线
 
-1. 完成 Task007 的代码审查、Pages 启用与首次远程部署。
+1. 完成 Task008 的代码审查和远程预览验收。
 2. 下一项任务必须由产品负责人单独冻结，不从路线图推断。
 3. 真实迁移、FSRS 和正式学习功能仍需独立 Task。
 4. AI 增强属于 Phase 2；语音和高级能力属于 Phase 3。

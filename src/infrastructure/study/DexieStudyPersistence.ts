@@ -96,6 +96,21 @@ export class DexieStudyPersistence extends Dexie implements StudyPersistencePort
     );
   }
 
+  async clearSession(sessionId: string): Promise<void> {
+    await this.transaction(
+      'rw',
+      [this.learningEvents, this.sessionCheckpoints, this.studySessions, this.idempotencyRecords],
+      async () => {
+        await this.learningEvents.where('sessionId').equals(sessionId).delete();
+        await this.sessionCheckpoints.delete(sessionId);
+        await this.studySessions.delete(sessionId);
+        await this.idempotencyRecords
+          .filter((record) => record.checkpoint.sessionId === sessionId)
+          .delete();
+      },
+    );
+  }
+
   async findBySessionId(sessionId: string): Promise<readonly LearningEvent[]> {
     const events = await this.learningEvents
       .where('sessionId')

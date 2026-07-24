@@ -22,8 +22,8 @@
   line-height: var(--zr-line-height-title-1);
 }
 
-.study-demo__header > p:last-child,
-.study-demo__completion > p:last-child {
+.study-demo__header > p:not(.study-demo__eyebrow),
+.study-demo__completion > p {
   margin: var(--zr-space-3) var(--zr-space-0) var(--zr-space-0);
   color: var(--zr-text-secondary);
 }
@@ -70,4 +70,50 @@
   gap: var(--zr-space-5);
   margin-inline: auto;
   text-align: center;
+}
+
+.study-demo__restart-entry {
+  display: flex;
+  justify-content: center;
+  margin-block-start: var(--zr-space-3);
+}
+
+.study-demo__restart-confirmation {
+  display: grid;
+  gap: var(--zr-space-3);
+  margin-block-start: var(--zr-space-4);
+  padding: var(--zr-space-4);
+  border: var(--zr-size-border) solid var(--zr-error);
+  border-radius: var(--zr-radius-md);
+  background: var(--zr-error-container);
+  text-align: start;
+}
+
+.study-demo__restart-confirmation p {
+  margin: var(--zr-space-0);
+}
+
+.study-demo__restart-confirmation p[role='alert'] {
+  color: var(--zr-error);
+  font-weight: var(--zr-font-weight-medium);
+}
+
+.study-demo__restart-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--zr-space-2);
+}
+
+.study-demo__restart-danger {
+  --zr-button-bg: var(--zr-error-container);
+  --zr-button-bg-pressed: var(--zr-surface-paper);
+  --zr-button-border: var(--zr-error);
+  --zr-button-text: var(--zr-error);
+}
+
+@media (max-width: 30rem) {
+  .study-demo__restart-actions .zr-button {
+    width: 100%;
+  }
 }

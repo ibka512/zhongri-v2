@@ -135,6 +135,14 @@ export class StudyUseCase {
     });
   }
 
+  static async restart(
+    input: StartStudySessionInput,
+    dependencies: StudyUseCaseDependencies,
+  ): Promise<StudyUseCase> {
+    await dependencies.persistence.clearSession(input.sessionId);
+    return StudyUseCase.startOrResume(input, dependencies);
+  }
+
   getSnapshot(): StudySessionSnapshot {
     return this.#flow.getSnapshot();
   }
