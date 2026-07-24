@@ -36,6 +36,7 @@ Task005 加入学习持久化 Ports，以及共享同一契约测试的内存/De
 Task006 加入版本化会话状态和恢复；Task008 加入按会话清除与重新开始用例。
 Task009 加入只读迁移预检用例、来源摘要 Port 和版本化报告 Schema。
 Task010 加入版本化迁移运行、隔离数据集、active pointer 和原子提交/回滚 Port。
+Task011 加入版本化 canonical 内容、固定来源 Manifest 和内容 Repository Port。
 `/study-demo` 只消费 Application 快照，不直接执行业务规则或访问数据库。
 
 ## Task005 学习事务
@@ -79,5 +80,16 @@ Dexie 只存在于 Infrastructure。Domain、页面和 UI 组件不得 import De
 6. 回滚只把 active pointer 恢复为 `priorActiveDatasetId`，保留快照、报告和诊断数据。
 7. 学习事件与会话表不参与迁移事务；staging 不代表业务域已完成迁移。
 
-当前仍不实现 canonical 资产加载、Word/Override/idMap、关系域转换、ReviewState 激活、FSRS
-调度或 AI。
+当前仍不实现完整 canonical 资产、Word/Override/idMap、关系域转换、ReviewState 激活、
+FSRS 调度或 AI。
+
+## Task011 canonical 内容身份
+
+1. `CanonicalWord v1` 把 `language + id` 作为身份域；`jp-study` 已有 ID 原样保留。
+2. `CanonicalManifest v1` 固定来源仓库、提交、分片 blob、许可、数量、ID 摘要与内容摘要。
+3. 静态资产在 Infrastructure 适配器边界通过 Zod 校验，页面和未来课程只消费
+   `CanonicalContentRepositoryPort`。
+4. 解析先查精确 `language + wordId`；仅在 ID 未命中时提供唯一
+   `language + normalized headword` 候选。
+5. 同语言重名返回 ambiguous；相同 ID 出现在另一语言返回 language-conflict，不自动合并。
+6. 本切片只有 20 个 N5 日语词条；完整 9,828 资产、用户词和迁移转换仍需独立任务。

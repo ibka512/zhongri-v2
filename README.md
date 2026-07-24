@@ -19,16 +19,17 @@ Phase 1：核心学习闭环技术验证。
 - Task007 已完成 GitHub Pages 开发预览部署。
 - Task008 已完成学习会话重新开始与单会话原子清除。
 - Task009 已完成 v1 备份只读迁移预检。
+- Task010 已完成迁移安全暂存、原子 active 指针与回滚边界。
 
-正在实施 Task010：迁移 staging、原子提交与回滚边界。通过预检的备份可以在用户明确操作后
-写入脱敏隔离数据集；相同输入幂等复用，activeDatasetId 只在单一事务内切换并可回滚。
+正在实施 Task011：真实日语词条与 canonical 身份底座。当前切片从固定 `jp-study`
+提交引入 20 个 N5 词条，原样保留稳定 ID 和来源证据，并通过 Repository Port 提供确定性
+身份解析和内容完整性校验。
 
-尚未实现 canonical 词条身份表、逐域业务转换与激活、正式学习首页、FSRS 调度、AI、词库或
-真实音频。
+尚未实现完整 9,828 词资产、正式每日课程、逐域迁移与激活、FSRS 调度、AI 或真实音频。
 
 ## 开发状态
 
-**Phase 1 - Task 010：迁移 staging、原子提交与回滚边界** 正在实施。
+**Phase 1 - Task 011：真实日语词条与 canonical 身份底座** 正在实施。
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
@@ -40,7 +41,8 @@ Phase 1：核心学习闭环技术验证。
 - Task 007：GitHub Pages 开发预览部署，已完成。
 - Task 008：学习会话重新开始与本地进度清除，已完成。
 - Task 009：v1 备份迁移预检，已完成。
-- Task 010：迁移 staging、原子提交与回滚边界，实施中。
+- Task 010：迁移 staging、原子提交与回滚边界，已完成。
+- Task 011：真实日语词条与 canonical 身份底座，实施中。
 
 详细状态见 [开发状态](./docs/development/STATUS.md)。
 
@@ -123,3 +125,5 @@ npm run test
 会在 IndexedDB 保存学习会话，并可在二次确认后仅清除当前演示会话。
 `/migration-preview` 先只读生成报告；只有用户明确创建安全暂存后，脱敏快照与报告才进入
 IndexedDB 隔离数据集。Task010 不激活 Word、FSRS 或其他业务域。
+Task011 的 20 个 N5 日语词条随构建离线发布；来源与许可见
+[第三方内容与许可](./docs/content/THIRD_PARTY_CONTENT.md)。

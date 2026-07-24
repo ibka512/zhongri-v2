@@ -16,6 +16,8 @@
 - 新增版本化迁移运行、隔离数据集与 active migration dataset 指针契约。
 - 新增内存和 Dexie v3 迁移适配器，支持幂等 staging、原子提交和回滚。
 - 迁移页面新增显式“创建安全暂存”，写入前脱敏旧 API Key，且不激活任何业务数据。
+- 新增 CanonicalWord/CanonicalManifest v1、20 个真实日语 N5 词条与固定来源清单。
+- 新增静态 canonical 内容仓储、语言域身份解析和 ID/内容双 SHA-256 完整性校验。
 
 ## 0.1.0
 

@@ -21,7 +21,8 @@
 - Task004 已验收；Task005 和 Task006 已完成持久化、离线基线与会话恢复。
 - Task007 和 Task008 已完成开发预览、会话重开与安全清除。
 - Task009 已完成 v1 备份只读迁移预检。
-- Task010 正在建立隔离 staging、原子 active 指针与回滚底座；它不转换或激活业务域。
+- Task010 已完成隔离 staging、原子 active 指针与回滚底座。
+- Task011 正在建立第一批真实日语 canonical 内容与零容差稳定身份层。
 - 不在路线图中推测或提前实现未授权模块。
 
 完成标准：Phase 0 所有已定义 Task 通过 build、lint、test，文档与实现一致。
@@ -36,6 +37,7 @@
 - 程序完成确定性判题。
 - 记录 LearningEvent 学习事实。
 - 通过明确的应用用例和 Repository Port 隔离持久化。
+- 真实 canonical 内容通过内容 Repository Port 进入课程，不让页面直接读取资产文件。
 - 长期复习调度与学习事实保持边界。
 
 不包含：AI 生成、ASR、实时语音、社区和商业化。

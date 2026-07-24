@@ -14,16 +14,17 @@
 - **Task 007**：GitHub Pages 子路径构建、产物校验和自动部署。
 - **Task 008**：按会话原子清除、显式二次确认和失败后保留原进度。
 - **Task 009**：v5+/v4 备份只读预检、逐域报告和安全导出。
+- **Task 010**：隔离迁移暂存、原子 active 指针和回滚边界。
 
 ## 当前
 
-- **Task 010** 正在实施，任务定义见 [GitHub Issue #12](https://github.com/ibka512/zhongri-v2/issues/12)。
-- 同一来源 SHA-256 和规格版本生成稳定 migrationId，并幂等复用 snapshot/staging。
-- Dexie v3 新增迁移运行、隔离数据集和 active pointer 表，不改变现有学习表语义。
-- 页面只有在用户明确操作后才写入脱敏暂存；暂存不激活 Word、FSRS 或学习历史。
-- 当前仍不包含 canonical 身份表、逐域业务转换、FSRS 激活、AI、正式首页或真实音频。
+- **Task 011** 正在实施，任务定义见 [GitHub Issue #14](https://github.com/ibka512/zhongri-v2/issues/14)。
+- 首批 20 个真实 N5 日语词条保留 `jp-study` 稳定 ID、固定提交、分片 blob 与许可证据。
+- Canonical 内容只能通过 Repository Port 访问；精确 ID 优先，重名候选不得自动合并。
+- Manifest 同时锁定排序后的身份摘要与完整内容摘要，漂移会让完整性验证失败。
+- 当前仍不包含完整词库、正式每日课程、FSRS、AI、正式首页或真实音频。
 
 ## 下一步
 
-- 完成 Task010 的代码审查、合并和 Pages 预览验收。
-- 后续任务继续按日语纵向切片逐项冻结，不从路线图直接推断。
+- 完成 Task011 的代码审查、来源和许可核验。
+- Task012 以该内容仓储替换 Mock，建立正式每日课程纵向切片。

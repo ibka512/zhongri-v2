@@ -83,5 +83,13 @@ export {
   type MigrationValidationSummary,
 } from './MigrationStagingSchema';
 
+export {
+  CanonicalManifestSchema,
+  CanonicalWordSchema,
+  CanonicalWordSourceSchema,
+  type CanonicalManifest,
+  type CanonicalWord,
+} from './CanonicalContentSchema';
+
 export { AnswerValueSchema, ContractVersionSchema, LanguageSchema } from './shared';
 export type { AnswerValue, Language } from './shared';
