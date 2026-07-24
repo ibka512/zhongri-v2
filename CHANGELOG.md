@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- 新增 StudySessionCheckpoint v1、学习持久化 Ports 和 ADR-003。
+- 新增内存与 Dexie 幂等学习事务适配器。
+- StudyUseCase 在持久化成功后才进入反馈状态，失败时保留当前题目。
+- 启用最小 PWA manifest、App Shell 预缓存、离线导航和更新状态事件。
+
 ## 0.1.0
 
 初始化项目。

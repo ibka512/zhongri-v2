@@ -33,8 +33,9 @@ FSRS 复习调度
 
 当前进入 **Phase 1：核心学习闭环**。
 
-仓库已经具备可维护的 React + TypeScript + Vite 基础、三项核心数据契约、UI Lab 和
-GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已实现并等待负责人验收。
+仓库已经具备可维护的 React + TypeScript + Vite 基础、核心数据契约、UI Lab 和
+GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已由产品负责人验收。
+当前实施 **Task 005：持久化边界与离线学习基线**。
 
 ## 已完成任务
 
@@ -42,7 +43,7 @@ GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已
 - **Task 002**：冻结 Question Schema v1、Judgement Schema v1、LearningEvent Schema v1。
 - **Task 003**：建立 Design Token、Theme Provider、核心展示组件和 `/ui-lab`。
 - **Task 003.5**：建立 GitHub Actions、Issue/PR 模板和开发状态文档。
-- **Task 004**：建立选择题判题、内存 QuestionFlow、LearningEvent 生成和 `/study-demo`。
+- **Task 004**：建立选择题判题、内存 QuestionFlow、LearningEvent 生成和 `/study-demo`，已验收。
 
 准确提交记录见 [TASKS.md](./TASKS.md)。
 
@@ -79,7 +80,7 @@ Infrastructure Adapters
 
 在负责人明确下达对应任务前，禁止：
 
-- 接入数据库、Repository、FSRS 或数据迁移。
+- 接入真实 FSRS 或数据迁移。
 - 接入 AI API、模型 SDK、聊天界面或真实音频服务。
 - 创建首页、词库、五十音、IPA、账号、同步、商业化或社区功能。
 - 让组件直接调用外部能力或把业务事实写入 Zustand、LocalStorage。
@@ -89,19 +90,19 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前等待 **Task 004：Application 层与第一个学习闭环** 验收。
+当前任务是 **Task 005：持久化边界与离线学习基线**。
 
-范围仅包括选择题确定性判题、内存 QuestionFlow、LearningEvent 事实生成、三道日语
-Mock Question 和 `/study-demo` 技术验证页面。Task004 不修改 Schema，不接入数据库、
-AI、FSRS、账号、词库、迁移或真实音频。
+范围包括 Repository/Transaction/Clock/ID Ports、StudySessionCheckpoint v1、幂等学习
+事务、内存与 Dexie 适配器，以及基础 PWA App Shell。Task005 不接入真实迁移、FSRS、
+AI、账号、词库、正式首页或真实音频。
 
-详细决策见 [ADR-002](./decisions/ADR-002-first-learning-loop.md)。
+详细决策见 [ADR-003](./decisions/ADR-003-persistence-transaction-boundary.md)。
 
 ## 下一步路线
 
-1. 由产品负责人验收 Task004 的技术验证闭环。
+1. 完成 Task005 的代码审查与远程 CI。
 2. 下一项任务必须由产品负责人单独冻结，不从路线图推断。
-3. 持久化、FSRS 和正式学习功能仍需独立 Task。
+3. 真实迁移、FSRS 和正式学习功能仍需独立 Task。
 4. AI 增强属于 Phase 2；语音和高级能力属于 Phase 3。
 
 阶段路线见 [ROADMAP.md](./ROADMAP.md)。

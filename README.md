@@ -13,18 +13,23 @@ Phase 1：核心学习闭环技术验证。
 - Design Token、Theme Provider、核心 UI 组件和 `/ui-lab`。
 - 架构边界、ADR 和 AI 项目知识库。
 - 选择题 Domain Judge、Application QuestionFlow 和 `/study-demo` 内存闭环。
+- Task004 已由产品负责人验收。
 
-尚未实现正式学习功能、持久化、数据库、AI、FSRS、词库或数据迁移。
+正在实施 Task005：持久化边界与离线学习基线。当前分支加入幂等学习事务、
+StudySessionCheckpoint v1、内存/Dexie 适配器和最小 PWA 离线壳。
+
+尚未实现正式学习首页、真实 v1 迁移、FSRS、AI、词库或真实音频。
 
 ## 开发状态
 
-**Phase 1 - Task 004：第一个学习闭环技术验证** 已完成并等待验收。
+**Phase 1 - Task 005：持久化边界与离线学习基线** 正在实施。
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
 - Task 003：UI Lab 与 Design System，已完成。
 - Task 003.5：GitHub 工程化增强，已完成。
-- Task 004：Application 层与第一个学习闭环，已完成。
+- Task 004：Application 层与第一个学习闭环，已验收。
+- Task 005：Ports、幂等事务、Dexie 与最小离线壳，实施中。
 
 详细状态见 [开发状态](./docs/development/STATUS.md)。
 
@@ -85,4 +90,5 @@ npm run lint
 npm run test
 ```
 
-`vite-plugin-pwa` 已安装，但当前尚未启用完整 Service Worker 和离线业务逻辑。
+`vite-plugin-pwa` 已启用 App Shell 预缓存、导航回退和更新状态事件。正式离线学习数据
+与资源缓存仍属于后续任务。

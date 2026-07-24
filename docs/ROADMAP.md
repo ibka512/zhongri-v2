@@ -16,9 +16,10 @@
 - Design Token、Theme Provider、核心组件和 `/ui-lab`。
 - AI 友好的项目知识库。
 
-剩余工作：
+当前交接：
 
-- Task 004 及后续任务等待负责人逐项冻结。
+- Task004 已验收；Task005 正在收口持久化事务和最小 PWA 离线基线。
+- Task006 及后续任务等待负责人逐项冻结。
 - 不在路线图中推测或提前实现未授权模块。
 
 完成标准：Phase 0 所有已定义 Task 通过 build、lint、test，文档与实现一致。

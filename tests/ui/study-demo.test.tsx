@@ -6,7 +6,7 @@ import { appRoutes } from '../../src/app/router';
 import { ThemeProvider } from '../../src/ui/theme';
 
 describe('StudyDemoPage', () => {
-  it('completes three mock questions with correct and incorrect feedback', () => {
+  it('completes three mock questions with correct and incorrect feedback', async () => {
     const router = createMemoryRouter(appRoutes, {
       initialEntries: ['/study-demo'],
     });
@@ -21,18 +21,19 @@ describe('StudyDemoPage', () => {
     expect(screen.getByText('1 / 3')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'ねこ' }));
-    expect(screen.getByRole('heading', { name: '理解正确' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '理解正确' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: '下一题' }));
     expect(screen.getByText('2 / 3')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: '火' }));
-    expect(screen.getByRole('heading', { name: '一起看清这个词' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '一起看清这个词' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: '下一题' }));
     expect(screen.getByText('3 / 3')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'としょかん' }));
+    await screen.findByRole('heading', { name: '理解正确' });
     fireEvent.click(screen.getByRole('button', { name: '完成练习' }));
 
     expect(screen.getByRole('heading', { name: '3 道示例题已完成' })).toBeInTheDocument();
