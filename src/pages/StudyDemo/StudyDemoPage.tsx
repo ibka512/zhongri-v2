@@ -1,36 +1,63 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { StudyUseCase, type StudySessionSnapshot } from '../../application/study';
-import { InMemoryStudyPersistence } from '../../infrastructure/study';
-import { cryptoIdGenerator, webClock } from '../../infrastructure/system';
-import { studyDemoItems } from '../../mock/questions';
+import type { StudySessionSnapshot, StudyUseCase } from '../../application/study';
 import { JudgementStatus, QuestionType } from '../../schemas/v1';
 import { Button, Card, Progress } from '../../ui/components';
 import { ChoiceAnswer, Feedback, QuestionFrame } from '../../ui/components/learning';
 import './study-demo.css';
 
-function createDemoUseCase(): StudyUseCase {
-  const persistence = new InMemoryStudyPersistence();
-
-  return new StudyUseCase(
-    {
-      items: studyDemoItems,
-      sessionId: 'task004-demo-session',
-      userId: 'task004-demo-user',
-    },
-    {
-      clock: webClock,
-      idGenerator: cryptoIdGenerator,
-      transaction: persistence,
-    },
-  );
+export interface StudyDemoPageProps {
+  createUseCase: () => Promise<StudyUseCase>;
 }
 
-export function StudyDemoPage() {
-  const [useCase] = useState(createDemoUseCase);
-  const [snapshot, setSnapshot] = useState<StudySessionSnapshot>(() => useCase.getSnapshot());
+export function StudyDemoPage({ createUseCase }: StudyDemoPageProps) {
+  const [useCase, setUseCase] = useState<StudyUseCase | null>(null);
+  const [snapshot, setSnapshot] = useState<StudySessionSnapshot | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    void createUseCase()
+      .then((createdUseCase) => {
+        if (!isActive) {
+          return;
+        }
+
+        setUseCase(createdUseCase);
+        setSnapshot(createdUseCase.getSnapshot());
+      })
+      .catch(() => {
+        if (isActive) {
+          setLoadError('学习会话恢复失败。现有进度未被覆盖。');
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [createUseCase]);
+
+  if (loadError) {
+    return (
+      <main className="study-demo">
+        <Card>
+          <h1>无法恢复学习会话</h1>
+          <p role="alert">{loadError}</p>
+        </Card>
+      </main>
+    );
+  }
+
+  if (!useCase || !snapshot) {
+    return (
+      <main className="study-demo">
+        <p role="status">正在恢复本地学习会话…</p>
+      </main>
+    );
+  }
 
   const currentQuestion = snapshot.currentItem?.question ?? null;
 
@@ -38,7 +65,7 @@ export function StudyDemoPage() {
     return (
       <main className="study-demo">
         <Card className="study-demo__completion">
-          <p className="study-demo__eyebrow">技术验证完成</p>
+          <p className="study-demo__eyebrow">本地会话已保存</p>
           <h1>3 道示例题已完成</h1>
           <Progress
             detail={`${snapshot.total} / ${snapshot.total}`}
@@ -47,7 +74,7 @@ export function StudyDemoPage() {
             max={snapshot.total}
             value={snapshot.total}
           />
-          <p>本次内存会话生成了 {snapshot.events.length} 条 LearningEvent。刷新页面后会清空。</p>
+          <p>本次会话已有 {snapshot.events.length} 条 LearningEvent；刷新后仍会恢复完成状态。</p>
         </Card>
       </main>
     );
@@ -65,9 +92,9 @@ export function StudyDemoPage() {
   return (
     <main className="study-demo">
       <header className="study-demo__header">
-        <p className="study-demo__eyebrow">Phase 1 · Task004</p>
-        <h1>第一个学习闭环</h1>
-        <p>使用 Mock Question 验证 Domain、Application、UI 与 Schema 的边界。</p>
+        <p className="study-demo__eyebrow">Phase 1 · Task006</p>
+        <h1>可恢复的学习会话</h1>
+        <p>答题、反馈、下一题和完成状态均保存在本地。</p>
       </header>
 
       <QuestionFrame
@@ -109,8 +136,19 @@ export function StudyDemoPage() {
                 {currentQuestion.explanation && <p>{currentQuestion.explanation}</p>}
               </Feedback>
               <Button
+                disabled={isSubmitting}
                 onClick={() => {
-                  setSnapshot(useCase.nextQuestion());
+                  setIsSubmitting(true);
+                  setSubmissionError(null);
+                  void useCase
+                    .nextQuestion()
+                    .then(setSnapshot)
+                    .catch(() => {
+                      setSubmissionError('进度保存失败，请重试。');
+                    })
+                    .finally(() => {
+                      setIsSubmitting(false);
+                    });
                 }}
               >
                 {snapshot.currentIndex === snapshot.total - 1 ? '完成练习' : '下一题'}

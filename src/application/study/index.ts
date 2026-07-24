@@ -1,5 +1,6 @@
-export { QuestionFlow } from './QuestionFlow';
+export { QuestionFlow, type RestoreQuestionFlowInput } from './QuestionFlow';
 export {
+  SessionRestoreError,
   StudyUseCase,
   type StartStudySessionInput,
   type StudyUseCaseDependencies,

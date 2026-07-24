@@ -12,6 +12,7 @@ import {
   JudgementResultSchema,
   LearningEventSchema,
   StudySessionCheckpointSchema,
+  StudySessionStateSchema,
 } from '../../src/schemas/v1';
 
 function createCommitInput(answer = 'neko'): CommitAnswerInput {
@@ -66,12 +67,28 @@ function createCommitInput(answer = 'neko'): CommitAnswerInput {
     eventIds: ['event-1', 'event-2'],
     updatedAt: '2026-07-24T01:00:01.250Z',
   });
+  const sessionState = StudySessionStateSchema.parse({
+    schemaVersion: 1,
+    sessionId: 'session-1',
+    userId: 'user-1',
+    itemReferences: [
+      { itemId: 'item-1', questionId: 'question-1' },
+      { itemId: 'item-2', questionId: 'question-2' },
+    ],
+    currentIndex: 0,
+    status: 'feedback',
+    selectedAnswer: answer,
+    judgement,
+    eventIds: ['event-1', 'event-2'],
+    updatedAt: '2026-07-24T01:00:01.250Z',
+  });
 
   return {
     idempotencyKey: 'session-1:question-1',
     requestFingerprint: JSON.stringify(['session-1', 'question-1', answer]),
     events,
     checkpoint,
+    sessionState,
   };
 }
 
@@ -123,6 +140,7 @@ describe.each(harnesses)('$name study persistence contract', ({ create }) => {
     expect(replay.events.map((event) => event.id)).toEqual(['event-1', 'event-2']);
     expect(await persistence.findBySessionId('session-1')).toHaveLength(2);
     expect(await persistence.findCheckpoint('session-1')).toEqual(input.checkpoint);
+    expect(await persistence.findSessionState('session-1')).toEqual(input.sessionState);
 
     await cleanup();
   });
@@ -151,6 +169,16 @@ describe.each(harnesses)('$name study persistence contract', ({ create }) => {
         },
         eventIds: ['event-3', 'event-4'],
       },
+      sessionState: StudySessionStateSchema.parse({
+        ...createCommitInput().sessionState,
+        currentIndex: 1,
+        selectedAnswer: 'neko',
+        judgement: {
+          ...createCommitInput().sessionState.judgement,
+          questionId: 'question-2',
+        },
+        eventIds: ['event-1', 'event-2', 'event-3', 'event-4'],
+      }),
     };
     await persistence.commitAnswer(secondInput);
 
@@ -159,9 +187,14 @@ describe.each(harnesses)('$name study persistence contract', ({ create }) => {
     expect(replay.status).toBe('replayed');
     expect(replay.checkpoint.currentIndex).toBe(0);
     expect(replay.checkpoint.questionId).toBe('question-1');
+    expect(replay.sessionState.currentIndex).toBe(0);
     expect(await persistence.findCheckpoint('session-1')).toMatchObject({
       currentIndex: 1,
       questionId: 'question-2',
+    });
+    expect(await persistence.findSessionState('session-1')).toMatchObject({
+      currentIndex: 1,
+      status: 'feedback',
     });
 
     await cleanup();
@@ -196,5 +229,6 @@ describe('in-memory transaction rollback', () => {
     );
     expect(await persistence.findBySessionId('session-1')).toEqual([]);
     expect(await persistence.findCheckpoint('session-1')).toBeNull();
+    expect(await persistence.findSessionState('session-1')).toBeNull();
   });
 });

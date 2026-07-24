@@ -9,8 +9,10 @@ import {
 import {
   LearningEventSchema,
   StudySessionCheckpointSchema,
+  StudySessionStateSchema,
   type LearningEvent,
   type StudySessionCheckpoint,
+  type StudySessionState,
 } from '../../schemas/v1';
 
 interface IdempotencyRecord {
@@ -18,11 +20,13 @@ interface IdempotencyRecord {
   fingerprint: string;
   eventIds: string[];
   checkpoint: StudySessionCheckpoint;
+  sessionState: StudySessionState;
 }
 
 export class DexieStudyPersistence extends Dexie implements StudyPersistencePort {
   readonly learningEvents!: Table<LearningEvent, string>;
   readonly sessionCheckpoints!: Table<StudySessionCheckpoint, string>;
+  readonly studySessions!: Table<StudySessionState, string>;
   readonly idempotencyRecords!: Table<IdempotencyRecord, string>;
 
   constructor(databaseName = 'zhongri-v2', options?: DexieOptions) {
@@ -33,12 +37,18 @@ export class DexieStudyPersistence extends Dexie implements StudyPersistencePort
       sessionCheckpoints: '&sessionId, updatedAt',
       idempotencyRecords: '&key',
     });
+    this.version(2).stores({
+      learningEvents: '&id, sessionId, timestamp',
+      sessionCheckpoints: '&sessionId, updatedAt',
+      studySessions: '&sessionId, updatedAt',
+      idempotencyRecords: '&key',
+    });
   }
 
   async commitAnswer(input: CommitAnswerInput): Promise<CommitAnswerResult> {
     return this.transaction(
       'rw',
-      [this.learningEvents, this.sessionCheckpoints, this.idempotencyRecords],
+      [this.learningEvents, this.sessionCheckpoints, this.studySessions, this.idempotencyRecords],
       async () => {
         const existingRecord = await this.idempotencyRecords.get(input.idempotencyKey);
 
@@ -57,25 +67,30 @@ export class DexieStudyPersistence extends Dexie implements StudyPersistencePort
             status: 'replayed',
             events: storedEvents.map((event) => LearningEventSchema.parse(event)),
             checkpoint: StudySessionCheckpointSchema.parse(existingRecord.checkpoint),
+            sessionState: StudySessionStateSchema.parse(existingRecord.sessionState),
           };
         }
 
         const events = input.events.map((event) => LearningEventSchema.parse(event));
         const checkpoint = StudySessionCheckpointSchema.parse(input.checkpoint);
+        const sessionState = StudySessionStateSchema.parse(input.sessionState);
 
         await this.learningEvents.bulkAdd(events);
         await this.sessionCheckpoints.put(checkpoint);
+        await this.studySessions.put(sessionState);
         await this.idempotencyRecords.add({
           key: input.idempotencyKey,
           fingerprint: input.requestFingerprint,
           eventIds: events.map((event) => event.id),
           checkpoint,
+          sessionState,
         });
 
         return {
           status: 'committed',
           events,
           checkpoint,
+          sessionState,
         };
       },
     );
@@ -92,5 +107,16 @@ export class DexieStudyPersistence extends Dexie implements StudyPersistencePort
   async findCheckpoint(sessionId: string): Promise<StudySessionCheckpoint | null> {
     const checkpoint = await this.sessionCheckpoints.get(sessionId);
     return checkpoint ? StudySessionCheckpointSchema.parse(checkpoint) : null;
+  }
+
+  async findSessionState(sessionId: string): Promise<StudySessionState | null> {
+    const state = await this.studySessions.get(sessionId);
+    return state ? StudySessionStateSchema.parse(state) : null;
+  }
+
+  async saveSessionState(state: StudySessionState): Promise<StudySessionState> {
+    const parsed = StudySessionStateSchema.parse(state);
+    await this.studySessions.put(parsed);
+    return parsed;
   }
 }

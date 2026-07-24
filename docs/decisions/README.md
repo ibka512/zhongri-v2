@@ -7,6 +7,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-001：冻结核心数据契约](./ADR-001-schema-contracts.md)
 - [ADR-002：先实现第一个学习闭环](./ADR-002-first-learning-loop.md)
 - [ADR-003：学习事实持久化与幂等事务边界](./ADR-003-persistence-transaction-boundary.md)
+- [ADR-004：以版本化会话状态恢复学习流程](./ADR-004-recoverable-study-session.md)
 
 ## 未来
 

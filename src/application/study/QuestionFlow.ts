@@ -1,6 +1,14 @@
 import type { AnswerValue, JudgementResult, LearningEvent } from '../../schemas/v1';
 import type { StudyItem, StudySessionSnapshot, StudySessionStatus } from './StudySession';
 
+export interface RestoreQuestionFlowInput {
+  currentIndex: number;
+  events: readonly LearningEvent[];
+  judgement: JudgementResult | null;
+  selectedAnswer: AnswerValue | null;
+  status: StudySessionStatus;
+}
+
 export class QuestionFlow {
   readonly #items: readonly StudyItem[];
   readonly #sessionId: string;
@@ -11,7 +19,12 @@ export class QuestionFlow {
   #selectedAnswer: AnswerValue | null = null;
   #status: StudySessionStatus = 'answering';
 
-  constructor(items: readonly StudyItem[], sessionId: string, userId: string) {
+  constructor(
+    items: readonly StudyItem[],
+    sessionId: string,
+    userId: string,
+    restored?: RestoreQuestionFlowInput,
+  ) {
     if (items.length === 0) {
       throw new Error('A study session requires at least one question');
     }
@@ -19,6 +32,18 @@ export class QuestionFlow {
     this.#items = [...items];
     this.#sessionId = sessionId;
     this.#userId = userId;
+
+    if (restored) {
+      if (restored.currentIndex >= items.length) {
+        throw new Error('Restored question index is outside the session');
+      }
+
+      this.#currentIndex = restored.currentIndex;
+      this.#events = [...restored.events];
+      this.#judgement = restored.judgement;
+      this.#selectedAnswer = restored.selectedAnswer;
+      this.#status = restored.status;
+    }
   }
 
   getSnapshot(): StudySessionSnapshot {
