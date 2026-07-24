@@ -182,6 +182,36 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
               max={course.plan.items.length}
               value={completedQuestions}
             />
+            <section aria-labelledby="today-learning-evidence" className="today-course__evidence">
+              <h3 id="today-learning-evidence">学习依据</h3>
+              <dl>
+                <div>
+                  <dt>今天到期</dt>
+                  <dd>{course.insights.dueReviewCount} 个词</dd>
+                </div>
+                <div>
+                  <dt>近期薄弱</dt>
+                  <dd>
+                    {course.insights.recentIncorrectWords.length > 0
+                      ? course.insights.recentIncorrectWords.map((word) => word.headword).join('、')
+                      : '暂无薄弱证据'}
+                  </dd>
+                </div>
+                <div>
+                  <dt>历史正确率</dt>
+                  <dd>
+                    {course.insights.profile.answeredCount > 0
+                      ? `${Math.round(course.insights.profile.accuracy * 100)}%`
+                      : '完成后生成'}
+                  </dd>
+                </div>
+              </dl>
+              <p>
+                {course.insights.profile.answeredCount > 0
+                  ? '计划依据今天开始前的真实答题记录生成，当天保持稳定。'
+                  : '还没有历史答题证据，今天先从 N5 基础词开始。'}
+              </p>
+            </section>
             <ul className="today-course__facts">
               <li>5 个真实 N5 基础词</li>
               <li>3 道选择 · 2 道输入</li>
@@ -233,7 +263,7 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
             </ul>
           </section>
           <Feedback title="接下来" tone="hint">
-            <p>明天会继续安排新的基础词。个性化复习排程将在下一阶段根据真实答题记录接入。</p>
+            <p>本次记录会在下次打开时重建学习画像，并进入之后的个性化复习计划。</p>
           </Feedback>
           <RestartControl blocked={false} onRestart={handleRestart} />
         </Card>

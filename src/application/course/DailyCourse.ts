@@ -12,9 +12,17 @@ import {
 const DAILY_WORD_COUNT = 5;
 const CHOICE_OPTION_COUNT = 4;
 
+export type DailyCoursePriorityReason = 'due-review' | 'recent-incorrect';
+
+export interface DailyCoursePriority {
+  reason: DailyCoursePriorityReason;
+  wordId: string;
+}
+
 export interface DailyCourse {
   items: readonly StudyItem[];
   plan: TodayPlan;
+  selectionReasons: Readonly<Record<string, DailyCoursePriorityReason | 'foundation'>>;
   words: readonly CanonicalWord[];
 }
 
@@ -30,16 +38,61 @@ function dateOrdinal(localDate: string): number {
   return Math.floor(Date.UTC(year, month - 1, day) / 86_400_000);
 }
 
-function selectDailyWords(words: readonly CanonicalWord[], localDate: string) {
+function selectDailyWords(
+  words: readonly CanonicalWord[],
+  localDate: string,
+  priorities: readonly DailyCoursePriority[],
+) {
   if (words.length < DAILY_WORD_COUNT) {
     throw new Error(`Daily course requires at least ${DAILY_WORD_COUNT} canonical words`);
   }
 
   const start = dateOrdinal(localDate) % words.length;
-  return Array.from(
-    { length: DAILY_WORD_COUNT },
+  const foundation = Array.from(
+    { length: words.length },
     (_, index) => words[(start + index) % words.length],
   );
+  const wordsById = new Map(words.map((word) => [word.id, word]));
+  const selected: CanonicalWord[] = [];
+  const reasons: Record<string, DailyCoursePriorityReason | 'foundation'> = {};
+
+  for (const priority of priorities) {
+    const word = wordsById.get(priority.wordId);
+    if (!word || reasons[word.id]) {
+      continue;
+    }
+
+    selected.push(word);
+    reasons[word.id] = priority.reason;
+    if (selected.length === DAILY_WORD_COUNT) {
+      break;
+    }
+  }
+
+  for (const word of foundation) {
+    if (selected.length === DAILY_WORD_COUNT) {
+      break;
+    }
+    if (reasons[word.id]) {
+      continue;
+    }
+
+    selected.push(word);
+    reasons[word.id] = 'foundation';
+  }
+
+  return { reasons, words: selected };
+}
+
+function selectionFingerprint(words: readonly CanonicalWord[]): string {
+  let hash = 0x811c9dc5;
+
+  for (const character of words.map((word) => word.id).join('|')) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 0x01000193);
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
 function createExplanation(word: CanonicalWord): string {
@@ -121,10 +174,12 @@ function createTextQuestion(word: CanonicalWord, questionId: string): Question {
 export function createDailyCourse(
   repository: CanonicalContentRepositoryPort,
   localDate: string,
+  priorities: readonly DailyCoursePriority[] = [],
 ): DailyCourse {
   const manifest = repository.getManifest();
-  const words = selectDailyWords(repository.listByLanguage('ja'), localDate);
-  const planId = `today-ja-${localDate}-${manifest.id}-c${manifest.contentVersion}-p1`;
+  const selection = selectDailyWords(repository.listByLanguage('ja'), localDate, priorities);
+  const words = selection.words;
+  const planId = `today-ja-${localDate}-${manifest.id}-c${manifest.contentVersion}-p2-${selectionFingerprint(words)}`;
   const questions = words.map((word, questionIndex) => {
     const questionId = `${planId}-q${questionIndex + 1}`;
     return questionIndex % 2 === 0
@@ -150,6 +205,7 @@ export function createDailyCourse(
 
   return {
     plan,
+    selectionReasons: selection.reasons,
     words,
     items: questions.map((question, index) => ({
       itemId: words[index].id,

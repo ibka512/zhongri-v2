@@ -20,6 +20,11 @@
 - 新增静态 canonical 内容仓储、语言域身份解析和 ID/内容双 SHA-256 完整性校验。
 - 新增 TodayPlan v1、每日五词确定性课程编排与选择/文本混合判题。
 - 网站根路由进入正式今日课程，支持计划、答题、反馈、结果与刷新恢复。
+- 新增 LearnerProfile v1、ReviewState v1 与可重放 LearningProjector。
+- 接入官方 `ts-fsrs` FSRS v6，通过 ReviewScheduler Port 隔离长期复习调度。
+- Dexie 升级到 v4，原子替换一个用户的画像和全部复习状态。
+- Today Plan 优先当天到期复习和最近仍答错的词，再稳定补足五个基础词。
+- 今日计划首页展示真实到期数、薄弱词与历史正确率，无证据时显示诚实空状态。
 
 ## 0.1.0
 

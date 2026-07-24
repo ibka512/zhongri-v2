@@ -98,5 +98,16 @@ export {
   type TodayPlanItem,
 } from './TodayPlanSchema';
 
+export {
+  LearnerProfileSchema,
+  LearnerTrendSchema,
+  LearningProjectionSchema,
+  ReviewStateSchema,
+  type LearnerProfile,
+  type LearnerTrend,
+  type LearningProjection,
+  type ReviewState,
+} from './LearningProjectionSchema';
+
 export { AnswerValueSchema, ContractVersionSchema, LanguageSchema } from './shared';
 export type { AnswerValue, Language } from './shared';

@@ -23,7 +23,8 @@
 - Task009 已完成 v1 备份只读迁移预检。
 - Task010 已完成隔离 staging、原子 active 指针与回滚底座。
 - Task011 已建立第一批真实日语 canonical 内容与零容差稳定身份层。
-- Task012 正在建立不依赖 AI 的正式每日课程纵向切片。
+- Task012 已建立不依赖 AI 的正式每日课程纵向切片。
+- Task013 正在从 LearningEvent 建立可重放画像与 FSRS 长期复习调度。
 - 不在路线图中推测或提前实现未授权模块。
 
 完成标准：Phase 0 所有已定义 Task 通过 build、lint、test，文档与实现一致。

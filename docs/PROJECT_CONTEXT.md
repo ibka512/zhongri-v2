@@ -35,7 +35,7 @@ FSRS 复习调度
 
 仓库已经具备可维护的 React + TypeScript + Vite 基础、核心数据契约、UI Lab 和
 GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已由产品负责人验收。
-Task 011 已完成，当前实施 **Task 012：正式每日课程纵向切片**。
+Task 012 已完成，当前实施 **Task 013：学习者画像与 FSRS 复习调度**。
 
 ## 已完成任务
 
@@ -51,6 +51,7 @@ Task 011 已完成，当前实施 **Task 012：正式每日课程纵向切片**�
 - **Task 009**：建立 v5+/v4 备份识别、逐域预检、安全报告和迁移默认决策。
 - **Task 010**：建立隔离 staging、确定性 migrationId、原子 active 指针与回滚边界。
 - **Task 011**：建立首批真实 N5 词条、固定来源 Manifest 和 canonical 身份仓储。
+- **Task 012**：建立正式每日五词计划、混合题型、结果页和可恢复纵向闭环。
 
 准确提交记录见 [TASKS.md](./TASKS.md)。
 
@@ -87,7 +88,7 @@ Infrastructure Adapters
 
 在负责人明确下达对应任务前，禁止：
 
-- 接入真实 FSRS 或未经独立任务授权的写入式数据迁移。
+- 修改 FSRS 算法版本、参数或接入未经独立任务授权的写入式数据迁移。
 - 接入 AI API、模型 SDK、聊天界面或真实音频服务。
 - 创建首页、词库、五十音、IPA、账号、同步、商业化或社区功能。
 - 让组件直接调用外部能力或把业务事实写入 Zustand、LocalStorage。
@@ -97,18 +98,18 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **Task 012：正式每日课程纵向切片**。
+当前任务是 **Task 013：学习者画像与 FSRS 复习调度**。
 
-范围包括 TodayPlan v1、按本地日期从 canonical Repository Port 选择五个真实 N5 词条、
-三道选择题与两道文本题，以及 `/today` 的计划、答题、反馈、结果和刷新恢复。该切片复用
-现有 StudyUseCase、LearningEvent 与 Dexie，不实现 LearnerProfile、FSRS 或 AI。
+范围包括 LearnerProfile v1、ReviewState v1、LearningEvent 全量重放、FSRS v6
+Scheduler Port、Dexie v4 原子投影替换，以及 Today Plan 的到期复习/最近错误优先级。
+当天计划只使用当地零点前的事件，保持同日稳定；不实现 AI 或未经事件证明的画像指标。
 
-详细决策见 [ADR-010](./decisions/ADR-010-deterministic-daily-course.md)。
+详细决策见 [ADR-011](./decisions/ADR-011-replayable-profile-fsrs.md)。
 
 ## 下一步路线
 
-1. 完成 Task012 的代码审查、混合题型、移动端与恢复验收。
-2. Task013 建立学习画像与复习调度；Task014 才接入 AI Gateway。
+1. 完成 Task013 的代码审查、重放、移动端与离线验收。
+2. Task014 才接入 AI Gateway，并只发送受控画像摘要。
 3. AI 增强必须继续复用固定题目 UI 和真实 LearningEvent，不替代基础课程。
 4. 完整迁移转换与 9,828 词扩容继续使用独立 Task，不阻塞核心学习纵向切片。
 

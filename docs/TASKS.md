@@ -16,20 +16,21 @@
 | Task 009   | v1 备份迁移预检                                   | 已完成 | `9f36f55`  |
 | Task 010   | 迁移 staging、原子提交与回滚边界                  | 已完成 | `995b404`  |
 | Task 011   | 真实日语词条与 canonical 身份底座                 | 已完成 | `1c94658`  |
+| Task 012   | 正式每日课程纵向切片                              | 已完成 | `3c21f73`  |
 
 ## 当前
 
-- **Task 012：正式每日课程纵向切片** 正在实施。
-- Issue：[#16](https://github.com/ibka512/zhongri-v2/issues/16)。
-- 当前切片包含 TodayPlan v1、每日五个真实 N5 词、三道选择题与两道文本题，以及
-  `/today` 的计划、答题、反馈、结果和恢复闭环。
-- 当前切片不包含 LearnerProfile、FSRS、AI、完整词库扩容或迁移业务域激活。
+- **Task 013：学习者画像与 FSRS 复习调度** 正在实施。
+- Issue：[#18](https://github.com/ibka512/zhongri-v2/issues/18)。
+- 当前切片从 LearningEvent 重放 LearnerProfile v1 与 ReviewState v1，并让 Today Plan
+  优先消费到期复习和最近仍答错的词。
+- 当前切片不包含 AI、FSRS 参数训练、旧 FSRS 迁移、完整词库扩容或迁移业务域激活。
 
 ## 待完成
 
 | Task          | 状态   | 说明                                                   |
 | ------------- | ------ | ------------------------------------------------------ |
-| Task 013 以后 | 未排期 | 只在前一 Task 验收后逐项确认，不从路线图直接推断实现。 |
+| Task 014 以后 | 未排期 | 只在前一 Task 验收后逐项确认，不从路线图直接推断实现。 |
 
 ## 维护规则
 

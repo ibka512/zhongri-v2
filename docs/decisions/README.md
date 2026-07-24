@@ -14,6 +14,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-008：以隔离 staging 和单一 active pointer 提交迁移](./ADR-008-migration-staging-commit.md)
 - [ADR-009：以固定来源 Manifest 发布 canonical 内容身份](./ADR-009-canonical-content-identity.md)
 - [ADR-010：以确定性 TodayPlan 编排正式每日课程](./ADR-010-deterministic-daily-course.md)
+- [ADR-011：以学习事实重放画像与 FSRS 复习状态](./ADR-011-replayable-profile-fsrs.md)
 
 ## 未来
 

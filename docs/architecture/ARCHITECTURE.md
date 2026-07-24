@@ -38,6 +38,7 @@ Task009 加入只读迁移预检用例、来源摘要 Port 和版本化报告 Sc
 Task010 加入版本化迁移运行、隔离数据集、active pointer 和原子提交/回滚 Port。
 Task011 加入版本化 canonical 内容、固定来源 Manifest 和内容 Repository Port。
 Task012 加入确定性 TodayPlan、正式每日课程编排和文本题判定。
+Task013 加入可重放 LearnerProfile、ReviewState、ReviewScheduler Port 与 Dexie v4 投影。
 `/today` 与 `/study-demo` 只消费 Application 快照，不直接执行业务规则或访问数据库。
 
 ## Task005 学习事务
@@ -104,4 +105,20 @@ FSRS 调度或 AI。
 5. 结果只聚合该会话的 LearningEvent，不推断 Profile、薄弱点或复习到期时间。
 6. `/today` 是正式入口；`/study-demo` 继续作为 Mock 技术回归页面。
 
-当前仍不实现 LearnerProfile、FSRS、AI Gateway、完整 canonical 资产或迁移业务域激活。
+Task012 当时不包含 LearnerProfile、FSRS、AI Gateway、完整 canonical 资产或迁移业务域
+激活；画像与调度由下述 Task013 独立引入。
+
+## Task013 学习画像与复习调度
+
+1. `LearningProjector` 只读取已验证 LearningEvent，并按时间与事件 ID 确定性重放。
+2. LearnerProfile 聚合有证据的计数、正确率、响应时间、最近错误与趋势；未知 canonical
+   身份和其他用户事件不会进入投影。
+3. `ReviewSchedulerPort` 把正确/错误映射为 Good/Again；Infrastructure 适配官方
+   `ts-fsrs` 并输出 ReviewState v1。
+4. `LearningProjectionRepositoryPort` 原子替换一个用户的画像和全部 ReviewState。
+   投影可以删除后从 LearningEvent 重建，不反向修改事件。
+5. Today Plan 只消费当天零点前的投影，按到期复习、最近错误、基础补位的顺序选满五词。
+6. UI 只接收 Application 提供的画像摘要，不直接访问 Dexie 或 FSRS。
+
+当前仍不实现 AI Gateway、FSRS 参数训练、旧 FSRS 迁移、完整 canonical 资产或迁移业务域
+激活。

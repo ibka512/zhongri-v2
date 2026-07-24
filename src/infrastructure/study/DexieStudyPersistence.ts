@@ -16,15 +16,22 @@ import {
 } from '../../ports';
 import {
   ActiveMigrationDatasetPointerSchema,
+  LearnerProfileSchema,
   LearningEventSchema,
+  LearningProjectionSchema,
   MigrationRunSchema,
   MigrationStagingDatasetSchema,
+  ReviewStateSchema,
   StudySessionCheckpointSchema,
   StudySessionStateSchema,
   type ActiveMigrationDatasetPointer,
+  type Language,
+  type LearnerProfile,
   type LearningEvent,
+  type LearningProjection,
   type MigrationRun,
   type MigrationStagingDataset,
+  type ReviewState,
   type StudySessionCheckpoint,
   type StudySessionState,
 } from '../../schemas/v1';
@@ -51,6 +58,8 @@ export class DexieStudyPersistence
   implements StudyPersistencePort, MigrationPersistencePort
 {
   readonly learningEvents!: Table<LearningEvent, string>;
+  readonly learnerProfiles!: Table<LearnerProfile, [string, Language]>;
+  readonly reviewStates!: Table<ReviewState, string>;
   readonly sessionCheckpoints!: Table<StudySessionCheckpoint, string>;
   readonly studySessions!: Table<StudySessionState, string>;
   readonly idempotencyRecords!: Table<IdempotencyRecord, string>;
@@ -80,6 +89,17 @@ export class DexieStudyPersistence
       migrationRuns: '&migrationId, sourceFingerprint, status, updatedAt',
       migrationDatasets: '&datasetId, migrationId, sourceFingerprint',
       migrationPointers: '&id',
+    });
+    this.version(4).stores({
+      learningEvents: '&id, sessionId, userId, itemId, timestamp',
+      sessionCheckpoints: '&sessionId, updatedAt',
+      studySessions: '&sessionId, updatedAt',
+      idempotencyRecords: '&key',
+      migrationRuns: '&migrationId, sourceFingerprint, status, updatedAt',
+      migrationDatasets: '&datasetId, migrationId, sourceFingerprint',
+      migrationPointers: '&id',
+      learnerProfiles: '&[userId+language], userId, language',
+      reviewStates: '&id, userId, itemId, due',
     });
   }
 
@@ -155,6 +175,37 @@ export class DexieStudyPersistence
       .equals(sessionId)
       .sortBy('timestamp');
     return events.map((event) => LearningEventSchema.parse(event));
+  }
+
+  async findByUserId(userId: string): Promise<readonly LearningEvent[]> {
+    const events = await this.learningEvents.where('userId').equals(userId).sortBy('timestamp');
+    return events
+      .map((event) => LearningEventSchema.parse(event))
+      .sort(
+        (left, right) =>
+          left.timestamp.localeCompare(right.timestamp) || left.id.localeCompare(right.id),
+      );
+  }
+
+  async findLearnerProfile(userId: string, language: Language): Promise<LearnerProfile | null> {
+    const profile = await this.learnerProfiles.get([userId, language]);
+    return profile ? LearnerProfileSchema.parse(profile) : null;
+  }
+
+  async listReviewStates(userId: string): Promise<readonly ReviewState[]> {
+    const states = await this.reviewStates.where('userId').equals(userId).sortBy('itemId');
+    return states.map((state) => ReviewStateSchema.parse(state));
+  }
+
+  async replaceLearningProjection(projection: LearningProjection): Promise<LearningProjection> {
+    const parsed = LearningProjectionSchema.parse(projection);
+
+    return this.transaction('rw', [this.learnerProfiles, this.reviewStates], async () => {
+      await this.reviewStates.where('userId').equals(parsed.profile.userId).delete();
+      await this.learnerProfiles.put(parsed.profile);
+      await this.reviewStates.bulkPut(parsed.reviewStates);
+      return parsed;
+    });
   }
 
   async findCheckpoint(sessionId: string): Promise<StudySessionCheckpoint | null> {

@@ -10,9 +10,11 @@ import {
 } from '../../src/ports';
 import {
   JudgementResultSchema,
+  LearningProjectionSchema,
   LearningEventSchema,
   StudySessionCheckpointSchema,
   StudySessionStateSchema,
+  type LearningProjection,
 } from '../../src/schemas/v1';
 
 function createCommitInput(answer = 'neko', sessionId = 'session-1'): CommitAnswerInput {
@@ -93,6 +95,45 @@ function createCommitInput(answer = 'neko', sessionId = 'session-1'): CommitAnsw
   };
 }
 
+function createProjection(itemIds: readonly string[]): LearningProjection {
+  return LearningProjectionSchema.parse({
+    profile: {
+      schemaVersion: 1,
+      projectionVersion: 1,
+      userId: 'user-1',
+      language: 'ja',
+      answeredCount: 1,
+      correctCount: 1,
+      incorrectCount: 0,
+      accuracy: 1,
+      averageResponseTimeMs: 1_250,
+      recentIncorrectItemIds: [],
+      recentTrend: 'insufficient',
+      projectedThrough: '2026-07-24T01:00:01.250Z',
+    },
+    reviewStates: itemIds.map((itemId, index) => ({
+      schemaVersion: 1,
+      projectionVersion: 1,
+      id: `user-1:${itemId}`,
+      userId: 'user-1',
+      itemId,
+      algorithm: 'fsrs-6',
+      schedulerVersion: 'ts-fsrs@5.4.1',
+      due: `2026-07-${25 + index}T01:00:00.000Z`,
+      stability: 1,
+      difficulty: 5,
+      elapsedDays: 0,
+      scheduledDays: 1,
+      learningSteps: 0,
+      reps: 1,
+      lapses: 0,
+      state: 2,
+      lastReview: '2026-07-24T01:00:01.250Z',
+      lastEventId: 'event-2',
+    })),
+  });
+}
+
 interface PersistenceHarness {
   persistence: StudyPersistencePort;
   cleanup: () => Promise<void>;
@@ -140,8 +181,33 @@ describe.each(harnesses)('$name study persistence contract', ({ create }) => {
     expect(replay.status).toBe('replayed');
     expect(replay.events.map((event) => event.id)).toEqual(['event-1', 'event-2']);
     expect(await persistence.findBySessionId('session-1')).toHaveLength(2);
+    expect(await persistence.findByUserId('user-1')).toHaveLength(2);
     expect(await persistence.findCheckpoint('session-1')).toEqual(input.checkpoint);
     expect(await persistence.findSessionState('session-1')).toEqual(input.sessionState);
+
+    await cleanup();
+  });
+
+  it('atomically replaces the replayable learner profile and all review states', async () => {
+    const { cleanup, persistence } = create();
+    const first = createProjection(['item-1', 'item-2']);
+    const second = createProjection(['item-1']);
+
+    await persistence.replaceLearningProjection(first);
+    await persistence.replaceLearningProjection(second);
+
+    expect(await persistence.findLearnerProfile('user-1', 'ja')).toEqual(second.profile);
+    expect(await persistence.listReviewStates('user-1')).toEqual(second.reviewStates);
+
+    const malformed = {
+      ...second,
+      profile: { ...second.profile, answeredCount: 2 },
+    };
+    await expect(
+      persistence.replaceLearningProjection(malformed as unknown as LearningProjection),
+    ).rejects.toThrow();
+    expect(await persistence.findLearnerProfile('user-1', 'ja')).toEqual(second.profile);
+    expect(await persistence.listReviewStates('user-1')).toEqual(second.reviewStates);
 
     await cleanup();
   });
@@ -264,5 +330,19 @@ describe('in-memory transaction rollback', () => {
     expect(await persistence.findBySessionId('session-1')).toHaveLength(2);
     expect(await persistence.findCheckpoint('session-1')).toEqual(input.checkpoint);
     expect(await persistence.findSessionState('session-1')).toEqual(input.sessionState);
+  });
+
+  it('preserves the previous projection when replacement fails', async () => {
+    const persistence = new InMemoryStudyPersistence();
+    const first = createProjection(['item-1', 'item-2']);
+    const replacement = createProjection(['item-1']);
+    await persistence.replaceLearningProjection(first);
+    persistence.failNextOperation();
+
+    await expect(persistence.replaceLearningProjection(replacement)).rejects.toThrow(
+      'Injected transaction failure',
+    );
+    expect(await persistence.findLearnerProfile('user-1', 'ja')).toEqual(first.profile);
+    expect(await persistence.listReviewStates('user-1')).toEqual(first.reviewStates);
   });
 });
