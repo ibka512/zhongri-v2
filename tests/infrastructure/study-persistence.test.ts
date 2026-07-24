@@ -15,7 +15,8 @@ import {
   StudySessionStateSchema,
 } from '../../src/schemas/v1';
 
-function createCommitInput(answer = 'neko'): CommitAnswerInput {
+function createCommitInput(answer = 'neko', sessionId = 'session-1'): CommitAnswerInput {
+  const eventPrefix = sessionId === 'session-1' ? 'event' : `${sessionId}-event`;
   const judgement = JudgementResultSchema.parse({
     schemaVersion: 1,
     questionId: 'question-1',
@@ -29,7 +30,7 @@ function createCommitInput(answer = 'neko'): CommitAnswerInput {
   const common = {
     schemaVersion: 1 as const,
     timestamp: '2026-07-24T01:00:01.250Z',
-    sessionId: 'session-1',
+    sessionId,
     userId: 'user-1',
     itemId: 'item-1',
     questionId: 'question-1',
@@ -37,7 +38,7 @@ function createCommitInput(answer = 'neko'): CommitAnswerInput {
   const events = [
     LearningEventSchema.parse({
       ...common,
-      id: 'event-1',
+      id: `${eventPrefix}-1`,
       eventType: 'answerSubmitted',
       payload: {
         answer,
@@ -46,7 +47,7 @@ function createCommitInput(answer = 'neko'): CommitAnswerInput {
     }),
     LearningEventSchema.parse({
       ...common,
-      id: 'event-2',
+      id: `${eventPrefix}-2`,
       eventType: 'answerCorrect',
       payload: {
         answer,
@@ -57,19 +58,19 @@ function createCommitInput(answer = 'neko'): CommitAnswerInput {
   ];
   const checkpoint = StudySessionCheckpointSchema.parse({
     schemaVersion: 1,
-    sessionId: 'session-1',
+    sessionId,
     userId: 'user-1',
     currentIndex: 0,
     questionId: 'question-1',
     status: 'feedback',
     selectedAnswer: answer,
     judgement,
-    eventIds: ['event-1', 'event-2'],
+    eventIds: [`${eventPrefix}-1`, `${eventPrefix}-2`],
     updatedAt: '2026-07-24T01:00:01.250Z',
   });
   const sessionState = StudySessionStateSchema.parse({
     schemaVersion: 1,
-    sessionId: 'session-1',
+    sessionId,
     userId: 'user-1',
     itemReferences: [
       { itemId: 'item-1', questionId: 'question-1' },
@@ -79,13 +80,13 @@ function createCommitInput(answer = 'neko'): CommitAnswerInput {
     status: 'feedback',
     selectedAnswer: answer,
     judgement,
-    eventIds: ['event-1', 'event-2'],
+    eventIds: [`${eventPrefix}-1`, `${eventPrefix}-2`],
     updatedAt: '2026-07-24T01:00:01.250Z',
   });
 
   return {
-    idempotencyKey: 'session-1:question-1',
-    requestFingerprint: JSON.stringify(['session-1', 'question-1', answer]),
+    idempotencyKey: `${sessionId}:question-1`,
+    requestFingerprint: JSON.stringify([sessionId, 'question-1', answer]),
     events,
     checkpoint,
     sessionState,
@@ -217,6 +218,25 @@ describe.each(harnesses)('$name study persistence contract', ({ create }) => {
 
     await cleanup();
   });
+
+  it('clears only the selected session and its idempotency records', async () => {
+    const { cleanup, persistence } = create();
+    const selectedSession = createCommitInput();
+    const otherSession = createCommitInput('neko', 'session-2');
+    await persistence.commitAnswer(selectedSession);
+    await persistence.commitAnswer(otherSession);
+
+    await persistence.clearSession('session-1');
+
+    expect(await persistence.findBySessionId('session-1')).toEqual([]);
+    expect(await persistence.findCheckpoint('session-1')).toBeNull();
+    expect(await persistence.findSessionState('session-1')).toBeNull();
+    expect(await persistence.findBySessionId('session-2')).toHaveLength(2);
+    expect(await persistence.findCheckpoint('session-2')).toEqual(otherSession.checkpoint);
+    expect((await persistence.commitAnswer(selectedSession)).status).toBe('committed');
+
+    await cleanup();
+  });
 });
 
 describe('in-memory transaction rollback', () => {
@@ -230,5 +250,19 @@ describe('in-memory transaction rollback', () => {
     expect(await persistence.findBySessionId('session-1')).toEqual([]);
     expect(await persistence.findCheckpoint('session-1')).toBeNull();
     expect(await persistence.findSessionState('session-1')).toBeNull();
+  });
+
+  it('preserves the complete session when clearing fails', async () => {
+    const persistence = new InMemoryStudyPersistence();
+    const input = createCommitInput();
+    await persistence.commitAnswer(input);
+    persistence.failNextOperation();
+
+    await expect(persistence.clearSession('session-1')).rejects.toThrow(
+      'Injected transaction failure',
+    );
+    expect(await persistence.findBySessionId('session-1')).toHaveLength(2);
+    expect(await persistence.findCheckpoint('session-1')).toEqual(input.checkpoint);
+    expect(await persistence.findSessionState('session-1')).toEqual(input.sessionState);
   });
 });

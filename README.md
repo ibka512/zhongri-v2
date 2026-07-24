@@ -16,15 +16,16 @@ Phase 1：核心学习闭环技术验证。
 - Task004 已由产品负责人验收。
 - Task005 已完成幂等学习事务、Dexie 持久化和最小 PWA App Shell。
 - Task006 已完成版本化会话状态和刷新恢复。
+- Task007 已完成 GitHub Pages 开发预览部署。
 
-正在实施 Task007：GitHub Pages 开发预览部署。当前分支加入 Pages 子路径构建、
-Hash 路由、PWA 路径校验和自动部署。
+正在实施 Task008：学习会话重新开始与本地进度清除。当前分支加入单会话原子清除、
+显式二次确认和失败恢复。
 
 尚未实现正式学习首页、真实 v1 迁移、FSRS、AI、词库或真实音频。
 
 ## 开发状态
 
-**Phase 1 - Task 007：GitHub Pages 开发预览部署** 正在实施。
+**Phase 1 - Task 008：学习会话重新开始与本地进度清除** 正在实施。
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
@@ -33,7 +34,8 @@ Hash 路由、PWA 路径校验和自动部署。
 - Task 004：Application 层与第一个学习闭环，已验收。
 - Task 005：Ports、幂等事务、Dexie 与最小离线壳，已完成。
 - Task 006：版本化会话状态与刷新恢复，已完成。
-- Task 007：GitHub Pages 开发预览部署，实施中。
+- Task 007：GitHub Pages 开发预览部署，已完成。
+- Task 008：学习会话重新开始与本地进度清除，实施中。
 
 详细状态见 [开发状态](./docs/development/STATUS.md)。
 
@@ -86,7 +88,7 @@ npm run dev
 
 ## GitHub Pages 开发预览
 
-Task007 合并并完成首次 Pages 配置后访问：
+开发预览访问：
 
 - [钟日 v2 开发预览](https://ibka512.github.io/zhongri-v2/)
 - UI Lab：`https://ibka512.github.io/zhongri-v2/#/ui-lab`
@@ -98,8 +100,7 @@ npm run build:pages
 npm run preview:pages
 ```
 
-首次部署前，仓库所有者需要在 GitHub 的 `Settings → Pages → Build and deployment`
-中把 Source 设置为 `GitHub Actions`。以后每次合并到 `main` 会自动更新预览站。
+每次合并到 `main` 会通过 GitHub Actions 自动更新预览站。
 
 ## 基础检查
 
@@ -112,4 +113,5 @@ npm run test
 ```
 
 `vite-plugin-pwa` 已启用 App Shell 预缓存、导航回退和更新状态事件。`/study-demo`
-会在 IndexedDB 保存学习会话；正式题库资源缓存仍属于后续任务。
+会在 IndexedDB 保存学习会话，并可在二次确认后仅清除当前演示会话；正式题库资源缓存仍
+属于后续任务。

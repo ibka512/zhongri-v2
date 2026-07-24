@@ -11,16 +11,17 @@
 - **Task 004**：Application 层与第一个学习闭环技术验证，已由产品负责人验收。
 - **Task 005**：Ports、幂等事务、Dexie 与最小离线 App Shell。
 - **Task 006**：版本化学习会话状态、下一题/完成持久化和刷新恢复。
+- **Task 007**：GitHub Pages 子路径构建、产物校验和自动部署。
 
 ## 当前
 
-- **Task 007** 正在实施，任务定义见 [GitHub Issue #6](https://github.com/ibka512/zhongri-v2/issues/6)。
-- GitHub Pages 预览使用 `/zhongri-v2/` 子路径和 Hash Router。
-- `build:pages` 校验 HTML、PWA manifest 和 Service Worker 的托管路径。
-- 合并到 `main` 后由 Pages workflow 自动构建和部署。
+- **Task 008** 正在实施，任务定义见 [GitHub Issue #8](https://github.com/ibka512/zhongri-v2/issues/8)。
+- `StudySessionRepositoryPort` 提供按 `sessionId` 清除当前会话的边界。
+- 内存与 Dexie 适配器同时清除事件、检查点、会话状态和对应幂等记录。
+- `/study-demo` 在答题中和完成后提供显式二次确认，失败时保持原进度。
 - 当前仍不包含真实 v1 迁移、FSRS、AI、账号、词库、正式首页或真实音频。
 
 ## 下一步
 
-- 完成 Task007 的代码审查、Pages 启用和首次远程部署。
+- 完成 Task008 的代码审查、合并和 Pages 预览验收。
 - 后续任务继续按日语纵向切片逐项冻结，不从路线图直接推断。

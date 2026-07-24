@@ -32,6 +32,7 @@ export interface LearningEventRepositoryPort {
 }
 
 export interface StudySessionRepositoryPort {
+  clearSession: (sessionId: string) => Promise<void>;
   findCheckpoint: (sessionId: string) => Promise<StudySessionCheckpoint | null>;
   findSessionState: (sessionId: string) => Promise<StudySessionState | null>;
   saveSessionState: (state: StudySessionState) => Promise<StudySessionState>;
