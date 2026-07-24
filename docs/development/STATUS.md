@@ -12,16 +12,17 @@
 - **Task 005**：Ports、幂等事务、Dexie 与最小离线 App Shell。
 - **Task 006**：版本化学习会话状态、下一题/完成持久化和刷新恢复。
 - **Task 007**：GitHub Pages 子路径构建、产物校验和自动部署。
+- **Task 008**：按会话原子清除、显式二次确认和失败后保留原进度。
 
 ## 当前
 
-- **Task 008** 正在实施，任务定义见 [GitHub Issue #8](https://github.com/ibka512/zhongri-v2/issues/8)。
-- `StudySessionRepositoryPort` 提供按 `sessionId` 清除当前会话的边界。
-- 内存与 Dexie 适配器同时清除事件、检查点、会话状态和对应幂等记录。
-- `/study-demo` 在答题中和完成后提供显式二次确认，失败时保持原进度。
-- 当前仍不包含真实 v1 迁移、FSRS、AI、账号、词库、正式首页或真实音频。
+- **Task 009** 正在实施，任务定义见 [GitHub Issue #10](https://github.com/ibka512/zhongri-v2/issues/10)。
+- `/migration-preview` 识别现代 v5+ 与旧 v4 JSON，并显示来源指纹和逐域迁移分类。
+- 活跃 Word/Override/FSRS 孤立关系属于阻断；可恢复冲突与未覆盖数据明确要求复核。
+- 报告可安全导出，但预检不写入 IndexedDB，也不回显旧 API 密钥。
+- 当前仍不包含写入式 v1 迁移、FSRS 激活、AI、账号、正式首页或真实音频。
 
 ## 下一步
 
-- 完成 Task008 的代码审查、合并和 Pages 预览验收。
+- 完成 Task009 的代码审查、合并和 Pages 预览验收。
 - 后续任务继续按日语纵向切片逐项冻结，不从路线图直接推断。

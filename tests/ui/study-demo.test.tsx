@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
 import { createAppRoutes } from '../../src/app/router';
@@ -46,7 +46,11 @@ describe('StudyDemoPage', () => {
     const router = createMemoryRouter(
       createAppRoutes({
         createStudyDemoUseCase: createUseCase,
+        previewV1Backup: async () => {
+          throw new Error('Migration preview is not used in this test');
+        },
         restartStudyDemoUseCase: restartUseCase,
+        serializeMigrationPreview: () => '',
       }),
       {
         initialEntries: ['/'],
@@ -67,7 +71,11 @@ describe('StudyDemoPage', () => {
     const router = createMemoryRouter(
       createAppRoutes({
         createStudyDemoUseCase: createUseCase,
+        previewV1Backup: async () => {
+          throw new Error('Migration preview is not used in this test');
+        },
         restartStudyDemoUseCase: restartUseCase,
+        serializeMigrationPreview: () => '',
       }),
       {
         initialEntries: ['/study-demo'],
@@ -114,9 +122,11 @@ describe('StudyDemoPage', () => {
   it('restores feedback after the page is remounted', async () => {
     const { createUseCase, persistence, restartUseCase } = createHarness();
     const firstRender = render(
-      <ThemeProvider initialTheme="light">
-        <StudyDemoPage createUseCase={createUseCase} restartUseCase={restartUseCase} />
-      </ThemeProvider>,
+      <MemoryRouter>
+        <ThemeProvider initialTheme="light">
+          <StudyDemoPage createUseCase={createUseCase} restartUseCase={restartUseCase} />
+        </ThemeProvider>
+      </MemoryRouter>,
     );
 
     await screen.findByRole('heading', { name: '可恢复的学习会话' });
@@ -125,9 +135,11 @@ describe('StudyDemoPage', () => {
     firstRender.unmount();
 
     render(
-      <ThemeProvider initialTheme="light">
-        <StudyDemoPage createUseCase={createUseCase} restartUseCase={restartUseCase} />
-      </ThemeProvider>,
+      <MemoryRouter>
+        <ThemeProvider initialTheme="light">
+          <StudyDemoPage createUseCase={createUseCase} restartUseCase={restartUseCase} />
+        </ThemeProvider>
+      </MemoryRouter>,
     );
 
     expect(await screen.findByRole('heading', { name: '理解正确' })).toBeInTheDocument();
@@ -137,9 +149,11 @@ describe('StudyDemoPage', () => {
   it('requires confirmation and lets the learner keep the current progress', async () => {
     const { createUseCase, persistence, restartUseCase } = createHarness();
     render(
-      <ThemeProvider initialTheme="light">
-        <StudyDemoPage createUseCase={createUseCase} restartUseCase={restartUseCase} />
-      </ThemeProvider>,
+      <MemoryRouter>
+        <ThemeProvider initialTheme="light">
+          <StudyDemoPage createUseCase={createUseCase} restartUseCase={restartUseCase} />
+        </ThemeProvider>
+      </MemoryRouter>,
     );
 
     await screen.findByRole('heading', { name: '可恢复的学习会话' });
@@ -158,9 +172,11 @@ describe('StudyDemoPage', () => {
   it('keeps durable and visible progress when restarting fails', async () => {
     const { createUseCase, persistence, restartUseCase } = createHarness();
     render(
-      <ThemeProvider initialTheme="light">
-        <StudyDemoPage createUseCase={createUseCase} restartUseCase={restartUseCase} />
-      </ThemeProvider>,
+      <MemoryRouter>
+        <ThemeProvider initialTheme="light">
+          <StudyDemoPage createUseCase={createUseCase} restartUseCase={restartUseCase} />
+        </ThemeProvider>
+      </MemoryRouter>,
     );
 
     await screen.findByRole('heading', { name: '可恢复的学习会话' });

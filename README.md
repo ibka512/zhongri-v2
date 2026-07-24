@@ -17,15 +17,16 @@ Phase 1：核心学习闭环技术验证。
 - Task005 已完成幂等学习事务、Dexie 持久化和最小 PWA App Shell。
 - Task006 已完成版本化会话状态和刷新恢复。
 - Task007 已完成 GitHub Pages 开发预览部署。
+- Task008 已完成学习会话重新开始与单会话原子清除。
 
-正在实施 Task008：学习会话重新开始与本地进度清除。当前分支加入单会话原子清除、
-显式二次确认和失败恢复。
+正在实施 Task009：v1 备份迁移预检。当前分支可以只读分析现代 v5+ 和旧 v4 JSON 备份，
+显示可迁移、跳过、冲突与错误统计，并导出不含旧 API 密钥的版本化报告。
 
-尚未实现正式学习首页、真实 v1 迁移、FSRS、AI、词库或真实音频。
+尚未实现写入式 v1 迁移、正式学习首页、FSRS、AI、词库或真实音频。
 
 ## 开发状态
 
-**Phase 1 - Task 008：学习会话重新开始与本地进度清除** 正在实施。
+**Phase 1 - Task 009：v1 备份迁移预检** 正在实施。
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
@@ -35,7 +36,8 @@ Phase 1：核心学习闭环技术验证。
 - Task 005：Ports、幂等事务、Dexie 与最小离线壳，已完成。
 - Task 006：版本化会话状态与刷新恢复，已完成。
 - Task 007：GitHub Pages 开发预览部署，已完成。
-- Task 008：学习会话重新开始与本地进度清除，实施中。
+- Task 008：学习会话重新开始与本地进度清除，已完成。
+- Task 009：v1 备份迁移预检，实施中。
 
 详细状态见 [开发状态](./docs/development/STATUS.md)。
 
@@ -84,6 +86,7 @@ npm run dev
 启动后访问：
 
 - 学习闭环技术演示：`/` 或 `/#/study-demo`
+- v1 备份迁移预检：`/#/migration-preview`
 - UI Lab：`/#/ui-lab`
 
 ## GitHub Pages 开发预览
@@ -91,6 +94,7 @@ npm run dev
 开发预览访问：
 
 - [钟日 v2 开发预览](https://ibka512.github.io/zhongri-v2/)
+- 迁移预检：`https://ibka512.github.io/zhongri-v2/#/migration-preview`
 - UI Lab：`https://ibka512.github.io/zhongri-v2/#/ui-lab`
 
 Pages 专用构建和本地生产预览：
@@ -113,5 +117,6 @@ npm run test
 ```
 
 `vite-plugin-pwa` 已启用 App Shell 预缓存、导航回退和更新状态事件。`/study-demo`
-会在 IndexedDB 保存学习会话，并可在二次确认后仅清除当前演示会话；正式题库资源缓存仍
-属于后续任务。
+会在 IndexedDB 保存学习会话，并可在二次确认后仅清除当前演示会话。
+`/migration-preview` 只读取用户选择的 JSON 并生成报告，不写入 IndexedDB；正式迁移仍属于
+后续任务。

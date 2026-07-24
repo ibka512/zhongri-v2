@@ -51,5 +51,22 @@ export {
   type StudySessionStatusValue,
 } from './StudySessionStateSchema';
 
+export {
+  MigrationDomainSummarySchema,
+  MigrationIssueSeveritySchema,
+  MigrationPreviewAssumptionSchema,
+  MigrationPreviewDomainSchema,
+  MigrationPreviewIssueSchema,
+  MigrationPreviewReportSchema,
+  MigrationPreviewSourceSchema,
+  MigrationPreviewStatusSchema,
+  MigrationPreviewTotalsSchema,
+  type MigrationDomainSummary,
+  type MigrationPreviewDomain,
+  type MigrationPreviewIssue,
+  type MigrationPreviewReport,
+  type MigrationPreviewStatus,
+} from './MigrationPreviewReportSchema';
+
 export { AnswerValueSchema, ContractVersionSchema, LanguageSchema } from './shared';
 export type { AnswerValue, Language } from './shared';

@@ -1,1 +1,1 @@
-export { cryptoIdGenerator, webClock } from './SystemAdapters';
+export { cryptoIdGenerator, webClock, webTextDigest } from './SystemAdapters';
