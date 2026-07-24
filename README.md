@@ -21,15 +21,16 @@ Phase 1：核心学习闭环技术验证。
 - Task009 已完成 v1 备份只读迁移预检。
 - Task010 已完成迁移安全暂存、原子 active 指针与回滚边界。
 - Task011 已完成真实 N5 词条与 canonical 身份底座。
+- Task012 已完成正式每日五词课程与可恢复混合题型闭环。
 
-正在实施 Task012：正式每日课程纵向切片。网站根入口按本地日期生成五个真实 N5
-词条的确定性课程，包含三道选择题与两道文本输入题，并复用本地学习事实与会话恢复。
+正在实施 Task013：学习者画像与 FSRS 复习调度。系统从 LearningEvent 重放画像与
+ReviewState，网站根入口优先安排当天到期复习和最近仍答错的词，再稳定补足五词。
 
-尚未实现完整 9,828 词资产、逐域迁移与激活、LearnerProfile、FSRS、AI 或真实音频。
+尚未实现完整 9,828 词资产、逐域迁移与激活、AI、FSRS 参数训练或真实音频。
 
 ## 开发状态
 
-**Phase 1 - Task 012：正式每日课程纵向切片** 正在实施。
+**Phase 1 - Task 013：学习者画像与 FSRS 复习调度** 正在实施。
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
@@ -43,7 +44,8 @@ Phase 1：核心学习闭环技术验证。
 - Task 009：v1 备份迁移预检，已完成。
 - Task 010：迁移 staging、原子提交与回滚边界，已完成。
 - Task 011：真实日语词条与 canonical 身份底座，已完成。
-- Task 012：正式每日课程纵向切片，实施中。
+- Task 012：正式每日课程纵向切片，已完成。
+- Task 013：学习者画像与 FSRS 复习调度，实施中。
 
 详细状态见 [开发状态](./docs/development/STATUS.md)。
 
@@ -131,3 +133,5 @@ Task011 的 20 个 N5 日语词条随构建离线发布；来源与许可见
 [第三方内容与许可](./docs/content/THIRD_PARTY_CONTENT.md)。
 Task012 的课程规则见
 [ADR-010](./docs/decisions/ADR-010-deterministic-daily-course.md)。
+Task013 的可重放画像与复习调度规则见
+[ADR-011](./docs/decisions/ADR-011-replayable-profile-fsrs.md)。

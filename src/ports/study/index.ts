@@ -6,6 +6,7 @@ export {
   type CommitAnswerResult,
   type IdGeneratorPort,
   type LearningEventRepositoryPort,
+  type LearningProjectionRepositoryPort,
   type LearningTransactionPort,
   type StudyPersistencePort,
   type StudySessionRepositoryPort,

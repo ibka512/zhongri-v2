@@ -5,10 +5,17 @@ import {
   type StudyPersistencePort,
 } from '../../ports';
 import {
+  LearnerProfileSchema,
   LearningEventSchema,
+  LearningProjectionSchema,
+  ReviewStateSchema,
   StudySessionCheckpointSchema,
   StudySessionStateSchema,
+  type Language,
+  type LearnerProfile,
   type LearningEvent,
+  type LearningProjection,
+  type ReviewState,
   type StudySessionCheckpoint,
   type StudySessionState,
 } from '../../schemas/v1';
@@ -22,6 +29,8 @@ interface IdempotencyRecord {
 
 export class InMemoryStudyPersistence implements StudyPersistencePort {
   readonly #events = new Map<string, LearningEvent>();
+  readonly #learnerProfiles = new Map<string, LearnerProfile>();
+  readonly #reviewStates = new Map<string, ReviewState>();
   readonly #checkpoints = new Map<string, StudySessionCheckpoint>();
   readonly #sessionStates = new Map<string, StudySessionState>();
   readonly #idempotencyRecords = new Map<string, IdempotencyRecord>();
@@ -115,8 +124,62 @@ export class InMemoryStudyPersistence implements StudyPersistencePort {
   async findBySessionId(sessionId: string): Promise<readonly LearningEvent[]> {
     return [...this.#events.values()]
       .filter((event) => event.sessionId === sessionId)
-      .sort((left, right) => left.timestamp.localeCompare(right.timestamp))
+      .sort(
+        (left, right) =>
+          left.timestamp.localeCompare(right.timestamp) || left.id.localeCompare(right.id),
+      )
       .map((event) => LearningEventSchema.parse(event));
+  }
+
+  async findByUserId(userId: string): Promise<readonly LearningEvent[]> {
+    return [...this.#events.values()]
+      .filter((event) => event.userId === userId)
+      .sort(
+        (left, right) =>
+          left.timestamp.localeCompare(right.timestamp) || left.id.localeCompare(right.id),
+      )
+      .map((event) => LearningEventSchema.parse(event));
+  }
+
+  async findLearnerProfile(userId: string, language: Language): Promise<LearnerProfile | null> {
+    const profile = this.#learnerProfiles.get(`${userId}:${language}`);
+    return profile ? LearnerProfileSchema.parse(profile) : null;
+  }
+
+  async listReviewStates(userId: string): Promise<readonly ReviewState[]> {
+    return [...this.#reviewStates.values()]
+      .filter((state) => state.userId === userId)
+      .sort((left, right) => left.itemId.localeCompare(right.itemId))
+      .map((state) => ReviewStateSchema.parse(state));
+  }
+
+  async replaceLearningProjection(projection: LearningProjection): Promise<LearningProjection> {
+    const parsed = LearningProjectionSchema.parse(projection);
+    const nextProfiles = new Map(this.#learnerProfiles);
+    const nextReviewStates = new Map(this.#reviewStates);
+
+    nextProfiles.set(`${parsed.profile.userId}:${parsed.profile.language}`, parsed.profile);
+    for (const [reviewId, review] of nextReviewStates) {
+      if (review.userId === parsed.profile.userId) {
+        nextReviewStates.delete(reviewId);
+      }
+    }
+    for (const review of parsed.reviewStates) {
+      nextReviewStates.set(review.id, review);
+    }
+
+    this.#throwNextFailure();
+
+    this.#learnerProfiles.clear();
+    this.#reviewStates.clear();
+    for (const [key, profile] of nextProfiles) {
+      this.#learnerProfiles.set(key, profile);
+    }
+    for (const [key, review] of nextReviewStates) {
+      this.#reviewStates.set(key, review);
+    }
+
+    return parsed;
   }
 
   async findCheckpoint(sessionId: string): Promise<StudySessionCheckpoint | null> {

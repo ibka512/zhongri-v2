@@ -1,4 +1,12 @@
-import type { LearningEvent, StudySessionCheckpoint, StudySessionState } from '../../schemas/v1';
+import type {
+  Language,
+  LearnerProfile,
+  LearningEvent,
+  LearningProjection,
+  ReviewState,
+  StudySessionCheckpoint,
+  StudySessionState,
+} from '../../schemas/v1';
 
 export interface ClockPort {
   now: () => Date;
@@ -29,6 +37,13 @@ export interface LearningTransactionPort {
 
 export interface LearningEventRepositoryPort {
   findBySessionId: (sessionId: string) => Promise<readonly LearningEvent[]>;
+  findByUserId: (userId: string) => Promise<readonly LearningEvent[]>;
+}
+
+export interface LearningProjectionRepositoryPort {
+  findLearnerProfile: (userId: string, language: Language) => Promise<LearnerProfile | null>;
+  listReviewStates: (userId: string) => Promise<readonly ReviewState[]>;
+  replaceLearningProjection: (projection: LearningProjection) => Promise<LearningProjection>;
 }
 
 export interface StudySessionRepositoryPort {
@@ -39,7 +54,11 @@ export interface StudySessionRepositoryPort {
 }
 
 export interface StudyPersistencePort
-  extends LearningTransactionPort, LearningEventRepositoryPort, StudySessionRepositoryPort {}
+  extends
+    LearningTransactionPort,
+    LearningEventRepositoryPort,
+    LearningProjectionRepositoryPort,
+    StudySessionRepositoryPort {}
 
 export class IdempotencyConflictError extends Error {
   constructor(idempotencyKey: string) {

@@ -10,7 +10,7 @@ import { jaN5StarterManifest, jaN5StarterWords } from '../../src/content';
 import { InMemoryStudyPersistence } from '../../src/infrastructure/study';
 import type { CanonicalContentRepositoryPort } from '../../src/ports';
 import { TodayCoursePage } from '../../src/pages/TodayCourse';
-import { QuestionType } from '../../src/schemas/v1';
+import { LearnerProfileSchema, QuestionType } from '../../src/schemas/v1';
 import { ThemeProvider } from '../../src/ui/theme';
 
 const repository: CanonicalContentRepositoryPort = {
@@ -50,12 +50,32 @@ function createHarness() {
     sessionId: dailyCourse.plan.id,
     userId: 'today-ui-user',
   };
+  const insights = {
+    dueReviewCount: 0,
+    profile: LearnerProfileSchema.parse({
+      schemaVersion: 1,
+      projectionVersion: 1,
+      userId: input.userId,
+      language: 'ja',
+      answeredCount: 0,
+      correctCount: 0,
+      incorrectCount: 0,
+      accuracy: 0,
+      averageResponseTimeMs: null,
+      recentIncorrectItemIds: [],
+      recentTrend: 'insufficient',
+      projectedThrough: null,
+    }),
+    recentIncorrectWords: [],
+  };
   const createCourse = async (): Promise<TodayCourseSession> => ({
     ...dailyCourse,
+    insights,
     useCase: await StudyUseCase.startOrResume(input, dependencies),
   });
   const restartCourse = async (): Promise<TodayCourseSession> => ({
     ...dailyCourse,
+    insights,
     useCase: await StudyUseCase.restart(input, dependencies),
   });
 
@@ -83,6 +103,8 @@ describe('TodayCoursePage', () => {
       await screen.findByRole('heading', { name: '今天，稳稳学 5 个日语词' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '开始今日课程' })).toBeInTheDocument();
+    expect(screen.getByText('暂无薄弱证据')).toBeInTheDocument();
+    expect(screen.getByText('还没有历史答题证据，今天先从 N5 基础词开始。')).toBeInTheDocument();
   });
 
   it('completes choice and text questions and shows a meaningful result', async () => {

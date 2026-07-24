@@ -16,17 +16,18 @@
 - **Task 009**：v5+/v4 备份只读预检、逐域报告和安全导出。
 - **Task 010**：隔离迁移暂存、原子 active 指针和回滚边界。
 - **Task 011**：20 个真实 N5 词条、固定来源 Manifest 与 canonical 身份仓储。
+- **Task 012**：正式每日五词课程、混合题型和可恢复纵向闭环。
 
 ## 当前
 
-- **Task 012** 正在实施，任务定义见 [GitHub Issue #16](https://github.com/ibka512/zhongri-v2/issues/16)。
-- TodayPlan v1 按本地日期和 canonical 内容版本确定性选择五个 N5 词条。
-- 正式 `/today` 入口固定三道选择题与两道文本输入题，并复用 LearningEvent、Dexie
-  会话恢复和安全重新开始。
-- 结果页只显示本日真实学习事实，不推断尚未实现的画像、薄弱点或到期复习。
-- 当前仍不包含完整词库、LearnerProfile、FSRS、AI 或真实音频。
+- **Task 013** 正在实施，任务定义见 [GitHub Issue #18](https://github.com/ibka512/zhongri-v2/issues/18)。
+- LearnerProfile v1 与 ReviewState v1 从 LearningEvent 全量重放，不创建第二份学习事实。
+- 官方 `ts-fsrs` 的 FSRS v6 只负责长期到期时间，并通过 ReviewScheduler Port 隔离。
+- Today Plan 优先当天到期复习、最近仍答错的词，再稳定补足五个基础词。
+- 首页只显示真实到期数、薄弱词和历史正确率；无历史时明确展示空状态。
+- 当前仍不包含完整词库、AI、真实音频、FSRS 参数训练或旧 FSRS 迁移。
 
 ## 下一步
 
-- 完成 Task012 的代码审查、移动端与离线验收。
-- Task013 基于 LearningEvent 建立学习者画像与复习调度。
+- 完成 Task013 的代码审查、移动端、离线与重放验收。
+- Task014 在已验证画像摘要之上建立 AI Gateway，基础课程仍保持可离线完成。

@@ -1,1 +1,7 @@
-export { createDailyCourse, formatLocalDate, type DailyCourse } from './DailyCourse';
+export {
+  createDailyCourse,
+  formatLocalDate,
+  type DailyCourse,
+  type DailyCoursePriority,
+  type DailyCoursePriorityReason,
+} from './DailyCourse';

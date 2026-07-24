@@ -60,4 +60,32 @@ describe('createDailyCourse', () => {
       }
     }
   });
+
+  it('places due reviews before recent mistakes and then fills deterministically', () => {
+    const baseline = createDailyCourse(repository, '2026-07-24');
+    const dueWord = jaN5StarterWords.at(-1);
+    const weakWord = jaN5StarterWords.at(-2);
+    if (!dueWord || !weakWord) {
+      throw new Error('Starter content requires priority fixtures');
+    }
+
+    const prioritized = createDailyCourse(repository, '2026-07-24', [
+      { wordId: dueWord.id, reason: 'due-review' },
+      { wordId: weakWord.id, reason: 'recent-incorrect' },
+      { wordId: dueWord.id, reason: 'recent-incorrect' },
+      { wordId: 'unknown-word', reason: 'due-review' },
+    ]);
+    const replayed = createDailyCourse(repository, '2026-07-24', [
+      { wordId: dueWord.id, reason: 'due-review' },
+      { wordId: weakWord.id, reason: 'recent-incorrect' },
+    ]);
+
+    expect(prioritized.words.slice(0, 2).map((word) => word.id)).toEqual([dueWord.id, weakWord.id]);
+    expect(prioritized.selectionReasons[dueWord.id]).toBe('due-review');
+    expect(prioritized.selectionReasons[weakWord.id]).toBe('recent-incorrect');
+    expect(prioritized.words).toHaveLength(5);
+    expect(new Set(prioritized.words.map((word) => word.id))).toHaveLength(5);
+    expect(replayed).toEqual(prioritized);
+    expect(prioritized.plan.id).not.toBe(baseline.plan.id);
+  });
 });

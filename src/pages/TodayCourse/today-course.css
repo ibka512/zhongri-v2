@@ -91,6 +91,47 @@
   color: var(--zr-text-secondary);
 }
 
+.today-course__evidence {
+  display: grid;
+  gap: var(--zr-space-3);
+  padding-block: var(--zr-space-4);
+  border-block: var(--zr-size-border) solid var(--zr-border-subtle);
+}
+
+.today-course__evidence h3,
+.today-course__evidence p,
+.today-course__evidence dl,
+.today-course__evidence dd {
+  margin: var(--zr-space-0);
+}
+
+.today-course__evidence h3 {
+  font-size: var(--zr-font-size-body);
+}
+
+.today-course__evidence dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--zr-space-3);
+}
+
+.today-course__evidence dl > div {
+  display: grid;
+  gap: var(--zr-space-1);
+}
+
+.today-course__evidence dt,
+.today-course__evidence p {
+  color: var(--zr-text-secondary);
+  font-size: var(--zr-font-size-body-sm);
+}
+
+.today-course__evidence dd {
+  overflow-wrap: anywhere;
+  color: var(--zr-text-primary);
+  font-weight: var(--zr-font-weight-semibold);
+}
+
 .today-course__primary-action {
   width: 100%;
 }
@@ -254,6 +295,10 @@
 
   .today-course__time {
     align-self: start;
+  }
+
+  .today-course__evidence dl {
+    grid-template-columns: 1fr;
   }
 
   .today-course__lesson-header > .zr-button {
