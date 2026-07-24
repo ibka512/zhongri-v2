@@ -35,7 +35,7 @@ FSRS 复习调度
 
 仓库已经具备可维护的 React + TypeScript + Vite 基础、核心数据契约、UI Lab 和
 GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已由产品负责人验收。
-Task 009 已完成，当前实施 **Task 010：迁移 staging、原子提交与回滚边界**。
+Task 010 已完成，当前实施 **Task 011：真实日语词条与 canonical 身份底座**。
 
 ## 已完成任务
 
@@ -49,6 +49,7 @@ Task 009 已完成，当前实施 **Task 010：迁移 staging、原子提交与�
 - **Task 007**：建立 GitHub Pages 子路径构建、Hash 路由、产物校验和自动部署。
 - **Task 008**：建立按会话原子清除、显式二次确认和失败后保留原进度。
 - **Task 009**：建立 v5+/v4 备份识别、逐域预检、安全报告和迁移默认决策。
+- **Task 010**：建立隔离 staging、确定性 migrationId、原子 active 指针与回滚边界。
 
 准确提交记录见 [TASKS.md](./TASKS.md)。
 
@@ -95,19 +96,19 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **Task 010：迁移 staging、原子提交与回滚边界**。
+当前任务是 **Task 011：真实日语词条与 canonical 身份底座**。
 
-范围包括版本化 MigrationRun/isolated dataset/active pointer 契约、确定性 migrationId、
-内存与 Dexie v3 适配器、幂等 staging、单事务 active 指针切换、回滚，以及页面的显式安全
-暂存入口。暂存快照会先移除旧 API Key 明文。
+范围包括 CanonicalWord/CanonicalManifest v1、从固定 `jp-study` 提交引入的 20 个 N5 日语
+词条、来源与许可记录、内容仓储 Port、语言域身份解析，以及 ID/内容双摘要完整性校验。该
+切片服务下一项正式每日课程，不导入完整 9,828 词，也不转换用户词、FSRS 或其他迁移域。
 
-详细决策见 [ADR-008](./decisions/ADR-008-migration-staging-commit.md)。
+详细决策见 [ADR-009](./decisions/ADR-009-canonical-content-identity.md)。
 
 ## 下一步路线
 
-1. 完成 Task010 的代码审查和远程预览验收。
-2. 后续按规格顺序加入 canonical identity、Word/Override、idMap 与关系域转换。
-3. FSRS 激活和正式学习功能仍需独立 Task。
-4. AI 增强属于 Phase 2；语音和高级能力属于 Phase 3。
+1. 完成 Task011 的代码审查、来源核验和完整性验收。
+2. Task012 使用 canonical 内容仓储建立正式每日课程，不再依赖三题 Mock。
+3. Task013 建立学习画像与复习调度；Task014 才接入 AI Gateway。
+4. 完整迁移转换与 9,828 词扩容继续使用独立 Task，不阻塞核心学习纵向切片。
 
 阶段路线见 [ROADMAP.md](./ROADMAP.md)。

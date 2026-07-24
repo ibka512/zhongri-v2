@@ -5,5 +5,7 @@
 - `QuestionSchema`：结构化题目及 MVP 渲染数据。
 - `JudgementResultSchema`：判题结果与反馈数据。
 - `LearningEventSchema`：只描述已经发生的学习事实。
+- `CanonicalWordSchema`：语言域内稳定的内置词条身份与学习内容。
+- `CanonicalManifestSchema`：锁定 canonical 资产来源、数量和完整性摘要。
 
 Schema 必须保持纯 TypeScript，不依赖 React、浏览器 API、数据库或 AI 实现。
