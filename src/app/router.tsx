@@ -1,13 +1,14 @@
 import { createHashRouter, Navigate, type RouteObject } from 'react-router-dom';
 
-import type { PreviewV1BackupInput } from '../application/migration';
+import type { PreviewV1BackupInput, StageV1BackupInput } from '../application/migration';
 import type { StudyUseCase } from '../application/study';
 import { MigrationPreviewPage } from '../pages/MigrationPreview';
 import { StudyDemoPage } from '../pages/StudyDemo';
 import { UILabPage } from '../pages/UILab';
 import type { MigrationPreviewReport } from '../schemas/v1';
+import type { StageMigrationResult } from '../ports';
 import { App } from './App';
-import { previewV1Backup, serializeMigrationPreview } from './migrationPreview';
+import { previewV1Backup, serializeMigrationPreview, stageV1Backup } from './migrationPreview';
 import { createStudyDemoUseCase, restartStudyDemoUseCase } from './studyDemo';
 
 export interface AppRouteDependencies {
@@ -15,6 +16,7 @@ export interface AppRouteDependencies {
   previewV1Backup: (input: PreviewV1BackupInput) => Promise<MigrationPreviewReport>;
   restartStudyDemoUseCase: () => Promise<StudyUseCase>;
   serializeMigrationPreview: (report: MigrationPreviewReport) => string;
+  stageV1Backup: (input: StageV1BackupInput) => Promise<StageMigrationResult>;
 }
 
 const defaultDependencies: AppRouteDependencies = {
@@ -22,6 +24,7 @@ const defaultDependencies: AppRouteDependencies = {
   previewV1Backup,
   restartStudyDemoUseCase,
   serializeMigrationPreview,
+  stageV1Backup,
 };
 
 export function createAppRoutes(
@@ -51,6 +54,7 @@ export function createAppRoutes(
         <MigrationPreviewPage
           previewBackup={dependencies.previewV1Backup}
           serializeReport={dependencies.serializeMigrationPreview}
+          stageBackup={dependencies.stageV1Backup}
         />
       ),
     },

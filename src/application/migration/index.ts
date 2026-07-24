@@ -5,3 +5,9 @@ export {
   type MigrationPreviewDependencies,
   type PreviewV1BackupInput,
 } from './MigrationPreviewUseCase';
+export {
+  MigrationStagingInputError,
+  MigrationStagingUseCase,
+  type MigrationStagingDependencies,
+  type StageV1BackupInput,
+} from './MigrationStagingUseCase';

@@ -13,16 +13,17 @@
 - **Task 006**：版本化学习会话状态、下一题/完成持久化和刷新恢复。
 - **Task 007**：GitHub Pages 子路径构建、产物校验和自动部署。
 - **Task 008**：按会话原子清除、显式二次确认和失败后保留原进度。
+- **Task 009**：v5+/v4 备份只读预检、逐域报告和安全导出。
 
 ## 当前
 
-- **Task 009** 正在实施，任务定义见 [GitHub Issue #10](https://github.com/ibka512/zhongri-v2/issues/10)。
-- `/migration-preview` 识别现代 v5+ 与旧 v4 JSON，并显示来源指纹和逐域迁移分类。
-- 活跃 Word/Override/FSRS 孤立关系属于阻断；可恢复冲突与未覆盖数据明确要求复核。
-- 报告可安全导出，但预检不写入 IndexedDB，也不回显旧 API 密钥。
-- 当前仍不包含写入式 v1 迁移、FSRS 激活、AI、账号、正式首页或真实音频。
+- **Task 010** 正在实施，任务定义见 [GitHub Issue #12](https://github.com/ibka512/zhongri-v2/issues/12)。
+- 同一来源 SHA-256 和规格版本生成稳定 migrationId，并幂等复用 snapshot/staging。
+- Dexie v3 新增迁移运行、隔离数据集和 active pointer 表，不改变现有学习表语义。
+- 页面只有在用户明确操作后才写入脱敏暂存；暂存不激活 Word、FSRS 或学习历史。
+- 当前仍不包含 canonical 身份表、逐域业务转换、FSRS 激活、AI、正式首页或真实音频。
 
 ## 下一步
 
-- 完成 Task009 的代码审查、合并和 Pages 预览验收。
+- 完成 Task010 的代码审查、合并和 Pages 预览验收。
 - 后续任务继续按日语纵向切片逐项冻结，不从路线图直接推断。

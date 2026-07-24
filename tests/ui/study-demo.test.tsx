@@ -51,6 +51,9 @@ describe('StudyDemoPage', () => {
         },
         restartStudyDemoUseCase: restartUseCase,
         serializeMigrationPreview: () => '',
+        stageV1Backup: async () => {
+          throw new Error('Migration staging is not used in this test');
+        },
       }),
       {
         initialEntries: ['/'],
@@ -76,6 +79,9 @@ describe('StudyDemoPage', () => {
         },
         restartStudyDemoUseCase: restartUseCase,
         serializeMigrationPreview: () => '',
+        stageV1Backup: async () => {
+          throw new Error('Migration staging is not used in this test');
+        },
       }),
       {
         initialEntries: ['/study-demo'],
