@@ -37,7 +37,8 @@ Task006 加入版本化会话状态和恢复；Task008 加入按会话清除与�
 Task009 加入只读迁移预检用例、来源摘要 Port 和版本化报告 Schema。
 Task010 加入版本化迁移运行、隔离数据集、active pointer 和原子提交/回滚 Port。
 Task011 加入版本化 canonical 内容、固定来源 Manifest 和内容 Repository Port。
-`/study-demo` 只消费 Application 快照，不直接执行业务规则或访问数据库。
+Task012 加入确定性 TodayPlan、正式每日课程编排和文本题判定。
+`/today` 与 `/study-demo` 只消费 Application 快照，不直接执行业务规则或访问数据库。
 
 ## Task005 学习事务
 
@@ -93,3 +94,14 @@ FSRS 调度或 AI。
    `language + normalized headword` 候选。
 5. 同语言重名返回 ambiguous；相同 ID 出现在另一语言返回 language-conflict，不自动合并。
 6. 本切片只有 20 个 N5 日语词条；完整 9,828 资产、用户词和迁移转换仍需独立任务。
+
+## Task012 正式每日课程
+
+1. `TodayPlan v1` 固定本地日期、canonical 内容版本和五个课程引用；同一输入生成相同计划。
+2. Application 只通过 `CanonicalContentRepositoryPort` 读取词条并生成版本化 Question。
+3. 计划固定三道选择题与两道文本输入题，Domain Judge 执行确定性判定。
+4. `TodayPlan.id` 作为 `sessionId`，复用既有原子答案事务、刷新恢复与按会话重新开始。
+5. 结果只聚合该会话的 LearningEvent，不推断 Profile、薄弱点或复习到期时间。
+6. `/today` 是正式入口；`/study-demo` 继续作为 Mock 技术回归页面。
+
+当前仍不实现 LearnerProfile、FSRS、AI Gateway、完整 canonical 资产或迁移业务域激活。

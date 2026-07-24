@@ -1,0 +1,274 @@
+.today-course {
+  display: grid;
+  min-height: 100vh;
+  align-content: center;
+  padding: max(var(--zr-space-6), env(safe-area-inset-top))
+    max(var(--zr-space-4), env(safe-area-inset-right))
+    max(var(--zr-space-6), env(safe-area-inset-bottom))
+    max(var(--zr-space-4), env(safe-area-inset-left));
+}
+
+.today-course--loading {
+  place-items: center;
+  color: var(--zr-text-secondary);
+}
+
+.today-course__plan,
+.today-course__message,
+.today-course__result,
+.today-course__lesson-header {
+  width: min(100%, var(--zr-layout-readable));
+  margin-inline: auto;
+}
+
+.today-course__plan {
+  text-align: center;
+}
+
+.today-course__eyebrow,
+.today-course__label {
+  margin: var(--zr-space-0) var(--zr-space-0) var(--zr-space-2);
+  color: var(--zr-brand-primary);
+  font-size: var(--zr-font-size-body-sm);
+  font-weight: var(--zr-font-weight-semibold);
+  letter-spacing: var(--zr-letter-spacing-label);
+}
+
+.today-course h1,
+.today-course h2,
+.today-course p {
+  margin-top: var(--zr-space-0);
+}
+
+.today-course__plan > h1,
+.today-course__result > h1,
+.today-course__message > h1 {
+  margin-bottom: var(--zr-space-3);
+  font-size: var(--zr-font-size-title-1);
+  line-height: var(--zr-line-height-title-1);
+}
+
+.today-course__lead {
+  max-width: 34rem;
+  margin-inline: auto;
+  color: var(--zr-text-secondary);
+}
+
+.today-course__plan-card {
+  display: grid;
+  gap: var(--zr-space-5);
+  margin-block-start: var(--zr-space-6);
+  text-align: start;
+}
+
+.today-course__plan-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--zr-space-4);
+}
+
+.today-course__plan-heading h2 {
+  margin-bottom: var(--zr-space-0);
+  font-size: var(--zr-font-size-title-2);
+}
+
+.today-course__time {
+  flex: none;
+  padding: var(--zr-space-2) var(--zr-space-3);
+  border-radius: var(--zr-radius-full);
+  background: var(--zr-brand-container);
+  color: var(--zr-brand-strong);
+  font-size: var(--zr-font-size-body-sm);
+  font-weight: var(--zr-font-weight-semibold);
+}
+
+.today-course__facts {
+  display: grid;
+  gap: var(--zr-space-2);
+  margin: var(--zr-space-0);
+  padding-inline-start: var(--zr-space-5);
+  color: var(--zr-text-secondary);
+}
+
+.today-course__primary-action {
+  width: 100%;
+}
+
+.today-course__secondary-link {
+  display: inline-flex;
+  min-height: var(--zr-size-touch);
+  align-items: center;
+  justify-content: center;
+  margin-block-start: var(--zr-space-3);
+  color: var(--zr-brand-primary);
+  font-weight: var(--zr-font-weight-medium);
+  text-underline-offset: 0.2em;
+}
+
+.today-course--lesson {
+  align-content: start;
+  gap: var(--zr-space-5);
+}
+
+.today-course__lesson-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--zr-space-4);
+}
+
+.today-course__lesson-header h1 {
+  margin-bottom: var(--zr-space-0);
+  font-size: var(--zr-font-size-title-3);
+}
+
+.today-course__prompt {
+  display: grid;
+  gap: var(--zr-space-2);
+}
+
+.today-course__prompt p {
+  margin-bottom: var(--zr-space-0);
+}
+
+.today-course__prompt p:first-child:not(:last-child) {
+  color: var(--zr-text-secondary);
+}
+
+.today-course__japanese-word {
+  color: var(--zr-text-primary);
+  font-size: var(--zr-font-size-display);
+  line-height: var(--zr-line-height-display);
+}
+
+.today-course__meaning {
+  font-size: var(--zr-font-size-title-1);
+  line-height: var(--zr-line-height-title-1);
+}
+
+.today-course__answer,
+.today-course__feedback {
+  display: grid;
+  gap: var(--zr-space-4);
+}
+
+.today-course__answer > p[role='alert'],
+.today-course__restart p[role='alert'] {
+  margin-bottom: var(--zr-space-0);
+  color: var(--zr-error);
+  font-weight: var(--zr-font-weight-medium);
+}
+
+.today-course__feedback .zr-button {
+  justify-self: end;
+}
+
+.today-course__restart {
+  display: grid;
+  gap: var(--zr-space-3);
+  padding: var(--zr-space-4);
+  border: var(--zr-size-border) solid var(--zr-error);
+  border-radius: var(--zr-radius-md);
+  background: var(--zr-error-container);
+}
+
+.today-course__restart p {
+  margin-bottom: var(--zr-space-0);
+}
+
+.today-course__restart-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--zr-space-2);
+}
+
+.today-course__restart-danger {
+  --zr-button-bg: var(--zr-error-container);
+  --zr-button-bg-pressed: var(--zr-surface-paper);
+  --zr-button-border: var(--zr-error);
+  --zr-button-text: var(--zr-error);
+}
+
+.today-course__result,
+.today-course__message {
+  display: grid;
+  gap: var(--zr-space-5);
+}
+
+.today-course__result {
+  text-align: center;
+}
+
+.today-course__score {
+  margin-bottom: var(--zr-space-0);
+  color: var(--zr-text-secondary);
+}
+
+.today-course__score strong {
+  color: var(--zr-brand-strong);
+  font-size: var(--zr-font-size-display);
+  line-height: 1;
+}
+
+.today-course__learned {
+  text-align: start;
+}
+
+.today-course__learned h2 {
+  font-size: var(--zr-font-size-title-3);
+}
+
+.today-course__learned ul {
+  display: grid;
+  gap: var(--zr-space-2);
+  margin: var(--zr-space-0);
+  padding: var(--zr-space-0);
+  list-style: none;
+}
+
+.today-course__learned li {
+  display: grid;
+  grid-template-columns: minmax(5rem, auto) minmax(5rem, auto) minmax(0, 1fr);
+  gap: var(--zr-space-3);
+  padding-block: var(--zr-space-2);
+  border-bottom: var(--zr-size-border) solid var(--zr-border-subtle);
+}
+
+.today-course__learned li > span:first-child {
+  font-weight: var(--zr-font-weight-semibold);
+}
+
+.today-course__learned small,
+.today-course__learned li > span:last-child {
+  color: var(--zr-text-secondary);
+}
+
+@media (max-width: 36rem) {
+  .today-course__plan-heading,
+  .today-course__lesson-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .today-course__time {
+    align-self: start;
+  }
+
+  .today-course__lesson-header > .zr-button {
+    align-self: start;
+  }
+
+  .today-course__restart-actions .zr-button {
+    width: 100%;
+  }
+
+  .today-course__learned li {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .today-course__learned li > span:last-child {
+    grid-column: 1 / -1;
+  }
+}

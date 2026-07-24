@@ -13,6 +13,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-007：在任何数据写入前执行 v1 迁移预检](./ADR-007-v1-migration-preflight.md)
 - [ADR-008：以隔离 staging 和单一 active pointer 提交迁移](./ADR-008-migration-staging-commit.md)
 - [ADR-009：以固定来源 Manifest 发布 canonical 内容身份](./ADR-009-canonical-content-identity.md)
+- [ADR-010：以确定性 TodayPlan 编排正式每日课程](./ADR-010-deterministic-daily-course.md)
 
 ## 未来
 

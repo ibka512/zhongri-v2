@@ -178,8 +178,8 @@ export function MigrationPreviewPage({
   return (
     <main className="migration-preview">
       <header className="migration-preview__header">
-        <Link className="migration-preview__back" to="/study-demo">
-          返回学习演示
+        <Link className="migration-preview__back" to="/today">
+          返回今日课程
         </Link>
         <p className="migration-preview__eyebrow">Phase 1 · Task010</p>
         <h1>旧版数据迁移预检</h1>
