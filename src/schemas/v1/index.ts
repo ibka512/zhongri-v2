@@ -68,5 +68,20 @@ export {
   type MigrationPreviewStatus,
 } from './MigrationPreviewReportSchema';
 
+export {
+  ActiveMigrationDatasetPointerSchema,
+  MigrationPhaseSchema,
+  MigrationRunSchema,
+  MigrationRunStatusSchema,
+  MigrationStagingDatasetSchema,
+  MigrationValidationSummarySchema,
+  type ActiveMigrationDatasetPointer,
+  type MigrationPhase,
+  type MigrationRun,
+  type MigrationRunStatus,
+  type MigrationStagingDataset,
+  type MigrationValidationSummary,
+} from './MigrationStagingSchema';
+
 export { AnswerValueSchema, ContractVersionSchema, LanguageSchema } from './shared';
 export type { AnswerValue, Language } from './shared';

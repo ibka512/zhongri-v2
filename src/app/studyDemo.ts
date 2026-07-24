@@ -1,9 +1,8 @@
 import { StudyUseCase } from '../application/study';
-import { DexieStudyPersistence } from '../infrastructure/study';
 import { cryptoIdGenerator, webClock } from '../infrastructure/system';
 import { studyDemoItems } from '../mock/questions';
+import { appPersistence } from './persistence';
 
-const studyDemoPersistence = new DexieStudyPersistence();
 const studyDemoInput = {
   items: studyDemoItems,
   sessionId: 'task006-demo-session-v1',
@@ -12,7 +11,7 @@ const studyDemoInput = {
 const studyDemoDependencies = {
   clock: webClock,
   idGenerator: cryptoIdGenerator,
-  persistence: studyDemoPersistence,
+  persistence: appPersistence,
 };
 
 export function createStudyDemoUseCase(): Promise<StudyUseCase> {

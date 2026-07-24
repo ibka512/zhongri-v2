@@ -18,15 +18,17 @@ Phase 1：核心学习闭环技术验证。
 - Task006 已完成版本化会话状态和刷新恢复。
 - Task007 已完成 GitHub Pages 开发预览部署。
 - Task008 已完成学习会话重新开始与单会话原子清除。
+- Task009 已完成 v1 备份只读迁移预检。
 
-正在实施 Task009：v1 备份迁移预检。当前分支可以只读分析现代 v5+ 和旧 v4 JSON 备份，
-显示可迁移、跳过、冲突与错误统计，并导出不含旧 API 密钥的版本化报告。
+正在实施 Task010：迁移 staging、原子提交与回滚边界。通过预检的备份可以在用户明确操作后
+写入脱敏隔离数据集；相同输入幂等复用，activeDatasetId 只在单一事务内切换并可回滚。
 
-尚未实现写入式 v1 迁移、正式学习首页、FSRS、AI、词库或真实音频。
+尚未实现 canonical 词条身份表、逐域业务转换与激活、正式学习首页、FSRS 调度、AI、词库或
+真实音频。
 
 ## 开发状态
 
-**Phase 1 - Task 009：v1 备份迁移预检** 正在实施。
+**Phase 1 - Task 010：迁移 staging、原子提交与回滚边界** 正在实施。
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
@@ -37,7 +39,8 @@ Phase 1：核心学习闭环技术验证。
 - Task 006：版本化会话状态与刷新恢复，已完成。
 - Task 007：GitHub Pages 开发预览部署，已完成。
 - Task 008：学习会话重新开始与本地进度清除，已完成。
-- Task 009：v1 备份迁移预检，实施中。
+- Task 009：v1 备份迁移预检，已完成。
+- Task 010：迁移 staging、原子提交与回滚边界，实施中。
 
 详细状态见 [开发状态](./docs/development/STATUS.md)。
 
@@ -118,5 +121,5 @@ npm run test
 
 `vite-plugin-pwa` 已启用 App Shell 预缓存、导航回退和更新状态事件。`/study-demo`
 会在 IndexedDB 保存学习会话，并可在二次确认后仅清除当前演示会话。
-`/migration-preview` 只读取用户选择的 JSON 并生成报告，不写入 IndexedDB；正式迁移仍属于
-后续任务。
+`/migration-preview` 先只读生成报告；只有用户明确创建安全暂存后，脱敏快照与报告才进入
+IndexedDB 隔离数据集。Task010 不激活 Word、FSRS 或其他业务域。

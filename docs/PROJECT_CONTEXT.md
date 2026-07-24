@@ -35,7 +35,7 @@ FSRS 复习调度
 
 仓库已经具备可维护的 React + TypeScript + Vite 基础、核心数据契约、UI Lab 和
 GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已由产品负责人验收。
-Task 008 已完成，当前实施 **Task 009：v1 备份迁移预检**。
+Task 009 已完成，当前实施 **Task 010：迁移 staging、原子提交与回滚边界**。
 
 ## 已完成任务
 
@@ -48,6 +48,7 @@ Task 008 已完成，当前实施 **Task 009：v1 备份迁移预检**。
 - **Task 006**：建立版本化学习会话状态、下一题/完成持久化和刷新恢复。
 - **Task 007**：建立 GitHub Pages 子路径构建、Hash 路由、产物校验和自动部署。
 - **Task 008**：建立按会话原子清除、显式二次确认和失败后保留原进度。
+- **Task 009**：建立 v5+/v4 备份识别、逐域预检、安全报告和迁移默认决策。
 
 准确提交记录见 [TASKS.md](./TASKS.md)。
 
@@ -94,18 +95,18 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **Task 009：v1 备份迁移预检**。
+当前任务是 **Task 010：迁移 staging、原子提交与回滚边界**。
 
-范围包括识别现代 `zhongri-backup` v5+ 和旧 v4 JSON、计算来源 SHA-256、按数据域分类并
-输出版本化报告，以及在页面显示阻断项和复核项。Task009 严格只读，不写 IndexedDB、不激活
-FSRS、不执行完整 canonical ID 映射，也不迁移旧 API 密钥。
+范围包括版本化 MigrationRun/isolated dataset/active pointer 契约、确定性 migrationId、
+内存与 Dexie v3 适配器、幂等 staging、单事务 active 指针切换、回滚，以及页面的显式安全
+暂存入口。暂存快照会先移除旧 API Key 明文。
 
-详细决策见 [ADR-007](./decisions/ADR-007-v1-migration-preflight.md)。
+详细决策见 [ADR-008](./decisions/ADR-008-migration-staging-commit.md)。
 
 ## 下一步路线
 
-1. 完成 Task009 的代码审查和远程预览验收。
-2. 写入 staging、原子提交和回滚必须作为后续独立 Task 冻结。
+1. 完成 Task010 的代码审查和远程预览验收。
+2. 后续按规格顺序加入 canonical identity、Word/Override、idMap 与关系域转换。
 3. FSRS 激活和正式学习功能仍需独立 Task。
 4. AI 增强属于 Phase 2；语音和高级能力属于 Phase 3。
 

@@ -35,6 +35,7 @@ Task004 首次在该依赖方向中加入纯 TypeScript Domain 判题和 Applica
 Task005 加入学习持久化 Ports，以及共享同一契约测试的内存/Dexie 适配器。
 Task006 加入版本化会话状态和恢复；Task008 加入按会话清除与重新开始用例。
 Task009 加入只读迁移预检用例、来源摘要 Port 和版本化报告 Schema。
+Task010 加入版本化迁移运行、隔离数据集、active pointer 和原子提交/回滚 Port。
 `/study-demo` 只消费 Application 快照，不直接执行业务规则或访问数据库。
 
 ## Task005 学习事务
@@ -68,4 +69,15 @@ Dexie 只存在于 Infrastructure。Domain、页面和 UI 组件不得 import De
 浏览器哈希能力只存在于 Infrastructure。旧 API 密钥只用于“需要重新输入”的存在性判断，
 不得写入报告、日志或页面。活跃 Word/Override/FSRS 的孤立引用是 P0 阻断。
 
-当前仍不实现迁移 staging、原子写入、回滚、ReviewState 激活、FSRS 调度或 AI。
+## Task010 staging 与 active pointer
+
+1. UI 只有在预检非 blocked 且用户明确操作后，才把原文件文本与报告交给 Application。
+2. Application 重新计算来源 SHA-256、验证报告一致性，并在写入前递归脱敏旧 API Key。
+3. `migrationId` 只由来源指纹与固定规格版本生成；同一输入重复执行复用原 staging。
+4. `MigrationPersistencePort` 保存 MigrationRun、脱敏隔离数据集并读取 active pointer。
+5. Dexie v3 在事务内同时更新 MigrationRun 和唯一 active pointer；失败时两者都不改变。
+6. 回滚只把 active pointer 恢复为 `priorActiveDatasetId`，保留快照、报告和诊断数据。
+7. 学习事件与会话表不参与迁移事务；staging 不代表业务域已完成迁移。
+
+当前仍不实现 canonical 资产加载、Word/Override/idMap、关系域转换、ReviewState 激活、FSRS
+调度或 AI。

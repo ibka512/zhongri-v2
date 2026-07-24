@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom';
 import {
   MAX_V1_BACKUP_FILE_SIZE_BYTES,
   type PreviewV1BackupInput,
+  type StageV1BackupInput,
 } from '../../application/migration';
+import type { StageMigrationResult } from '../../ports';
 import type {
   MigrationPreviewDomain,
   MigrationPreviewReport,
@@ -16,6 +18,7 @@ import './migration-preview.css';
 export interface MigrationPreviewPageProps {
   previewBackup: (input: PreviewV1BackupInput) => Promise<MigrationPreviewReport>;
   serializeReport: (report: MigrationPreviewReport) => string;
+  stageBackup: (input: StageV1BackupInput) => Promise<StageMigrationResult>;
 }
 
 const DOMAIN_LABELS: Record<MigrationPreviewDomain, string> = {
@@ -43,7 +46,7 @@ const STATUS_COPY: Record<
   ready: {
     label: '可以继续',
     title: '备份结构通过预检',
-    description: '没有发现阻断问题。正式写入仍需在 Task 010 中再次确认。',
+    description: '没有发现阻断问题。你可以创建隔离暂存；业务数据仍不会被激活。',
   },
   review: {
     label: '需要检查',
@@ -83,11 +86,16 @@ function formatDate(value: string | null): string {
 export function MigrationPreviewPage({
   previewBackup,
   serializeReport,
+  stageBackup,
 }: MigrationPreviewPageProps) {
   const [report, setReport] = useState<MigrationPreviewReport | null>(null);
+  const [selectedSourceText, setSelectedSourceText] = useState<string | null>(null);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
+  const [isStaging, setIsStaging] = useState(false);
+  const [stagingError, setStagingError] = useState<string | null>(null);
+  const [stagingResult, setStagingResult] = useState<StageMigrationResult | null>(null);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0];
@@ -99,7 +107,10 @@ export function MigrationPreviewPage({
 
     setSelectedFileName(file.name);
     setReport(null);
+    setSelectedSourceText(null);
     setInputError(null);
+    setStagingError(null);
+    setStagingResult(null);
 
     if (file.size > MAX_V1_BACKUP_FILE_SIZE_BYTES) {
       setInputError('备份文件超过 25 MB。请确认选择的是钟日 JSON 备份。');
@@ -111,19 +122,40 @@ export function MigrationPreviewPage({
 
     void file
       .text()
-      .then((text) =>
-        previewBackup({
+      .then(async (text) => {
+        const preview = await previewBackup({
           fileName: file.name,
           fileSize: file.size,
           text,
-        }),
-      )
+        });
+        setSelectedSourceText(text);
+        return preview;
+      })
       .then(setReport)
       .catch((error: unknown) => {
         setInputError(error instanceof Error ? error.message : '无法预检此备份，请重新选择文件。');
       })
       .finally(() => {
         setIsAnalyzing(false);
+      });
+  };
+
+  const createSafeStaging = () => {
+    if (!report || !selectedSourceText || report.status === 'blocked') {
+      return;
+    }
+
+    setIsStaging(true);
+    setStagingError(null);
+    void stageBackup({ report, text: selectedSourceText })
+      .then(setStagingResult)
+      .catch((error: unknown) => {
+        setStagingError(
+          error instanceof Error ? error.message : '无法创建迁移暂存，当前数据没有被修改。',
+        );
+      })
+      .finally(() => {
+        setIsStaging(false);
       });
   };
 
@@ -149,10 +181,11 @@ export function MigrationPreviewPage({
         <Link className="migration-preview__back" to="/study-demo">
           返回学习演示
         </Link>
-        <p className="migration-preview__eyebrow">Phase 1 · Task009</p>
+        <p className="migration-preview__eyebrow">Phase 1 · Task010</p>
         <h1>旧版数据迁移预检</h1>
         <p>
-          选择从钟日 v1 导出的 JSON 备份。系统只读取并生成报告，不会导入、覆盖或删除任何 v2 数据。
+          选择钟日 v1 JSON
+          备份会先只读生成报告；只有你明确选择“创建安全暂存”后，脱敏快照才会写入隔离数据集。
         </p>
       </header>
 
@@ -181,7 +214,7 @@ export function MigrationPreviewPage({
         {isAnalyzing && <p role="status">正在校验备份并生成 SHA-256 报告…</p>}
         {inputError && <p role="alert">{inputError}</p>}
         <p className="migration-preview__privacy">
-          API Key 明文不会进入报告；如果检测到旧密钥，只会标记“需要重新输入”。
+          API Key 明文不会进入报告或暂存快照；如果检测到旧密钥，只会标记“需要重新输入”。
         </p>
       </Card>
 
@@ -194,10 +227,26 @@ export function MigrationPreviewPage({
                 <h2>{statusCopy.title}</h2>
                 <p>{statusCopy.description}</p>
               </div>
-              <Button onClick={downloadReport} variant="secondary">
-                导出迁移报告
-              </Button>
+              <div className="migration-preview__result-actions">
+                {report.status !== 'blocked' && (
+                  <Button
+                    loadingLabel="正在创建安全暂存"
+                    onClick={createSafeStaging}
+                    state={isStaging ? 'loading' : stagingResult ? 'success' : 'default'}
+                  >
+                    {stagingResult ? '安全暂存已创建' : '创建安全暂存'}
+                  </Button>
+                )}
+                <Button onClick={downloadReport} variant="secondary">
+                  导出迁移报告
+                </Button>
+              </div>
             </div>
+            {stagingError && (
+              <p className="migration-preview__staging-error" role="alert">
+                {stagingError}
+              </p>
+            )}
 
             <dl className="migration-preview__source">
               <div>
@@ -246,6 +295,37 @@ export function MigrationPreviewPage({
               </div>
             </dl>
           </Card>
+
+          {stagingResult && (
+            <Card aria-live="polite" className="migration-preview__staging" role="status">
+              <p className="migration-preview__status-label">已安全暂存</p>
+              <h2>原始备份和预检报告已进入隔离数据集</h2>
+              <p>
+                {stagingResult.status === 'replayed'
+                  ? '检测到相同备份，已复用原有暂存，没有写入重复数据。'
+                  : '已创建可验证、可恢复的 staging；当前学习会话和活跃业务数据没有改变。'}
+              </p>
+              <dl>
+                <div>
+                  <dt>migrationId</dt>
+                  <dd>{stagingResult.run.migrationId}</dd>
+                </div>
+                <div>
+                  <dt>当前阶段</dt>
+                  <dd>验证完成，等待后续逐域转换</dd>
+                </div>
+                <div>
+                  <dt>敏感字段</dt>
+                  <dd>
+                    {stagingResult.run.containsRedactedSecrets
+                      ? '已从暂存快照中脱敏'
+                      : '未检测到需要脱敏的旧密钥'}
+                  </dd>
+                </div>
+              </dl>
+              <p>这不代表词条、FSRS 或学习历史已经迁移；Task 010 不提供业务数据激活操作。</p>
+            </Card>
+          )}
 
           <section aria-labelledby="migration-domains-title" className="migration-preview__section">
             <div className="migration-preview__section-heading">
