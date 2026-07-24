@@ -8,17 +8,20 @@
 | Task 002   | 冻结 Question、Judgement、LearningEvent v1 Schema | 已完成 | `21585a4` |
 | Task 003   | 建立 Design System 与 `/ui-lab`                   | 已完成 | `7d88234` |
 | Task 003.5 | GitHub Actions、Issue/PR 模板和协作状态文档       | 已完成 | `78fbbbd` |
-| Task 004   | Application 层与第一个学习闭环技术验证            | 已完成 | 本次提交  |
+| Task 004   | Application 层与第一个学习闭环技术验证            | 已验收 | `407c3d5` |
 
 ## 当前
 
-- Task004 已完成实现与本地质量检查，等待产品负责人验收。
+- **Task 005：持久化边界与离线学习基线** 正在实施。
+- Issue：[#2](https://github.com/ibka512/zhongri-v2/issues/2)。
+- 当前切片包含 Ports、幂等学习事务、内存/Dexie 适配器和基础 PWA App Shell。
+- 当前切片不包含真实迁移、FSRS、AI、账号、正式首页或真实音频。
 
 ## 待完成
 
 | Task          | 状态   | 说明                                                   |
 | ------------- | ------ | ------------------------------------------------------ |
-| Task 005 以后 | 未排期 | 只在前一 Task 验收后逐项确认，不从路线图直接推断实现。 |
+| Task 006 以后 | 未排期 | 只在前一 Task 验收后逐项确认，不从路线图直接推断实现。 |
 
 ## 维护规则
 

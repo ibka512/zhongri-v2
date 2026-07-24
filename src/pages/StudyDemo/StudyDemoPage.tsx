@@ -1,6 +1,8 @@
 import { useState } from 'react';
 
 import { StudyUseCase, type StudySessionSnapshot } from '../../application/study';
+import { InMemoryStudyPersistence } from '../../infrastructure/study';
+import { cryptoIdGenerator, webClock } from '../../infrastructure/system';
 import { studyDemoItems } from '../../mock/questions';
 import { JudgementStatus, QuestionType } from '../../schemas/v1';
 import { Button, Card, Progress } from '../../ui/components';
@@ -8,7 +10,7 @@ import { ChoiceAnswer, Feedback, QuestionFrame } from '../../ui/components/learn
 import './study-demo.css';
 
 function createDemoUseCase(): StudyUseCase {
-  let eventSequence = 0;
+  const persistence = new InMemoryStudyPersistence();
 
   return new StudyUseCase(
     {
@@ -17,11 +19,9 @@ function createDemoUseCase(): StudyUseCase {
       userId: 'task004-demo-user',
     },
     {
-      createId: () => {
-        eventSequence += 1;
-        return `task004-demo-event-${eventSequence}`;
-      },
-      now: () => new Date(),
+      clock: webClock,
+      idGenerator: cryptoIdGenerator,
+      transaction: persistence,
     },
   );
 }
@@ -29,6 +29,8 @@ function createDemoUseCase(): StudyUseCase {
 export function StudyDemoPage() {
   const [useCase] = useState(createDemoUseCase);
   const [snapshot, setSnapshot] = useState<StudySessionSnapshot>(() => useCase.getSnapshot());
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const currentQuestion = snapshot.currentItem?.question ?? null;
 
@@ -70,16 +72,30 @@ export function StudyDemoPage() {
 
       <QuestionFrame
         answer={
-          <ChoiceAnswer
-            correctOptionId={currentQuestion.answer.correctOptionIds[0]}
-            label={currentQuestion.prompt.instruction ?? '请选择答案'}
-            onChange={(answer) => {
-              setSnapshot(useCase.submitAnswer(answer));
-            }}
-            options={currentQuestion.options}
-            status={isAnswered ? (isCorrect ? 'correct' : 'incorrect') : 'idle'}
-            value={selectedAnswer}
-          />
+          <div>
+            <ChoiceAnswer
+              correctOptionId={currentQuestion.answer.correctOptionIds[0]}
+              disabled={isSubmitting}
+              label={currentQuestion.prompt.instruction ?? '请选择答案'}
+              onChange={(answer) => {
+                setIsSubmitting(true);
+                setSubmissionError(null);
+                void useCase
+                  .submitAnswer(answer, `${snapshot.sessionId}:${currentQuestion.id}`)
+                  .then(setSnapshot)
+                  .catch(() => {
+                    setSubmissionError('答案保存失败，请重试。');
+                  })
+                  .finally(() => {
+                    setIsSubmitting(false);
+                  });
+              }}
+              options={currentQuestion.options}
+              status={isAnswered ? (isCorrect ? 'correct' : 'incorrect') : 'idle'}
+              value={selectedAnswer}
+            />
+            {submissionError && <p role="alert">{submissionError}</p>}
+          </div>
         }
         current={snapshot.currentIndex + 1}
         feedback={

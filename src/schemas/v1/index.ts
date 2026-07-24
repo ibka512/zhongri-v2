@@ -39,5 +39,10 @@ export type {
   LearningEventPayload,
 } from './LearningEventSchema';
 
+export {
+  StudySessionCheckpointSchema,
+  type StudySessionCheckpoint,
+} from './StudySessionCheckpointSchema';
+
 export { AnswerValueSchema, ContractVersionSchema, LanguageSchema } from './shared';
 export type { AnswerValue, Language } from './shared';
