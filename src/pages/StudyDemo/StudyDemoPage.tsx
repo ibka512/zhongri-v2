@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import type { StudySessionSnapshot, StudyUseCase } from '../../application/study';
 import { JudgementStatus, QuestionType } from '../../schemas/v1';
@@ -148,6 +149,11 @@ export function StudyDemoPage({ createUseCase, restartUseCase }: StudyDemoPagePr
       restartError={restartError}
     />
   );
+  const migrationLink = (
+    <Link className="study-demo__migration-link" to="/migration-preview">
+      检查旧版备份
+    </Link>
+  );
   const currentQuestion = snapshot.currentItem?.question ?? null;
 
   if (snapshot.status === 'completed') {
@@ -165,6 +171,7 @@ export function StudyDemoPage({ createUseCase, restartUseCase }: StudyDemoPagePr
           />
           <p>本次会话已有 {snapshot.events.length} 条 LearningEvent；刷新后仍会恢复完成状态。</p>
           {restartControl}
+          {migrationLink}
         </Card>
       </main>
     );
@@ -187,6 +194,7 @@ export function StudyDemoPage({ createUseCase, restartUseCase }: StudyDemoPagePr
         <h1>可恢复的学习会话</h1>
         <p>答题、反馈、下一题和完成状态均保存在本地。</p>
         {restartControl}
+        {migrationLink}
       </header>
 
       <QuestionFrame

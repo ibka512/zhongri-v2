@@ -78,6 +78,17 @@
   margin-block-start: var(--zr-space-3);
 }
 
+.study-demo__migration-link {
+  display: inline-flex;
+  min-height: var(--zr-size-touch);
+  align-items: center;
+  justify-content: center;
+  margin-block-start: var(--zr-space-2);
+  color: var(--zr-brand-primary);
+  font-weight: var(--zr-font-weight-medium);
+  text-underline-offset: 0.2em;
+}
+
 .study-demo__restart-confirmation {
   display: grid;
   gap: var(--zr-space-3);

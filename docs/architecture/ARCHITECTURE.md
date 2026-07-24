@@ -34,6 +34,7 @@ Infrastructure Adapters
 Task004 首次在该依赖方向中加入纯 TypeScript Domain 判题和 Application 内存会话编排。
 Task005 加入学习持久化 Ports，以及共享同一契约测试的内存/Dexie 适配器。
 Task006 加入版本化会话状态和恢复；Task008 加入按会话清除与重新开始用例。
+Task009 加入只读迁移预检用例、来源摘要 Port 和版本化报告 Schema。
 `/study-demo` 只消费 Application 快照，不直接执行业务规则或访问数据库。
 
 ## Task005 学习事务
@@ -56,4 +57,15 @@ Dexie 只存在于 Infrastructure。Domain、页面和 UI 组件不得 import De
 4. 清除成功后 Application 创建全新的第一题会话；失败时原 `StudyUseCase` 和页面快照不变。
 5. 清除边界不得提供无条件全库删除，也不得影响其他 `sessionId`。
 
-当前仍不实现真实迁移、ReviewState、FSRS 或 AI。
+## Task009 v1 迁移预检
+
+1. UI 只把用户明确选择的 JSON 文本和文件元数据交给 Application。
+2. Application 识别现代 v5+ 或旧 v4 格式，调用 `TextDigestPort` 计算 SHA-256。
+3. Application 按域把每条来源数据分类为可迁移、跳过、冲突或错误，并聚合同类问题。
+4. Zod 在返回 UI 前验证版本化报告、分类总数不变量和固定迁移假设。
+5. UI 只呈现并导出报告；预检过程中 `writesPerformed` 恒为 `false`。
+
+浏览器哈希能力只存在于 Infrastructure。旧 API 密钥只用于“需要重新输入”的存在性判断，
+不得写入报告、日志或页面。活跃 Word/Override/FSRS 的孤立引用是 P0 阻断。
+
+当前仍不实现迁移 staging、原子写入、回滚、ReviewState 激活、FSRS 调度或 AI。

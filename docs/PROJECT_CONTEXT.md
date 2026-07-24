@@ -35,7 +35,7 @@ FSRS 复习调度
 
 仓库已经具备可维护的 React + TypeScript + Vite 基础、核心数据契约、UI Lab 和
 GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已由产品负责人验收。
-Task 007 已完成，当前实施 **Task 008：学习会话重新开始与本地进度清除**。
+Task 008 已完成，当前实施 **Task 009：v1 备份迁移预检**。
 
 ## 已完成任务
 
@@ -47,6 +47,7 @@ Task 007 已完成，当前实施 **Task 008：学习会话重新开始与本地
 - **Task 005**：建立 Ports、幂等学习事务、内存/Dexie 适配器和基础 PWA App Shell。
 - **Task 006**：建立版本化学习会话状态、下一题/完成持久化和刷新恢复。
 - **Task 007**：建立 GitHub Pages 子路径构建、Hash 路由、产物校验和自动部署。
+- **Task 008**：建立按会话原子清除、显式二次确认和失败后保留原进度。
 
 准确提交记录见 [TASKS.md](./TASKS.md)。
 
@@ -83,7 +84,7 @@ Infrastructure Adapters
 
 在负责人明确下达对应任务前，禁止：
 
-- 接入真实 FSRS 或数据迁移。
+- 接入真实 FSRS 或未经独立任务授权的写入式数据迁移。
 - 接入 AI API、模型 SDK、聊天界面或真实音频服务。
 - 创建首页、词库、五十音、IPA、账号、同步、商业化或社区功能。
 - 让组件直接调用外部能力或把业务事实写入 Zustand、LocalStorage。
@@ -93,19 +94,19 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **Task 008：学习会话重新开始与本地进度清除**。
+当前任务是 **Task 009：v1 备份迁移预检**。
 
-范围包括只清除指定会话的持久化边界、Application 重新开始用例、答题中与完成后的显式
-二次确认，以及失败后保留现有进度。Task008 不实现全局数据清除、撤销、导入导出、云同步、
-真实课程选择、FSRS 或 AI。
+范围包括识别现代 `zhongri-backup` v5+ 和旧 v4 JSON、计算来源 SHA-256、按数据域分类并
+输出版本化报告，以及在页面显示阻断项和复核项。Task009 严格只读，不写 IndexedDB、不激活
+FSRS、不执行完整 canonical ID 映射，也不迁移旧 API 密钥。
 
-详细决策见 [ADR-006](./decisions/ADR-006-session-reset-boundary.md)。
+详细决策见 [ADR-007](./decisions/ADR-007-v1-migration-preflight.md)。
 
 ## 下一步路线
 
-1. 完成 Task008 的代码审查和远程预览验收。
-2. 下一项任务必须由产品负责人单独冻结，不从路线图推断。
-3. 真实迁移、FSRS 和正式学习功能仍需独立 Task。
+1. 完成 Task009 的代码审查和远程预览验收。
+2. 写入 staging、原子提交和回滚必须作为后续独立 Task 冻结。
+3. FSRS 激活和正式学习功能仍需独立 Task。
 4. AI 增强属于 Phase 2；语音和高级能力属于 Phase 3。
 
 阶段路线见 [ROADMAP.md](./ROADMAP.md)。
