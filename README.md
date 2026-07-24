@@ -20,16 +20,16 @@ Phase 1：核心学习闭环技术验证。
 - Task008 已完成学习会话重新开始与单会话原子清除。
 - Task009 已完成 v1 备份只读迁移预检。
 - Task010 已完成迁移安全暂存、原子 active 指针与回滚边界。
+- Task011 已完成真实 N5 词条与 canonical 身份底座。
 
-正在实施 Task011：真实日语词条与 canonical 身份底座。当前切片从固定 `jp-study`
-提交引入 20 个 N5 词条，原样保留稳定 ID 和来源证据，并通过 Repository Port 提供确定性
-身份解析和内容完整性校验。
+正在实施 Task012：正式每日课程纵向切片。网站根入口按本地日期生成五个真实 N5
+词条的确定性课程，包含三道选择题与两道文本输入题，并复用本地学习事实与会话恢复。
 
-尚未实现完整 9,828 词资产、正式每日课程、逐域迁移与激活、FSRS 调度、AI 或真实音频。
+尚未实现完整 9,828 词资产、逐域迁移与激活、LearnerProfile、FSRS、AI 或真实音频。
 
 ## 开发状态
 
-**Phase 1 - Task 011：真实日语词条与 canonical 身份底座** 正在实施。
+**Phase 1 - Task 012：正式每日课程纵向切片** 正在实施。
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
@@ -42,7 +42,8 @@ Phase 1：核心学习闭环技术验证。
 - Task 008：学习会话重新开始与本地进度清除，已完成。
 - Task 009：v1 备份迁移预检，已完成。
 - Task 010：迁移 staging、原子提交与回滚边界，已完成。
-- Task 011：真实日语词条与 canonical 身份底座，实施中。
+- Task 011：真实日语词条与 canonical 身份底座，已完成。
+- Task 012：正式每日课程纵向切片，实施中。
 
 详细状态见 [开发状态](./docs/development/STATUS.md)。
 
@@ -90,7 +91,8 @@ npm run dev
 
 启动后访问：
 
-- 学习闭环技术演示：`/` 或 `/#/study-demo`
+- 正式每日课程：`/` 或 `/#/today`
+- 学习闭环技术演示：`/#/study-demo`
 - v1 备份迁移预检：`/#/migration-preview`
 - UI Lab：`/#/ui-lab`
 
@@ -121,9 +123,11 @@ npm run lint
 npm run test
 ```
 
-`vite-plugin-pwa` 已启用 App Shell 预缓存、导航回退和更新状态事件。`/study-demo`
-会在 IndexedDB 保存学习会话，并可在二次确认后仅清除当前演示会话。
+`vite-plugin-pwa` 已启用 App Shell 预缓存、导航回退和更新状态事件。`/today`
+会在 IndexedDB 保存正式每日课程，并可在二次确认后仅清除当日会话。
 `/migration-preview` 先只读生成报告；只有用户明确创建安全暂存后，脱敏快照与报告才进入
 IndexedDB 隔离数据集。Task010 不激活 Word、FSRS 或其他业务域。
 Task011 的 20 个 N5 日语词条随构建离线发布；来源与许可见
 [第三方内容与许可](./docs/content/THIRD_PARTY_CONTENT.md)。
+Task012 的课程规则见
+[ADR-010](./docs/decisions/ADR-010-deterministic-daily-course.md)。

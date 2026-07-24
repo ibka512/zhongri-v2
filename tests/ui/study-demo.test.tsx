@@ -41,34 +41,6 @@ function createHarness() {
 }
 
 describe('StudyDemoPage', () => {
-  it('uses the study demo as the hosted root experience', async () => {
-    const { createUseCase, restartUseCase } = createHarness();
-    const router = createMemoryRouter(
-      createAppRoutes({
-        createStudyDemoUseCase: createUseCase,
-        previewV1Backup: async () => {
-          throw new Error('Migration preview is not used in this test');
-        },
-        restartStudyDemoUseCase: restartUseCase,
-        serializeMigrationPreview: () => '',
-        stageV1Backup: async () => {
-          throw new Error('Migration staging is not used in this test');
-        },
-      }),
-      {
-        initialEntries: ['/'],
-      },
-    );
-
-    render(
-      <ThemeProvider initialTheme="light">
-        <RouterProvider router={router} />
-      </ThemeProvider>,
-    );
-
-    expect(await screen.findByRole('heading', { name: '可恢复的学习会话' })).toBeInTheDocument();
-  });
-
   it('completes three mock questions with correct and incorrect feedback', async () => {
     const { createUseCase, persistence, restartUseCase } = createHarness();
     const router = createMemoryRouter(

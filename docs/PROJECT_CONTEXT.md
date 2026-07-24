@@ -35,7 +35,7 @@ FSRS 复习调度
 
 仓库已经具备可维护的 React + TypeScript + Vite 基础、核心数据契约、UI Lab 和
 GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已由产品负责人验收。
-Task 010 已完成，当前实施 **Task 011：真实日语词条与 canonical 身份底座**。
+Task 011 已完成，当前实施 **Task 012：正式每日课程纵向切片**。
 
 ## 已完成任务
 
@@ -50,6 +50,7 @@ Task 010 已完成，当前实施 **Task 011：真实日语词条与 canonical �
 - **Task 008**：建立按会话原子清除、显式二次确认和失败后保留原进度。
 - **Task 009**：建立 v5+/v4 备份识别、逐域预检、安全报告和迁移默认决策。
 - **Task 010**：建立隔离 staging、确定性 migrationId、原子 active 指针与回滚边界。
+- **Task 011**：建立首批真实 N5 词条、固定来源 Manifest 和 canonical 身份仓储。
 
 准确提交记录见 [TASKS.md](./TASKS.md)。
 
@@ -96,19 +97,19 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **Task 011：真实日语词条与 canonical 身份底座**。
+当前任务是 **Task 012：正式每日课程纵向切片**。
 
-范围包括 CanonicalWord/CanonicalManifest v1、从固定 `jp-study` 提交引入的 20 个 N5 日语
-词条、来源与许可记录、内容仓储 Port、语言域身份解析，以及 ID/内容双摘要完整性校验。该
-切片服务下一项正式每日课程，不导入完整 9,828 词，也不转换用户词、FSRS 或其他迁移域。
+范围包括 TodayPlan v1、按本地日期从 canonical Repository Port 选择五个真实 N5 词条、
+三道选择题与两道文本题，以及 `/today` 的计划、答题、反馈、结果和刷新恢复。该切片复用
+现有 StudyUseCase、LearningEvent 与 Dexie，不实现 LearnerProfile、FSRS 或 AI。
 
-详细决策见 [ADR-009](./decisions/ADR-009-canonical-content-identity.md)。
+详细决策见 [ADR-010](./decisions/ADR-010-deterministic-daily-course.md)。
 
 ## 下一步路线
 
-1. 完成 Task011 的代码审查、来源核验和完整性验收。
-2. Task012 使用 canonical 内容仓储建立正式每日课程，不再依赖三题 Mock。
-3. Task013 建立学习画像与复习调度；Task014 才接入 AI Gateway。
+1. 完成 Task012 的代码审查、混合题型、移动端与恢复验收。
+2. Task013 建立学习画像与复习调度；Task014 才接入 AI Gateway。
+3. AI 增强必须继续复用固定题目 UI 和真实 LearningEvent，不替代基础课程。
 4. 完整迁移转换与 9,828 词扩容继续使用独立 Task，不阻塞核心学习纵向切片。
 
 阶段路线见 [ROADMAP.md](./ROADMAP.md)。

@@ -91,5 +91,12 @@ export {
   type CanonicalWord,
 } from './CanonicalContentSchema';
 
+export {
+  TodayPlanItemSchema,
+  TodayPlanSchema,
+  type TodayPlan,
+  type TodayPlanItem,
+} from './TodayPlanSchema';
+
 export { AnswerValueSchema, ContractVersionSchema, LanguageSchema } from './shared';
 export type { AnswerValue, Language } from './shared';
