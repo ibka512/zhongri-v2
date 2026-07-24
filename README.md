@@ -12,18 +12,19 @@ Phase 1：核心学习闭环技术验证。
 - Question、Judgement、LearningEvent v1 Schema。
 - Design Token、Theme Provider、核心 UI 组件和 `/ui-lab`。
 - 架构边界、ADR 和 AI 项目知识库。
-- 选择题 Domain Judge、Application QuestionFlow 和 `/study-demo` 内存闭环。
+- 选择题 Domain Judge、Application QuestionFlow 和学习闭环技术演示。
 - Task004 已由产品负责人验收。
 - Task005 已完成幂等学习事务、Dexie 持久化和最小 PWA App Shell。
+- Task006 已完成版本化会话状态和刷新恢复。
 
-正在实施 Task006：可恢复的持久化学习会话。当前分支加入 StudySessionState v1、
-Dexie 会话恢复，以及下一题和完成状态持久化。
+正在实施 Task007：GitHub Pages 开发预览部署。当前分支加入 Pages 子路径构建、
+Hash 路由、PWA 路径校验和自动部署。
 
 尚未实现正式学习首页、真实 v1 迁移、FSRS、AI、词库或真实音频。
 
 ## 开发状态
 
-**Phase 1 - Task 006：可恢复的持久化学习会话** 正在实施。
+**Phase 1 - Task 007：GitHub Pages 开发预览部署** 正在实施。
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
@@ -31,7 +32,8 @@ Dexie 会话恢复，以及下一题和完成状态持久化。
 - Task 003.5：GitHub 工程化增强，已完成。
 - Task 004：Application 层与第一个学习闭环，已验收。
 - Task 005：Ports、幂等事务、Dexie 与最小离线壳，已完成。
-- Task 006：版本化会话状态与刷新恢复，实施中。
+- Task 006：版本化会话状态与刷新恢复，已完成。
+- Task 007：GitHub Pages 开发预览部署，实施中。
 
 详细状态见 [开发状态](./docs/development/STATUS.md)。
 
@@ -79,15 +81,32 @@ npm run dev
 
 启动后访问：
 
-- 初始化页：`/`
-- UI Lab：`/ui-lab`
-- 学习闭环技术演示：`/study-demo`
+- 学习闭环技术演示：`/` 或 `/#/study-demo`
+- UI Lab：`/#/ui-lab`
+
+## GitHub Pages 开发预览
+
+Task007 合并并完成首次 Pages 配置后访问：
+
+- [钟日 v2 开发预览](https://ibka512.github.io/zhongri-v2/)
+- UI Lab：`https://ibka512.github.io/zhongri-v2/#/ui-lab`
+
+Pages 专用构建和本地生产预览：
+
+```bash
+npm run build:pages
+npm run preview:pages
+```
+
+首次部署前，仓库所有者需要在 GitHub 的 `Settings → Pages → Build and deployment`
+中把 Source 设置为 `GitHub Actions`。以后每次合并到 `main` 会自动更新预览站。
 
 ## 基础检查
 
 ```bash
 npm run format:check
 npm run build
+npm run build:pages
 npm run lint
 npm run test
 ```

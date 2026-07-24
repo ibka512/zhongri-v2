@@ -1,4 +1,4 @@
-import { createBrowserRouter, type RouteObject } from 'react-router-dom';
+import { createHashRouter, Navigate, type RouteObject } from 'react-router-dom';
 
 import type { StudyUseCase } from '../application/study';
 import { StudyDemoPage } from '../pages/StudyDemo';
@@ -19,6 +19,10 @@ export function createAppRoutes(
 ): RouteObject[] {
   return [
     {
+      path: '/',
+      element: <Navigate replace to="/study-demo" />,
+    },
+    {
       path: '/study-demo',
       element: <StudyDemoPage createUseCase={dependencies.createStudyDemoUseCase} />,
     },
@@ -34,4 +38,4 @@ export function createAppRoutes(
 }
 
 export const appRoutes = createAppRoutes();
-export const router = createBrowserRouter(appRoutes);
+export const router = createHashRouter(appRoutes);

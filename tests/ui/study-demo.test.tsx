@@ -42,6 +42,21 @@ function createHarness() {
 }
 
 describe('StudyDemoPage', () => {
+  it('uses the study demo as the hosted root experience', async () => {
+    const { createUseCase } = createHarness();
+    const router = createMemoryRouter(createAppRoutes({ createStudyDemoUseCase: createUseCase }), {
+      initialEntries: ['/'],
+    });
+
+    render(
+      <ThemeProvider initialTheme="light">
+        <RouterProvider router={router} />
+      </ThemeProvider>,
+    );
+
+    expect(await screen.findByRole('heading', { name: '可恢复的学习会话' })).toBeInTheDocument();
+  });
+
   it('completes three mock questions with correct and incorrect feedback', async () => {
     const { createUseCase } = createHarness();
     const router = createMemoryRouter(createAppRoutes({ createStudyDemoUseCase: createUseCase }), {
