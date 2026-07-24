@@ -43,6 +43,13 @@ export {
   StudySessionCheckpointSchema,
   type StudySessionCheckpoint,
 } from './StudySessionCheckpointSchema';
+export {
+  StudySessionItemReferenceSchema,
+  StudySessionStateSchema,
+  StudySessionStatusSchema,
+  type StudySessionState,
+  type StudySessionStatusValue,
+} from './StudySessionStateSchema';
 
 export { AnswerValueSchema, ContractVersionSchema, LanguageSchema } from './shared';
 export type { AnswerValue, Language } from './shared';

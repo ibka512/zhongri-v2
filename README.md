@@ -14,22 +14,24 @@ Phase 1：核心学习闭环技术验证。
 - 架构边界、ADR 和 AI 项目知识库。
 - 选择题 Domain Judge、Application QuestionFlow 和 `/study-demo` 内存闭环。
 - Task004 已由产品负责人验收。
+- Task005 已完成幂等学习事务、Dexie 持久化和最小 PWA App Shell。
 
-正在实施 Task005：持久化边界与离线学习基线。当前分支加入幂等学习事务、
-StudySessionCheckpoint v1、内存/Dexie 适配器和最小 PWA 离线壳。
+正在实施 Task006：可恢复的持久化学习会话。当前分支加入 StudySessionState v1、
+Dexie 会话恢复，以及下一题和完成状态持久化。
 
 尚未实现正式学习首页、真实 v1 迁移、FSRS、AI、词库或真实音频。
 
 ## 开发状态
 
-**Phase 1 - Task 005：持久化边界与离线学习基线** 正在实施。
+**Phase 1 - Task 006：可恢复的持久化学习会话** 正在实施。
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
 - Task 003：UI Lab 与 Design System，已完成。
 - Task 003.5：GitHub 工程化增强，已完成。
 - Task 004：Application 层与第一个学习闭环，已验收。
-- Task 005：Ports、幂等事务、Dexie 与最小离线壳，实施中。
+- Task 005：Ports、幂等事务、Dexie 与最小离线壳，已完成。
+- Task 006：版本化会话状态与刷新恢复，实施中。
 
 详细状态见 [开发状态](./docs/development/STATUS.md)。
 
@@ -90,5 +92,5 @@ npm run lint
 npm run test
 ```
 
-`vite-plugin-pwa` 已启用 App Shell 预缓存、导航回退和更新状态事件。正式离线学习数据
-与资源缓存仍属于后续任务。
+`vite-plugin-pwa` 已启用 App Shell 预缓存、导航回退和更新状态事件。`/study-demo`
+会在 IndexedDB 保存学习会话；正式题库资源缓存仍属于后续任务。

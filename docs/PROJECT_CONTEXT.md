@@ -35,7 +35,7 @@ FSRS 复习调度
 
 仓库已经具备可维护的 React + TypeScript + Vite 基础、核心数据契约、UI Lab 和
 GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已由产品负责人验收。
-当前实施 **Task 005：持久化边界与离线学习基线**。
+Task 005 已完成，当前实施 **Task 006：可恢复的持久化学习会话**。
 
 ## 已完成任务
 
@@ -44,6 +44,7 @@ GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已
 - **Task 003**：建立 Design Token、Theme Provider、核心展示组件和 `/ui-lab`。
 - **Task 003.5**：建立 GitHub Actions、Issue/PR 模板和开发状态文档。
 - **Task 004**：建立选择题判题、内存 QuestionFlow、LearningEvent 生成和 `/study-demo`，已验收。
+- **Task 005**：建立 Ports、幂等学习事务、内存/Dexie 适配器和基础 PWA App Shell。
 
 准确提交记录见 [TASKS.md](./TASKS.md)。
 
@@ -90,17 +91,16 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **Task 005：持久化边界与离线学习基线**。
+当前任务是 **Task 006：可恢复的持久化学习会话**。
 
-范围包括 Repository/Transaction/Clock/ID Ports、StudySessionCheckpoint v1、幂等学习
-事务、内存与 Dexie 适配器，以及基础 PWA App Shell。Task005 不接入真实迁移、FSRS、
-AI、账号、词库、正式首页或真实音频。
+范围包括 StudySessionState v1、Dexie 会话保存与恢复、下一题/完成状态持久化，以及
+恢复与失败测试。Task006 不接入真实迁移、FSRS、AI、账号、词库、正式首页或真实音频。
 
-详细决策见 [ADR-003](./decisions/ADR-003-persistence-transaction-boundary.md)。
+详细决策见 [ADR-004](./decisions/ADR-004-recoverable-study-session.md)。
 
 ## 下一步路线
 
-1. 完成 Task005 的代码审查与远程 CI。
+1. 完成 Task006 的代码审查与远程 CI。
 2. 下一项任务必须由产品负责人单独冻结，不从路线图推断。
 3. 真实迁移、FSRS 和正式学习功能仍需独立 Task。
 4. AI 增强属于 Phase 2；语音和高级能力属于 Phase 3。

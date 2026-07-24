@@ -9,16 +9,17 @@
 - **Task 003**：UI Lab 与 Design System 实现。
 - **Task 003.5**：GitHub 工程化增强。
 - **Task 004**：Application 层与第一个学习闭环技术验证，已由产品负责人验收。
+- **Task 005**：Ports、幂等事务、Dexie 与最小离线 App Shell。
 
 ## 当前
 
-- **Task 005** 正在实施，任务定义见 [GitHub Issue #2](https://github.com/ibka512/zhongri-v2/issues/2)。
-- StudyUseCase 只在学习事务成功后进入 feedback 状态。
-- 内存与 Dexie 适配器共享幂等事务契约测试。
-- 已启用 PWA manifest、App Shell 预缓存、离线导航和更新状态事件。
+- **Task 006** 正在实施，任务定义见 [GitHub Issue #4](https://github.com/ibka512/zhongri-v2/issues/4)。
+- StudyUseCase 可从版本化会话状态恢复 answering、feedback 和 completed。
+- 提交答案时会话状态与学习事实原子提交；进入下一题或完成前先保存目标状态。
+- `/study-demo` 使用真实 Dexie Composition Root，页面不直接依赖 Infrastructure。
 - 当前仍不包含真实 v1 迁移、FSRS、AI、账号、词库、正式首页或真实音频。
 
 ## 下一步
 
-- 完成 Task005 的代码审查和远程 CI。
+- 完成 Task006 的代码审查和远程 CI。
 - 后续任务继续按日语纵向切片逐项冻结，不从路线图直接推断。

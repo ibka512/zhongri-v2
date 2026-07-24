@@ -1,4 +1,4 @@
-import type { LearningEvent, StudySessionCheckpoint } from '../../schemas/v1';
+import type { LearningEvent, StudySessionCheckpoint, StudySessionState } from '../../schemas/v1';
 
 export interface ClockPort {
   now: () => Date;
@@ -13,12 +13,14 @@ export interface CommitAnswerInput {
   requestFingerprint: string;
   events: readonly LearningEvent[];
   checkpoint: StudySessionCheckpoint;
+  sessionState: StudySessionState;
 }
 
 export interface CommitAnswerResult {
   status: 'committed' | 'replayed';
   events: readonly LearningEvent[];
   checkpoint: StudySessionCheckpoint;
+  sessionState: StudySessionState;
 }
 
 export interface LearningTransactionPort {
@@ -31,6 +33,8 @@ export interface LearningEventRepositoryPort {
 
 export interface StudySessionRepositoryPort {
   findCheckpoint: (sessionId: string) => Promise<StudySessionCheckpoint | null>;
+  findSessionState: (sessionId: string) => Promise<StudySessionState | null>;
+  saveSessionState: (state: StudySessionState) => Promise<StudySessionState>;
 }
 
 export interface StudyPersistencePort

@@ -1,9 +1,24 @@
 import { describe, expect, it } from 'vitest';
 
-import { StudyUseCase } from '../../src/application/study';
+import {
+  SessionRestoreError,
+  StudyUseCase,
+  type StartStudySessionInput,
+} from '../../src/application/study';
 import { InMemoryStudyPersistence } from '../../src/infrastructure/study';
 import { studyDemoItems } from '../../src/mock/questions';
-import { EventType, JudgementStatus, LearningEventSchema } from '../../src/schemas/v1';
+import {
+  EventType,
+  JudgementStatus,
+  LearningEventSchema,
+  StudySessionStateSchema,
+} from '../../src/schemas/v1';
+
+const sessionInput: StartStudySessionInput = {
+  items: studyDemoItems,
+  sessionId: 'test-session',
+  userId: 'test-user',
+};
 
 function createTestUseCase() {
   const times = [
@@ -16,33 +31,53 @@ function createTestUseCase() {
 
   return {
     persistence,
-    useCase: new StudyUseCase(
-      {
-        items: studyDemoItems,
-        sessionId: 'test-session',
-        userId: 'test-user',
-      },
-      {
-        clock: {
-          now: () => {
-            const next = times.shift();
+    useCase: new StudyUseCase(sessionInput, {
+      clock: {
+        now: () => {
+          const next = times.shift();
 
-            if (!next) {
-              throw new Error('Test clock exhausted');
-            }
+          if (!next) {
+            throw new Error('Test clock exhausted');
+          }
 
-            return next;
-          },
+          return next;
         },
-        idGenerator: {
-          nextId: () => {
-            id += 1;
-            return `test-event-${id}`;
-          },
-        },
-        transaction: persistence,
       },
-    ),
+      idGenerator: {
+        nextId: () => {
+          id += 1;
+          return `test-event-${id}`;
+        },
+      },
+      persistence,
+    }),
+  };
+}
+
+function createRecoverableHarness() {
+  const persistence = new InMemoryStudyPersistence();
+  let id = 0;
+  let timestamp = new Date('2026-07-24T01:00:00.000Z').getTime();
+  const dependencies = {
+    clock: {
+      now: () => {
+        const now = new Date(timestamp);
+        timestamp += 1_000;
+        return now;
+      },
+    },
+    idGenerator: {
+      nextId: () => {
+        id += 1;
+        return `recoverable-event-${id}`;
+      },
+    },
+    persistence,
+  };
+
+  return {
+    createUseCase: () => StudyUseCase.startOrResume(sessionInput, dependencies),
+    persistence,
   };
 }
 
@@ -67,7 +102,7 @@ describe('StudyUseCase question flow', () => {
       status: 'feedback',
     });
 
-    const next = useCase.nextQuestion();
+    const next = await useCase.nextQuestion();
 
     expect(next.status).toBe('answering');
     expect(next.currentIndex).toBe(1);
@@ -107,5 +142,92 @@ describe('StudyUseCase question flow', () => {
     const retried = await useCase.submitAnswer('neko', 'test-session:question-1');
     expect(retried.status).toBe('feedback');
     expect(await persistence.findBySessionId('test-session')).toHaveLength(2);
+  });
+
+  it('restores feedback and advances from the durable session state', async () => {
+    const { createUseCase, persistence } = createRecoverableHarness();
+    const firstUseCase = await createUseCase();
+
+    await firstUseCase.submitAnswer('neko', 'test-session:question-1');
+
+    const restoredFeedback = await createUseCase();
+    expect(restoredFeedback.getSnapshot()).toMatchObject({
+      currentIndex: 0,
+      status: 'feedback',
+      selectedAnswer: 'neko',
+    });
+    expect(restoredFeedback.getSnapshot().events).toHaveLength(2);
+
+    await restoredFeedback.nextQuestion();
+
+    const restoredNextQuestion = await createUseCase();
+    expect(restoredNextQuestion.getSnapshot()).toMatchObject({
+      currentIndex: 1,
+      status: 'answering',
+      selectedAnswer: null,
+    });
+    expect(await persistence.findSessionState('test-session')).toMatchObject({
+      currentIndex: 1,
+      status: 'answering',
+      eventIds: ['recoverable-event-1', 'recoverable-event-2'],
+    });
+  });
+
+  it('restores a completed session with its full event history', async () => {
+    const { createUseCase } = createRecoverableHarness();
+    const useCase = await createUseCase();
+
+    await useCase.submitAnswer('neko', 'test-session:question-1');
+    await useCase.nextQuestion();
+    await useCase.submitAnswer('hi', 'test-session:question-2');
+    await useCase.nextQuestion();
+    await useCase.submitAnswer('toshokan', 'test-session:question-3');
+    await useCase.nextQuestion();
+
+    const restored = await createUseCase();
+    expect(restored.getSnapshot()).toMatchObject({
+      currentIndex: 2,
+      currentItem: null,
+      status: 'completed',
+    });
+    expect(restored.getSnapshot().events).toHaveLength(6);
+  });
+
+  it('does not advance the in-memory flow when saving progress fails', async () => {
+    const { createUseCase, persistence } = createRecoverableHarness();
+    const useCase = await createUseCase();
+    await useCase.submitAnswer('neko', 'test-session:question-1');
+    persistence.failNextCommit();
+
+    await expect(useCase.nextQuestion()).rejects.toThrow('Injected transaction failure');
+    expect(useCase.getSnapshot()).toMatchObject({
+      currentIndex: 0,
+      status: 'feedback',
+      selectedAnswer: 'neko',
+    });
+
+    const retried = await useCase.nextQuestion();
+    expect(retried).toMatchObject({
+      currentIndex: 1,
+      status: 'answering',
+    });
+  });
+
+  it('rejects a stored session when its question set no longer matches', async () => {
+    const { createUseCase, persistence } = createRecoverableHarness();
+    await createUseCase();
+    const existing = await persistence.findSessionState('test-session');
+
+    expect(existing).not.toBeNull();
+    await persistence.saveSessionState(
+      StudySessionStateSchema.parse({
+        ...existing,
+        itemReferences: existing?.itemReferences.map((reference, index) =>
+          index === 0 ? { ...reference, questionId: 'different-question' } : reference,
+        ),
+      }),
+    );
+
+    await expect(createUseCase()).rejects.toBeInstanceOf(SessionRestoreError);
   });
 });
