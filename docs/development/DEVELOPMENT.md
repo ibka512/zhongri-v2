@@ -15,9 +15,10 @@ npm run format:check
 npm run lint
 npm run test
 npm run build
+npm run build:pages
 ```
 
-UI Lab 启动后访问 `/ui-lab`。
+学习演示启动后访问 `/`，UI Lab 访问 `/#/ui-lab`。
 
 ## 修改流程
 
