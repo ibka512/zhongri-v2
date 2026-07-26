@@ -51,6 +51,14 @@ export interface MigrationPersistencePort {
   getActiveMigrationDatasetPointer: () => Promise<ActiveMigrationDatasetPointer>;
 }
 
+/**
+ * Acceptance-only capability for deterministic failure-injection drills.
+ * Production migration flows must not call this method.
+ */
+export interface MigrationFailureInjectionPort extends MigrationPersistencePort {
+  failNextOperation: (error?: Error) => void;
+}
+
 export class MigrationStateConflictError extends Error {
   constructor(message: string) {
     super(message);

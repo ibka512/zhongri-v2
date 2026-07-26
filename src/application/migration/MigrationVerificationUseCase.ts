@@ -4,9 +4,13 @@ import {
   MigrationLegacySourceSchema,
   MigrationVerificationCheckSchema,
   MigrationVerificationReportSchema,
+  MigrationRollbackDrillEvidenceSchema,
+  MigrationSamplingEvidenceSchema,
   migrationVerificationCheckIds,
   type MigrationDomainSliceResult,
   type MigrationLegacySource,
+  type MigrationRollbackDrillEvidence,
+  type MigrationSamplingEvidence,
   type MigrationPreviewDomain,
   type MigrationVerificationCheck,
   type MigrationVerificationReport,
@@ -21,6 +25,8 @@ export interface CreateMigrationVerificationInput {
   source: MigrationLegacySource;
   slice: MigrationDomainSliceResult;
   replaySlice?: MigrationDomainSliceResult | null;
+  samplingEvidence?: MigrationSamplingEvidence | null;
+  rollbackDrillEvidence?: MigrationRollbackDrillEvidence | null;
 }
 
 export class MigrationVerificationInputError extends Error {
@@ -332,6 +338,26 @@ export class MigrationVerificationUseCase {
       }
     }
 
+    let samplingEvidence: MigrationSamplingEvidence | null = null;
+    if (input.samplingEvidence) {
+      try {
+        samplingEvidence = MigrationSamplingEvidenceSchema.parse(input.samplingEvidence);
+      } catch {
+        throw new MigrationVerificationInputError('固定抽样证据不符合 v1 迁移契约。');
+      }
+    }
+
+    let rollbackDrillEvidence: MigrationRollbackDrillEvidence | null = null;
+    if (input.rollbackDrillEvidence) {
+      try {
+        rollbackDrillEvidence = MigrationRollbackDrillEvidenceSchema.parse(
+          input.rollbackDrillEvidence,
+        );
+      } catch {
+        throw new MigrationVerificationInputError('回滚演练证据不符合 v1 迁移契约。');
+      }
+    }
+
     const checks = new Map<MigrationVerificationCheck['checkId'], MigrationVerificationCheck>();
     const integrity = await this.dependencies.content.verifyIntegrity();
     const isCorpus = 'expectedTotalWordCount' in integrity;
@@ -516,12 +542,43 @@ export class MigrationVerificationUseCase {
       'V23',
       makeCheck(
         'V23',
-        'unverified',
+        samplingEvidence === null
+          ? 'unverified'
+          : samplingEvidence.migrationId !== source.migrationId ||
+              samplingEvidence.sourceFingerprint !== source.sourceFingerprint
+            ? 'failed'
+            : samplingEvidence.passed
+              ? 'passed'
+              : 'failed',
         'warning',
-        'FIXED_SAMPLE_PENDING',
-        '固定 sourceFingerprint 抽样尚未绑定真实 fixture 和抽样证据。',
+        samplingEvidence === null
+          ? 'FIXED_SAMPLE_PENDING'
+          : samplingEvidence.migrationId !== source.migrationId ||
+              samplingEvidence.sourceFingerprint !== source.sourceFingerprint
+            ? 'FIXED_SAMPLE_IDENTITY_MISMATCH'
+            : samplingEvidence.passed
+              ? 'FIXED_SAMPLE_VERIFIED'
+              : 'FIXED_SAMPLE_MISMATCH',
+        samplingEvidence === null
+          ? '固定 sourceFingerprint 抽样尚未绑定真实 fixture 和抽样证据。'
+          : samplingEvidence.migrationId !== source.migrationId ||
+              samplingEvidence.sourceFingerprint !== source.sourceFingerprint
+            ? '固定抽样证据与当前 source 身份不一致。'
+            : samplingEvidence.passed
+              ? '固定 sourceFingerprint 抽样的字段与关系绑定已通过。'
+              : '固定抽样发现来源记录未绑定到目标或隔离归档。',
         'per-language fixed sample evidence',
-        null,
+        samplingEvidence
+          ? {
+              evidenceDigestSha256: samplingEvidence.evidenceDigestSha256,
+              categories: samplingEvidence.categories.map((category) => ({
+                category: category.category,
+                availableCount: category.availableCount,
+                sampleCount: category.sampleCount,
+                mismatches: category.mismatchSourceRefs,
+              })),
+            }
+          : null,
       ),
     );
 
@@ -551,12 +608,46 @@ export class MigrationVerificationUseCase {
       'V25',
       makeCheck(
         'V25',
-        'unverified',
+        rollbackDrillEvidence === null
+          ? 'unverified'
+          : rollbackDrillEvidence.migrationId !== source.migrationId ||
+              rollbackDrillEvidence.sourceFingerprint !== source.sourceFingerprint
+            ? 'failed'
+            : rollbackDrillEvidence.passed
+              ? 'passed'
+              : 'failed',
         'blocking',
-        'ROLLBACK_DRILL_PENDING',
-        '失败注入、active pointer 原子提交和回滚演练仍需由 persistence 验收层完成。',
+        rollbackDrillEvidence === null
+          ? 'ROLLBACK_DRILL_PENDING'
+          : rollbackDrillEvidence.migrationId !== source.migrationId ||
+              rollbackDrillEvidence.sourceFingerprint !== source.sourceFingerprint
+            ? 'ROLLBACK_DRILL_IDENTITY_MISMATCH'
+            : rollbackDrillEvidence.passed
+              ? 'ROLLBACK_DRILL_VERIFIED'
+              : 'ROLLBACK_DRILL_FAILED',
+        rollbackDrillEvidence === null
+          ? '失败注入、active pointer 原子提交和回滚演练仍需由 persistence 验收层完成。'
+          : rollbackDrillEvidence.migrationId !== source.migrationId ||
+              rollbackDrillEvidence.sourceFingerprint !== source.sourceFingerprint
+            ? '回滚演练证据与当前 source 身份不一致。'
+            : rollbackDrillEvidence.passed
+              ? 'stage/commit/rollback 失败注入均保持 active pointer 与隔离快照不变。'
+              : '回滚演练至少有一个阶段未能证明原子恢复。',
         '100% failure-injection rollback recovery',
-        null,
+        rollbackDrillEvidence
+          ? {
+              evidenceDigestSha256: rollbackDrillEvidence.evidenceDigestSha256,
+              phases: rollbackDrillEvidence.phases.map((phase) => ({
+                phase: phase.phase,
+                operationRejected: phase.operationRejected,
+                activeDatasetIdBefore: phase.activeDatasetIdBefore,
+                activeDatasetIdAfter: phase.activeDatasetIdAfter,
+                migrationStatusBefore: phase.migrationStatusBefore,
+                migrationStatusAfter: phase.migrationStatusAfter,
+                passed: phase.passed,
+              })),
+            }
+          : null,
       ),
     );
 

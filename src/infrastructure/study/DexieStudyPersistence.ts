@@ -7,6 +7,7 @@ import {
   type CommitAnswerResult,
   type CommitMigrationInput,
   type CommitMigrationResult,
+  type MigrationFailureInjectionPort,
   type MigrationPersistencePort,
   type RollbackMigrationInput,
   type RollbackMigrationResult,
@@ -58,7 +59,7 @@ function createEmptyMigrationPointer(): ActiveMigrationDatasetPointer {
 
 export class DexieStudyPersistence
   extends Dexie
-  implements StudyPersistencePort, MigrationPersistencePort
+  implements StudyPersistencePort, MigrationPersistencePort, MigrationFailureInjectionPort
 {
   readonly learningEvents!: Table<LearningEvent, string>;
   readonly learnerProfiles!: Table<LearnerProfile, [string, Language]>;
@@ -70,6 +71,7 @@ export class DexieStudyPersistence
   readonly migrationDatasets!: Table<MigrationStagingDataset, string>;
   readonly migrationArchives!: Table<MigrationArchiveRecord, string>;
   readonly migrationPointers!: Table<ActiveMigrationDatasetPointer, string>;
+  #nextMigrationFailure: Error | null = null;
 
   constructor(databaseName = 'zhongri-v2', options?: DexieOptions) {
     super(databaseName, options);
@@ -118,6 +120,11 @@ export class DexieStudyPersistence
       learnerProfiles: '&[userId+language], userId, language',
       reviewStates: '&id, userId, itemId, due',
     });
+  }
+
+  /** Acceptance-only failure injection; never call from the product flow. */
+  failNextOperation(error = new Error('Injected migration transaction failure')): void {
+    this.#nextMigrationFailure = error;
   }
 
   async commitAnswer(input: CommitAnswerInput): Promise<CommitAnswerResult> {
@@ -291,6 +298,7 @@ export class DexieStudyPersistence
           throw new MigrationStateConflictError('Only a validated dataset can enter safe staging');
         }
 
+        this.#throwNextMigrationFailure();
         await this.migrationRuns.add(run);
         await this.migrationDatasets.add(dataset);
         await this.migrationArchives.bulkAdd(archives);
@@ -356,6 +364,7 @@ export class DexieStudyPersistence
           updatedAt: input.committedAt,
         });
 
+        this.#throwNextMigrationFailure();
         await this.migrationRuns.put(committedRun);
         await this.migrationPointers.put(pointer);
         return { status: 'committed', run: committedRun, pointer };
@@ -407,6 +416,7 @@ export class DexieStudyPersistence
         updatedAt: input.rolledBackAt,
       });
 
+      this.#throwNextMigrationFailure();
       await this.migrationRuns.put(rolledBackRun);
       await this.migrationPointers.put(pointer);
       return { status: 'rolled-back', run: rolledBackRun, pointer };
@@ -436,5 +446,14 @@ export class DexieStudyPersistence
     return pointer
       ? ActiveMigrationDatasetPointerSchema.parse(pointer)
       : createEmptyMigrationPointer();
+  }
+
+  #throwNextMigrationFailure(): void {
+    if (!this.#nextMigrationFailure) {
+      return;
+    }
+    const failure = this.#nextMigrationFailure;
+    this.#nextMigrationFailure = null;
+    throw failure;
   }
 }

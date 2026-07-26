@@ -15,6 +15,9 @@
   和稳定版本周期保留策略；记录不代表 active 业务数据。
 - `MigrationVerificationReportSchema`：固定 V01–V25 检查顺序和 passed/failed/unverified 结果；未验证
   项不能作为 active 激活授权。
+- `MigrationSamplingEvidenceSchema`：绑定 sourceFingerprint 固定种子的 16 类 V23 抽样结果。
+- `MigrationRollbackDrillEvidenceSchema`：绑定 stage/commit/rollback 失败注入恢复结果的 V25 证据；
+  两类证据都必须显式传入验证用例，缺失时仍保持 `unverified`。
 - `MigrationRun.verificationReportDigestSha256`：记录通过 activation gate 时绑定的验证报告摘要；
   为空表示旧 staging 或尚未完成激活门禁，不表示迁移已验收。
 - `MigrationIsolatedReminderSettingSchema`：保存已归一化的提醒偏好和 `permissionState=unknown`，不表示

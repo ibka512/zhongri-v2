@@ -131,6 +131,12 @@ enabled/time 键回退归一化提醒设置，权限固定 unknown，不迁移�
 [ADR-033](../decisions/ADR-033-migration-activation-gate.md)。测试中的 all-pass 报告只验证门禁机械流程，
 不替代真实迁移证据。
 
+第二十三步新增 `MigrationFixedSamplingUseCase` 与 `MigrationRollbackDrillUseCase`：V23 按
+`sourceFingerprint` 固定种子覆盖 16 类抽样并校验 source digest 到 payload/archive 的绑定；V25 在
+stage/commit/rollback 三阶段注入失败并校验 active pointer、MigrationRun 与脱敏快照不变。证据通过
+可选输入接回验证报告，缺少证据仍保持 `unverified`。实现决策见
+[ADR-034](../decisions/ADR-034-migration-verification-evidence.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
@@ -139,8 +145,8 @@ enabled/time 键回退归一化提醒设置，权限固定 unknown，不迁移�
    synthetic 方案；当前设备 snapshot → LegacyReader 的入口和优先级已接通，但仍需真实 fixture
    复核字段覆盖。
 2. 用真实/批准的 fixture 复核第十、十一小步的设备来源、字段覆盖和分歧报告。
-3. 在真实 fixture 上继续复核字段覆盖，补齐 V02/V23/V25 的真实证据；独立 archive 记录只读、
-   不自动清理，直到保留周期与用户确认策略明确。
+3. 在真实 fixture 上继续复核字段覆盖，使用固定抽样与失败注入入口补齐 V02/V23/V25 的真实证据；
+   独立 archive 记录只读、不自动清理，直到保留周期与用户确认策略明确。
 4. 已完成 activation gate 的代码接线；在真实 fixture 上产生 V01–V25 报告后，使用该 gate 完成
    active pointer 原子提交/回滚验收。
 

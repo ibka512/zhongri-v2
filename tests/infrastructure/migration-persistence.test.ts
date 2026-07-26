@@ -4,7 +4,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { InMemoryMigrationPersistence } from '../../src/infrastructure/migration';
 import { DexieStudyPersistence } from '../../src/infrastructure/study';
-import type { MigrationPersistencePort, StageMigrationInput } from '../../src/ports';
+import type {
+  MigrationFailureInjectionPort,
+  MigrationPersistencePort,
+  StageMigrationInput,
+} from '../../src/ports';
 import {
   LearningEventSchema,
   MigrationIsolatedPayloadSchema,
@@ -198,6 +202,56 @@ describe.each(harnesses)('$name migration persistence contract', ({ create }) =>
     const restarted = await persistence.stageMigration(input);
     expect(restarted.status).toBe('staged');
     expect(restarted.run.status).toBe('VALIDATING');
+
+    await cleanup();
+  });
+
+  it('rolls back every injected write failure without leaving a partial migration', async () => {
+    const { cleanup, persistence } = create();
+    const input = createStageInput(true);
+    const failureInjection = persistence as MigrationFailureInjectionPort;
+
+    failureInjection.failNextOperation();
+    await expect(persistence.stageMigration(input)).rejects.toThrow(
+      'Injected migration transaction failure',
+    );
+    expect(await persistence.findMigrationRun(migrationId)).toBeNull();
+    expect(await persistence.findMigrationDataset(datasetId)).toBeNull();
+    expect((await persistence.getActiveMigrationDatasetPointer()).activeDatasetId).toBeNull();
+
+    await persistence.stageMigration(input);
+    failureInjection.failNextOperation();
+    await expect(
+      persistence.commitMigration({
+        migrationId,
+        committedAt: '2026-07-24T05:01:00.000Z',
+        commitMarker: `${migrationId}:commit`,
+      }),
+    ).rejects.toThrow('Injected migration transaction failure');
+    expect(await persistence.findMigrationRun(migrationId)).toMatchObject({
+      status: 'VALIDATING',
+      commitMarker: null,
+    });
+    expect((await persistence.getActiveMigrationDatasetPointer()).activeDatasetId).toBeNull();
+
+    await persistence.commitMigration({
+      migrationId,
+      committedAt: '2026-07-24T05:02:00.000Z',
+      commitMarker: `${migrationId}:commit`,
+    });
+    failureInjection.failNextOperation();
+    await expect(
+      persistence.rollbackMigration({
+        migrationId,
+        rolledBackAt: '2026-07-24T05:03:00.000Z',
+        commitMarker: `${migrationId}:rollback`,
+      }),
+    ).rejects.toThrow('Injected migration transaction failure');
+    expect(await persistence.findMigrationRun(migrationId)).toMatchObject({
+      status: 'COMPLETED',
+      lastCompletedPhase: 'commit',
+    });
+    expect((await persistence.getActiveMigrationDatasetPointer()).activeDatasetId).toBe(datasetId);
 
     await cleanup();
   });

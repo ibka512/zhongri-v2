@@ -66,3 +66,15 @@ export {
   type ActivateMigrationInput,
   type MigrationActivationDependencies,
 } from './MigrationActivationUseCase';
+export {
+  MigrationFixedSamplingInputError,
+  MigrationFixedSamplingUseCase,
+  type CreateMigrationFixedSamplingInput,
+  type MigrationFixedSamplingDependencies,
+} from './MigrationFixedSamplingUseCase';
+export {
+  MigrationRollbackDrillInputError,
+  MigrationRollbackDrillUseCase,
+  type CreateMigrationRollbackDrillInput,
+  type MigrationRollbackDrillDependencies,
+} from './MigrationRollbackDrillUseCase';

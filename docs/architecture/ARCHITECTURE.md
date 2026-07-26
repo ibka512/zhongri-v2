@@ -171,6 +171,9 @@ staging 可以在同一事务中保存该 payload 及独立 archive 记录，但
 7. `MigrationActivationUseCase` 是正式激活入口：它校验报告通过、migration/source fingerprint 与
    staged dataset 一致、isolated payload 存在，把 verification report digest 写入 `MigrationRun`，
    然后调用 persistence 的原子 commit；它不写提醒、画像、FSRS 或其他 active 业务表。
+8. `MigrationFixedSamplingUseCase` 和 `MigrationRollbackDrillUseCase` 分别生成 V23/V25 的可审计证据；
+   前者固定 sourceFingerprint 种子并检查 payload/archive 绑定，后者只在验收能力上注入每个阶段的失败。
+   没有显式证据输入时，验证报告保持 `unverified`。
 
 ## Task012 正式每日课程
 

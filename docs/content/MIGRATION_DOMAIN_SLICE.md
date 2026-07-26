@@ -75,9 +75,9 @@ active pointer，也不改变 Word、ReviewState 或 FSRS。
   不自动清理、不压缩/加密。
 - 该切片不代表真实 Mastery、StudyRecord、FSRS、WrongBook、RecycleBin、AIConversation、AIQuizHistory、Preference 字段覆盖、V01–V25 或 active pointer 已完成；
   staging 字段接线和 activation gate 仍需真实来源和后续验证。
-- 下一步是在真实脱敏 fixture（或负责人批准的字段形状 synthetic fixture）上复核字段覆盖，补齐
-  V02/V23/V25 的证据，再通过 `MigrationActivationUseCase` 完成激活/回滚验收；独立 archive 记录仍只读、
-  隔离，不代表 active 数据已提交。
+- 下一步是在真实脱敏 fixture（或负责人批准的字段形状 synthetic fixture）上复核字段覆盖，使用
+  `MigrationFixedSamplingUseCase` 与 `MigrationRollbackDrillUseCase` 补齐 V02/V23/V25 的证据，再通过
+  `MigrationActivationUseCase` 完成激活/回滚验收；独立 archive 记录仍只读、隔离，不代表 active 数据已提交。
 
 ## 测试证据
 

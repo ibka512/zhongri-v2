@@ -37,6 +37,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-031：以只验证的 V01–V25 报告阻断未完成迁移](./ADR-031-migration-verification-report.md)
 - [ADR-032：以隔离 payload 保存提醒设置并保持权限未知](./ADR-032-reminder-setting-isolated-transformer.md)
 - [ADR-033：以 V01–V25 验证报告作为迁移激活门禁](./ADR-033-migration-activation-gate.md)
+- [ADR-034：以固定抽样与失败注入证据完成 V23/V25 验收](./ADR-034-migration-verification-evidence.md)
 
 ## 未来
 
