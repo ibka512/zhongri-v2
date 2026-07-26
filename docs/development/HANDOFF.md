@@ -7,7 +7,7 @@
 - 稳定基线：`main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33 和 disposition report PR #34）
 - 当前交接分支：`codex/task-015-legacy-reader`
 - 稳定基线提交：`5a69252`（PR #34 合并后的 main；disposition/quarantine 报告契约已进入稳定基线）
-- 当前实现提交：待本轮提交（只读 Legacy Source Reader Schema、应用层 use case、synthetic fixture 测试、ADR-018 和契约文档）
+- 当前实现提交：`3de6b7a`（只读 Legacy Source Reader Schema、应用层 use case、synthetic fixture 测试、ADR-018 和契约文档）
 - 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层
 - 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排、source-aware staging、确定性 canonical/user idMap、统一 disposition/quarantine 报告契约和只读 Legacy Source Reader 契约已完成；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，真实脱敏 fixture、设备来源接线与逐域迁移仍待完成
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
@@ -39,7 +39,7 @@
 
 ## 已验证命令
 
-以下命令已在本轮 idMap 实现和治理文件完成后通过：
+以下命令已在本轮 Legacy Source Reader 实现和治理文件完成后通过（33 个测试文件、145 个测试）：
 
 ```bash
 npm run verify
