@@ -148,6 +148,31 @@ export function createCoreDomainSliceV1Backup(includeOrphanOverride = true) {
 }
 
 /**
+ * Approved synthetic acceptance fixture. It contains no user data and only
+ * exists to exercise the full verification/activation boundary end to end.
+ */
+export function createApprovedSyntheticV1Backup() {
+  const backup = createCoreDomainSliceV1Backup(false);
+  backup.preferences = {
+    ...backup.preferences,
+    nativeStudyReminderSettingsV2: {
+      enabled: true,
+      mode: 'fixed',
+      dueEnabled: true,
+      rescueEnabled: false,
+      reminderTime: '20:15',
+      rescueTime: '21:45',
+      weekdays: [1, 3, 5],
+      quietEnabled: false,
+      quietStart: '22:30',
+      quietEnd: '07:30',
+      exact: false,
+    },
+  };
+  return backup;
+}
+
+/**
  * Synthetic field-shape fixture for the second migration transformer slice.
  * It exercises mastery, date-only study events, one valid legacy FSRS card,
  * a duplicate review log, and an orphan review log that must be quarantined.

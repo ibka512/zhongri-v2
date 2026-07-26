@@ -39,6 +39,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-033：以 V01–V25 验证报告作为迁移激活门禁](./ADR-033-migration-activation-gate.md)
 - [ADR-034：以固定抽样与失败注入证据完成 V23/V25 验收](./ADR-034-migration-verification-evidence.md)
 - [ADR-035：以持久化 staged payload 重建验证报告](./ADR-035-staged-verification-orchestration.md)
+- [ADR-036：以批准的 synthetic fixture 验收迁移边界](./ADR-036-approved-synthetic-migration-acceptance.md)
 
 ## 未来
 

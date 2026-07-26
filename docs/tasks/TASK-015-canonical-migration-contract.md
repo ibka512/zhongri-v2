@@ -145,6 +145,12 @@ domain slice，`verifyStagedV1Migration`、`activateStagedV1Migration` 与
 `rollbackStagedV1Migration` 形成显式的只读验证、激活、回滚边界。实现决策见
 [ADR-035](../decisions/ADR-035-staged-verification-orchestration.md)。
 
+第二十五步使用负责人批准的 `createApprovedSyntheticV1Backup()` 完成端到端验收：在完整 9,828
+条 canonical corpus 上生成 V23 固定抽样和 V25 失败注入证据，从持久化 staging 重建报告，确认 V01–V25
+全通过后执行 activation commit，再执行 rollback 恢复 active pointer。该结果只证明代码与事务边界，
+不代表真实用户字段覆盖或生产迁移完成。实现决策见
+[ADR-036](../decisions/ADR-036-approved-synthetic-migration-acceptance.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：

@@ -118,3 +118,7 @@ payload digest 不同则不会静默复用旧结果。该入口只执行隔离 `
 不一致或旧 staging 缺少 isolated payload 时不会生成激活报告。`verifyStagedV1Migration` 只生成
 只读 V01–V25 报告，V23/V25 证据必须由固定抽样/失败注入入口显式提供，激活和回滚仍需分别调用
 `activateStagedV1Migration` / `rollbackStagedV1Migration`。
+
+负责人批准的 `createApprovedSyntheticV1Backup()` 已覆盖完整 canonical corpus 下的端到端门禁回归：
+V01–V25、activation commit 和 rollback 均在测试中通过。该 fixture 只验证实现与事务边界，不包含
+真实用户历史；真实 fixture 到位后仍需重新复核字段覆盖、设备分歧和 source 质量。

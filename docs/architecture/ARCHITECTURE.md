@@ -179,6 +179,9 @@ staging 可以在同一事务中保存该 payload 及独立 archive 记录，但
    再生成只读 V01–V25 报告。浏览器 `stageV1Backup` 统一保存 isolated payload；
    `verifyStagedV1Migration`、`activateStagedV1Migration` 和 `rollbackStagedV1Migration` 分别承担
    重建验证、显式激活和显式回滚，不把报告生成误当作 active 写入。
+10. `createApprovedSyntheticV1Backup()` 作为负责人批准的 synthetic 回归 fixture，使用完整
+    canonical corpus 验证 V01–V25、activation 和 rollback 的组合边界；它不代表真实用户来源，真实
+    fixture 仍必须重新复核字段覆盖和设备分歧。
 
 ## Task012 正式每日课程
 
