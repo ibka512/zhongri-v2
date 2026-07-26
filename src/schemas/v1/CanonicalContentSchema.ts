@@ -5,6 +5,19 @@ import { ContractVersionSchema, LanguageSchema, NonBlankStringSchema } from './s
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/);
 const GitShaSchema = z.string().regex(/^[a-f0-9]{40}$/);
 
+export const CanonicalManifestSourceSchema = z
+  .object({
+    repository: z
+      .string()
+      .trim()
+      .regex(/^[^/\s]+\/[^/\s]+$/),
+    commitSha: GitShaSchema,
+    path: NonBlankStringSchema.max(500),
+    blobSha: GitShaSchema,
+    licenseSummary: NonBlankStringSchema.max(500),
+  })
+  .strict();
+
 export const CanonicalWordSourceSchema = z
   .object({
     manifestId: z.string().trim().min(1).max(128),
@@ -62,20 +75,67 @@ export const CanonicalManifestSchema = z
     wordCount: z.number().int().positive(),
     wordIdsSha256: Sha256Schema,
     contentSha256: Sha256Schema,
-    source: z
+    source: CanonicalManifestSourceSchema,
+  })
+  .strict();
+
+const CanonicalCorpusLanguageCountSchema = z
+  .object({
+    language: LanguageSchema,
+    wordCount: z.number().int().nonnegative(),
+  })
+  .strict();
+
+export const CanonicalCorpusManifestSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    id: z.string().trim().min(1).max(128),
+    contentVersion: z.number().int().positive(),
+    totalWordCount: z.number().int().positive(),
+    languageCounts: z.array(CanonicalCorpusLanguageCountSchema).length(2),
+    wordIdsSha256: Sha256Schema,
+    contentSha256: Sha256Schema,
+    source: CanonicalManifestSourceSchema,
+  })
+  .strict()
+  .superRefine((manifest, context) => {
+    const counts = new Map(manifest.languageCounts.map((entry) => [entry.language, entry]));
+    if (counts.size !== 2 || !counts.has('ja') || !counts.has('en')) {
+      context.addIssue({
+        code: 'custom',
+        path: ['languageCounts'],
+        message: 'A canonical corpus manifest must contain exactly one ja and one en count',
+      });
+    }
+
+    const summedCount = manifest.languageCounts.reduce((sum, entry) => sum + entry.wordCount, 0);
+    if (summedCount !== manifest.totalWordCount) {
+      context.addIssue({
+        code: 'custom',
+        path: ['totalWordCount'],
+        message: 'Canonical corpus language counts must sum to totalWordCount',
+      });
+    }
+  });
+
+export const CanonicalCorpusAcceptanceTargetSchema = z
+  .object({
+    totalWordCount: z.literal(9_828),
+    languageCounts: z
       .object({
-        repository: z
-          .string()
-          .trim()
-          .regex(/^[^/\s]+\/[^/\s]+$/),
-        commitSha: GitShaSchema,
-        path: NonBlankStringSchema.max(500),
-        blobSha: GitShaSchema,
-        licenseSummary: NonBlankStringSchema.max(500),
+        ja: z.literal(5_906),
+        en: z.literal(3_922),
       })
       .strict(),
   })
   .strict();
 
+export const canonicalCorpusV1AcceptanceTarget = CanonicalCorpusAcceptanceTargetSchema.parse({
+  totalWordCount: 9_828,
+  languageCounts: { ja: 5_906, en: 3_922 },
+});
+
 export type CanonicalWord = z.infer<typeof CanonicalWordSchema>;
 export type CanonicalManifest = z.infer<typeof CanonicalManifestSchema>;
+export type CanonicalCorpusManifest = z.infer<typeof CanonicalCorpusManifestSchema>;
+export type CanonicalCorpusAcceptanceTarget = z.infer<typeof CanonicalCorpusAcceptanceTargetSchema>;

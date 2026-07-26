@@ -84,9 +84,15 @@ export {
 } from './MigrationStagingSchema';
 
 export {
+  CanonicalCorpusAcceptanceTargetSchema,
+  CanonicalCorpusManifestSchema,
   CanonicalManifestSchema,
   CanonicalWordSchema,
+  CanonicalManifestSourceSchema,
   CanonicalWordSourceSchema,
+  canonicalCorpusV1AcceptanceTarget,
+  type CanonicalCorpusAcceptanceTarget,
+  type CanonicalCorpusManifest,
   type CanonicalManifest,
   type CanonicalWord,
 } from './CanonicalContentSchema';

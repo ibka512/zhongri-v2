@@ -4,26 +4,24 @@
 
 ## 当前快照
 
-- 分支：`codex/phase1-closeout`
-- 基线提交：`7826c4b`（Task 013 合并提交）
-- 当前任务：GOV-001 · 仓库交接与基线治理
-- 当前状态：实现完成，治理提交已创建（当前分支 HEAD），`npm run verify` 已于 2026-07-26 通过；GOV-001 已建立为 [Issue #21](https://github.com/ibka512/zhongri-v2/issues/21)，工作区干净，等待推送和 draft PR
+- 分支：`codex/task-015-migration-contract`
+- 基线提交：`b01814a`（GOV-001 PR #22 合并提交）
+- 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层
+- 当前状态：canonical corpus 契约与 fail-closed 完整性门禁已实现，`npm run verify` 已于 2026-07-26 通过；对应 [Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)，完整资产与真实脱敏 fixture 仍待提供
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
 - 发布阻塞：`gh auth status -h github.com` 报告 `ibka512` token 无效；重新认证后才能推送和创建 PR。
 
 ## 本轮已完成
 
-- 将 7 份用户提供的产品/技术 DOCX 转为仓库内公开 Markdown 基线。
-- 新增基线优先级、来源校验和 AI 阅读顺序。
-- 统一 README、TASKS、PROJECT_CONTEXT、ROADMAP、STATUS 和 PRODUCT_SCOPE 的阶段状态。
-- 建立 Phase 1 收口验收矩阵。
-- 增加统一工程门禁与文档链接检查。
-- 用本地 Chrome 375px 生产预览完成断网启动、答题反馈、刷新恢复和无横向溢出复测。
+- GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并。
+- Task 015 新增 `CanonicalCorpusManifestSchema` 和固定 9,828/5,906/3,922 验收目标。
+- 新增 `verifyCanonicalCorpusIntegrity`，覆盖双语数量、重复身份、来源摘要和 fail-closed 目标门禁。
+- 新增 ADR-012、Task 015 合同和状态文档；CI/本地 `npm run verify` 全部通过。
 
 ## 仍未完成
 
 - Phase 1 双语、迁移和产品页面仍未完成。
-- v1 逐域迁移、完整 9,828 词身份层和激活/回滚。
+- v1 逐域迁移、完整 9,828 词身份层和激活/回滚；当前没有完整 canonical source 或真实 backup fixture。
 - 首次设置、内容中心、设置与数据安全页。
 - 日语五十音/TTS、英语/IPA 双语纵向切片。
 - Phase 1 综合验收。
@@ -51,10 +49,10 @@ npm run verify
 
 ## 下一项工作
 
-1. 提交并推送 GOV-001，创建 draft PR 关联 Issue #21，完成并合并仓库交接治理。
-2. 单独定义并授权完整迁移激活 Task。
+1. 获取完整 canonical source manifest、SHA-256 清单和脱敏 v5+/v10、legacy v4 fixture。
+2. 在 Task 015 内实现 source snapshot、逐域 transformer、quarantine、V01–V25 验证和激活/回滚。
 3. 迁移 Task 通过后再继续首次设置、内容和双语基础切片。
-4. Phase 1 验收完成后才进入 AI Gateway。
+4. Phase 1 验收完成后才进入 AI Gateway（Issue #20）。
 
 ## 交接规则
 
