@@ -14,6 +14,8 @@ import {
   MigrationIsolatedOverrideSchema,
   MigrationIsolatedPayloadSchema,
   MigrationIsolatedStudyRecordSchema,
+  MigrationIsolatedWrongAnswerSchema,
+  MigrationIsolatedWrongBookSchema,
   MigrationIsolatedWordSchema,
   type MigrationDispositionInputRecord,
   type MigrationDomainSliceResult,
@@ -29,6 +31,8 @@ import {
   type MigrationIsolatedOverride,
   type MigrationIsolatedWord,
   type MigrationIsolatedStudyRecord,
+  type MigrationIsolatedWrongAnswer,
+  type MigrationIsolatedWrongBook,
   type MigrationLegacySource,
   type MigrationLegacySourceRecord,
 } from '../../schemas/v1';
@@ -89,6 +93,19 @@ interface ParsedDate {
   value: string | null;
   present: boolean;
   valid: boolean;
+}
+
+type WrongBookQualityFlag =
+  | 'COUNT_DEFAULTED'
+  | 'COUNT_FLOORED'
+  | 'STATUS_UNKNOWN'
+  | 'DATE_INVALID'
+  | 'RECENT_ANSWER_INVALID'
+  | 'RECENT_ANSWER_TRUNCATED';
+
+interface WrongBookCountProjection {
+  value: number;
+  qualityFlags: WrongBookQualityFlag[];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -177,6 +194,93 @@ function readDateField(value: unknown, ...keys: readonly string[]): ParsedDate {
       : { value: parsed.toISOString(), present: true, valid: true };
   }
   return { value: null, present: false, valid: false };
+}
+
+function projectWrongBookCount(
+  value: unknown,
+  ...keys: readonly string[]
+): WrongBookCountProjection {
+  const parsed = readNumberField(value, ...keys);
+  if (!parsed.present || !Number.isFinite(parsed.value) || parsed.value < 0) {
+    return { value: 0, qualityFlags: ['COUNT_DEFAULTED'] };
+  }
+  if (!Number.isInteger(parsed.value)) {
+    return { value: Math.floor(parsed.value), qualityFlags: ['COUNT_FLOORED'] };
+  }
+  return { value: parsed.value, qualityFlags: [] };
+}
+
+function boundedText(value: string | null, maxLength: number): string | null {
+  return value && value.length <= maxLength ? value : null;
+}
+
+function compareWrongAnswers(
+  left: MigrationIsolatedWrongAnswer,
+  right: MigrationIsolatedWrongAnswer,
+): number {
+  if (left.occurredAt && right.occurredAt) {
+    return compareStrings(right.occurredAt, left.occurredAt);
+  }
+  if (left.occurredAt) {
+    return -1;
+  }
+  if (right.occurredAt) {
+    return 1;
+  }
+  return compareStrings(left.serializedValue, right.serializedValue);
+}
+
+function parseWrongBookAnswers(value: unknown): {
+  answers: MigrationIsolatedWrongAnswer[];
+  qualityFlags: WrongBookQualityFlag[];
+} {
+  if (!isRecord(value) || !Object.prototype.hasOwnProperty.call(value, 'recentAnswers')) {
+    return { answers: [], qualityFlags: [] };
+  }
+  if (!Array.isArray(value.recentAnswers)) {
+    return { answers: [], qualityFlags: ['RECENT_ANSWER_INVALID'] };
+  }
+
+  const qualityFlags: WrongBookQualityFlag[] = [];
+  const answers: MigrationIsolatedWrongAnswer[] = [];
+  for (const answer of value.recentAnswers) {
+    if (!isRecord(answer)) {
+      qualityFlags.push('RECENT_ANSWER_INVALID');
+      continue;
+    }
+    const occurredAt = readDateField(answer, 'at', 'occurredAt', 'date');
+    const isCorrect = readBooleanField(answer, 'correct') ?? readBooleanField(answer, 'isCorrect');
+    const dimension = readField(answer, 'dimension', 'type');
+    const serializedValue = JSON.stringify(answer);
+    if (
+      !serializedValue ||
+      serializedValue.length > 30 * 1024 * 1024 ||
+      (!occurredAt.valid && occurredAt.present) ||
+      (!Object.prototype.hasOwnProperty.call(answer, 'correct') &&
+        !Object.prototype.hasOwnProperty.call(answer, 'isCorrect')) ||
+      (dimension !== null && dimension.length > 100)
+    ) {
+      qualityFlags.push('RECENT_ANSWER_INVALID');
+      continue;
+    }
+    answers.push(
+      MigrationIsolatedWrongAnswerSchema.parse({
+        schemaVersion: 1,
+        occurredAt: occurredAt.value,
+        isCorrect,
+        dimension,
+        serializedValue,
+      }),
+    );
+  }
+  answers.sort(compareWrongAnswers);
+  if (answers.length > 20 || value.recentAnswers.length > 20) {
+    qualityFlags.push('RECENT_ANSWER_TRUNCATED');
+  }
+  return {
+    answers: answers.slice(0, 20),
+    qualityFlags,
+  };
 }
 
 function readDateOnly(value: unknown): {
@@ -894,6 +998,213 @@ export class MigrationDomainSliceUseCase {
       );
     }
 
+    const wrongBookPayloadByTargetId = new Map<string, MigrationIsolatedWrongBook>();
+    for (const { record, value } of sourceValueRecords(source, 'wrongBook')) {
+      const sourceKey = readSourceKey(record.sourceRef, 'data.wrongBook');
+      const relation = resolveRelationFromValue(value, sourceKey);
+      const entry = resolveWordRelation(wordEntryByRawId, wordEntriesByHeadword, relation);
+      if (!entry || !entry.targetWordId || !relation.language || !isRecord(value)) {
+        dispositionRecords.push(
+          createQuarantineDisposition(
+            record,
+            'WRONG_BOOK_TARGET_UNRESOLVED',
+            'RELATION_UNRESOLVED',
+          ),
+        );
+        continue;
+      }
+
+      const totalWrong = projectWrongBookCount(value, 'totalWrong', 'wrongCount', 'wrong_count');
+      const totalCorrect = projectWrongBookCount(
+        value,
+        'totalCorrect',
+        'correctCount',
+        'correct_count',
+      );
+      const correctStreak = projectWrongBookCount(
+        value,
+        'correctStreak',
+        'streak',
+        'correct_streak',
+      );
+      const dimensionsValue = isRecord(value.dimensions) ? value.dimensions : {};
+      const dimensionProjections = {
+        spelling: projectWrongBookCount(dimensionsValue, 'spelling', 'spell', 'kanji'),
+        listening: projectWrongBookCount(dimensionsValue, 'listening'),
+        reading: projectWrongBookCount(dimensionsValue, 'reading', 'kana'),
+        meaning: projectWrongBookCount(dimensionsValue, 'meaning'),
+        usage: projectWrongBookCount(dimensionsValue, 'usage'),
+        grammar: projectWrongBookCount(dimensionsValue, 'grammar'),
+      };
+      const sourceCountsValue = isRecord(value.sourceCounts) ? value.sourceCounts : {};
+      const sourceCountProjections = {
+        study: projectWrongBookCount(sourceCountsValue, 'study'),
+        filter: projectWrongBookCount(sourceCountsValue, 'filter'),
+        aiQuiz: projectWrongBookCount(sourceCountsValue, 'aiQuiz', 'ai_quiz', 'aiQuizHistory'),
+      };
+      const statusCandidate = readField(value, 'status', 'state')?.toLowerCase() ?? null;
+      const knownStatuses = new Set(['new', 'reinforcing', 'repeated', 'resolved']);
+      const status = knownStatuses.has(statusCandidate ?? '')
+        ? (statusCandidate as 'new' | 'reinforcing' | 'repeated' | 'resolved')
+        : 'unknown';
+      const lastWrongAt = readDateField(value, 'lastWrongAt', 'last_wrong_at', 'wrongAt');
+      const lastCorrectAt = readDateField(value, 'lastCorrectAt', 'last_correct_at', 'correctAt');
+      const recentAnswers = parseWrongBookAnswers(value);
+      const qualityFlags = [
+        ...totalWrong.qualityFlags,
+        ...totalCorrect.qualityFlags,
+        ...correctStreak.qualityFlags,
+        ...Object.values(dimensionProjections).flatMap((projection) => projection.qualityFlags),
+        ...Object.values(sourceCountProjections).flatMap((projection) => projection.qualityFlags),
+        status === 'unknown' ? 'STATUS_UNKNOWN' : null,
+        (lastWrongAt.present && !lastWrongAt.valid) ||
+        (lastCorrectAt.present && !lastCorrectAt.valid)
+          ? 'DATE_INVALID'
+          : null,
+        ...recentAnswers.qualityFlags,
+      ].filter((flag): flag is WrongBookQualityFlag => flag !== null);
+      const uniqueQualityFlags = [...new Set(qualityFlags)].sort(compareStrings);
+
+      const mistakeDigest = await this.dependencies.digest.sha256(
+        JSON.stringify({
+          schemaVersion: 1,
+          migrationId: source.migrationId,
+          language: relation.language,
+          targetWordId: entry.targetWordId,
+        }),
+      );
+      assertDigest(mistakeDigest, 'wrong-book ID');
+      const mistakeRecordId = `mistake-v1:${mistakeDigest.slice(0, 24)}`;
+      const payload = MigrationIsolatedWrongBookSchema.parse({
+        schemaVersion: 1,
+        mistakeRecordId,
+        targetWordId: entry.targetWordId,
+        language: relation.language,
+        rawWordId: boundedText(relation.rawWordId, 128),
+        headwordSnapshot: boundedText(readField(value, 'word', 'headword', 'term'), 200),
+        folderSnapshot: boundedText(readField(value, 'folder', 'folderName'), 200),
+        totalWrong: totalWrong.value,
+        totalCorrect: totalCorrect.value,
+        correctStreak: correctStreak.value,
+        status,
+        dimensionCounts: {
+          spelling: dimensionProjections.spelling.value,
+          listening: dimensionProjections.listening.value,
+          reading: dimensionProjections.reading.value,
+          meaning: dimensionProjections.meaning.value,
+          usage: dimensionProjections.usage.value,
+          grammar: dimensionProjections.grammar.value,
+        },
+        sourceCounts: {
+          study: sourceCountProjections.study.value,
+          filter: sourceCountProjections.filter.value,
+          aiQuiz: sourceCountProjections.aiQuiz.value,
+        },
+        recentAnswers: recentAnswers.answers,
+        lastWrongAt: lastWrongAt.valid ? lastWrongAt.value : null,
+        lastCorrectAt: lastCorrectAt.valid ? lastCorrectAt.value : null,
+        sourceRefs: [record.sourceRef],
+        sourceRecordDigestsSha256: [record.sourceRecordDigestSha256],
+        qualityFlags: uniqueQualityFlags,
+        serializedValues: [record.serializedValue],
+      });
+      const existing = wrongBookPayloadByTargetId.get(entry.targetWordId);
+      if (existing) {
+        const mergedRecentAnswers = [
+          ...new Map(
+            [...existing.recentAnswers, ...payload.recentAnswers].map((answer) => [
+              answer.serializedValue,
+              answer,
+            ]),
+          ).values(),
+        ]
+          .sort(compareWrongAnswers)
+          .slice(0, 20);
+        const mergedLastWrongAt =
+          existing.lastWrongAt && payload.lastWrongAt
+            ? compareStrings(existing.lastWrongAt, payload.lastWrongAt) >= 0
+              ? existing.lastWrongAt
+              : payload.lastWrongAt
+            : (existing.lastWrongAt ?? payload.lastWrongAt);
+        const mergedLastCorrectAt =
+          existing.lastCorrectAt && payload.lastCorrectAt
+            ? compareStrings(existing.lastCorrectAt, payload.lastCorrectAt) >= 0
+              ? existing.lastCorrectAt
+              : payload.lastCorrectAt
+            : (existing.lastCorrectAt ?? payload.lastCorrectAt);
+        wrongBookPayloadByTargetId.set(
+          entry.targetWordId,
+          MigrationIsolatedWrongBookSchema.parse({
+            ...existing,
+            rawWordId: existing.rawWordId ?? payload.rawWordId,
+            headwordSnapshot: existing.headwordSnapshot ?? payload.headwordSnapshot,
+            folderSnapshot: existing.folderSnapshot ?? payload.folderSnapshot,
+            totalWrong: Math.max(existing.totalWrong, payload.totalWrong),
+            totalCorrect: Math.max(existing.totalCorrect, payload.totalCorrect),
+            correctStreak: Math.max(existing.correctStreak, payload.correctStreak),
+            status: existing.status === 'unknown' ? payload.status : existing.status,
+            dimensionCounts: {
+              spelling: Math.max(
+                existing.dimensionCounts.spelling,
+                payload.dimensionCounts.spelling,
+              ),
+              listening: Math.max(
+                existing.dimensionCounts.listening,
+                payload.dimensionCounts.listening,
+              ),
+              reading: Math.max(existing.dimensionCounts.reading, payload.dimensionCounts.reading),
+              meaning: Math.max(existing.dimensionCounts.meaning, payload.dimensionCounts.meaning),
+              usage: Math.max(existing.dimensionCounts.usage, payload.dimensionCounts.usage),
+              grammar: Math.max(existing.dimensionCounts.grammar, payload.dimensionCounts.grammar),
+            },
+            sourceCounts: {
+              study: Math.max(existing.sourceCounts.study, payload.sourceCounts.study),
+              filter: Math.max(existing.sourceCounts.filter, payload.sourceCounts.filter),
+              aiQuiz: Math.max(existing.sourceCounts.aiQuiz, payload.sourceCounts.aiQuiz),
+            },
+            recentAnswers: mergedRecentAnswers,
+            lastWrongAt: mergedLastWrongAt,
+            lastCorrectAt: mergedLastCorrectAt,
+            sourceRefs: [...new Set([...existing.sourceRefs, ...payload.sourceRefs])].sort(
+              compareStrings,
+            ),
+            sourceRecordDigestsSha256: [
+              ...new Set([
+                ...existing.sourceRecordDigestsSha256,
+                ...payload.sourceRecordDigestsSha256,
+              ]),
+            ].sort(compareStrings),
+            qualityFlags: [...new Set([...existing.qualityFlags, ...payload.qualityFlags])].sort(
+              compareStrings,
+            ),
+            serializedValues: [
+              ...new Set([...existing.serializedValues, ...payload.serializedValues]),
+            ].sort(compareStrings),
+          }),
+        );
+        dispositionRecords.push(
+          createDedupedDisposition(
+            record,
+            'wrongBook',
+            'DUPLICATE_WRONG_BOOK_TARGET',
+            existing.mistakeRecordId,
+            existing.sourceRefs[0],
+          ),
+        );
+        continue;
+      }
+      wrongBookPayloadByTargetId.set(entry.targetWordId, payload);
+      dispositionRecords.push(
+        createMigratedDisposition(
+          record,
+          'wrongBook',
+          'WRONG_BOOK_MAPPED',
+          mistakeRecordId,
+          uniqueQualityFlags.length > 0 ? 'warning' : 'info',
+        ),
+      );
+    }
+
     const masteryPayloadByTargetId = new Map<string, MigrationIsolatedMastery>();
     for (const { record, value } of sourceValueRecords(source, 'mastery')) {
       const sourceKey = readSourceKey(record.sourceRef, 'data.mtWordClears');
@@ -1293,7 +1604,6 @@ export class MigrationDomainSliceUseCase {
 
     const handledSourceRefs = new Set(dispositionRecords.map((record) => record.sourceRef));
     const unsupportedBusinessDomains = new Set<MigrationLegacySourceRecord['domain']>([
-      'wrongBook',
       'aiConversations',
       'aiQuizHistory',
       'recycleBin',
@@ -1380,6 +1690,9 @@ export class MigrationDomainSliceUseCase {
       ),
       groupProgress: [...groupProgressPayloadByKey.values()].sort((left, right) =>
         compareStrings(left.groupProgressId, right.groupProgressId),
+      ),
+      wrongBook: [...wrongBookPayloadByTargetId.values()].sort((left, right) =>
+        compareStrings(left.mistakeRecordId, right.mistakeRecordId),
       ),
       fsrsCards: [...fsrsCardPayloadByRelation.values()].sort((left, right) =>
         compareStrings(left.reviewCardId, right.reviewCardId),

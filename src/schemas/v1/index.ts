@@ -146,6 +146,8 @@ export {
   MigrationIsolatedOverrideSchema,
   MigrationIsolatedPayloadSchema,
   MigrationIsolatedStudyRecordSchema,
+  MigrationIsolatedWrongAnswerSchema,
+  MigrationIsolatedWrongBookSchema,
   MigrationIsolatedWordSchema,
   type MigrationDomainSliceResult,
   type MigrationIsolatedArchive,
@@ -158,6 +160,8 @@ export {
   type MigrationIsolatedOverride,
   type MigrationIsolatedPayload,
   type MigrationIsolatedStudyRecord,
+  type MigrationIsolatedWrongAnswer,
+  type MigrationIsolatedWrongBook,
   type MigrationIsolatedWord,
 } from './MigrationDomainSliceSchema';
 

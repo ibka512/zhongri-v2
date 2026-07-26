@@ -43,6 +43,15 @@ const MigrationStudyEventTypeSchema = z.enum(['DAILY_PUNCH', 'GROUP_COMPLETED', 
 const MigrationStudyQualityFlagSchema = z.enum(['DATE_MISSING', 'DATE_INVALID', 'UNKNOWN_TYPE']);
 const MigrationGroupProgressQualityFlagSchema = z.enum(['COUNT_DEFAULTED', 'COUNT_FLOORED']);
 
+const MigrationWrongBookQualityFlagSchema = z.enum([
+  'COUNT_DEFAULTED',
+  'COUNT_FLOORED',
+  'STATUS_UNKNOWN',
+  'DATE_INVALID',
+  'RECENT_ANSWER_INVALID',
+  'RECENT_ANSWER_TRUNCATED',
+]);
+
 const MigrationReviewDimensionSchema = z.enum(['spelling', 'reading', 'listening', 'meaning']);
 const MigrationFsrsQualityFlagSchema = z.enum([
   'ELAPSED_DAYS_DEFAULTED',
@@ -157,6 +166,59 @@ export const MigrationIsolatedGroupProgressSchema = z
   })
   .strict();
 
+export const MigrationIsolatedWrongAnswerSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    occurredAt: z.string().datetime({ offset: true }).nullable(),
+    isCorrect: z.boolean().nullable(),
+    dimension: z.string().max(100).nullable(),
+    serializedValue: z
+      .string()
+      .min(1)
+      .max(30 * 1024 * 1024),
+  })
+  .strict();
+
+export const MigrationIsolatedWrongBookSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    mistakeRecordId: IdentifierSchema,
+    targetWordId: WordIdSchema,
+    language: LanguageSchema,
+    rawWordId: z.string().max(128).nullable(),
+    headwordSnapshot: z.string().max(200).nullable(),
+    folderSnapshot: z.string().max(200).nullable(),
+    totalWrong: z.number().int().nonnegative(),
+    totalCorrect: z.number().int().nonnegative(),
+    correctStreak: z.number().int().nonnegative(),
+    status: z.enum(['new', 'reinforcing', 'repeated', 'resolved', 'unknown']),
+    dimensionCounts: z
+      .object({
+        spelling: z.number().int().nonnegative(),
+        listening: z.number().int().nonnegative(),
+        reading: z.number().int().nonnegative(),
+        meaning: z.number().int().nonnegative(),
+        usage: z.number().int().nonnegative(),
+        grammar: z.number().int().nonnegative(),
+      })
+      .strict(),
+    sourceCounts: z
+      .object({
+        study: z.number().int().nonnegative(),
+        filter: z.number().int().nonnegative(),
+        aiQuiz: z.number().int().nonnegative(),
+      })
+      .strict(),
+    recentAnswers: z.array(MigrationIsolatedWrongAnswerSchema).max(20),
+    lastWrongAt: z.string().datetime({ offset: true }).nullable(),
+    lastCorrectAt: z.string().datetime({ offset: true }).nullable(),
+    sourceRefs: SourceRefListSchema,
+    sourceRecordDigestsSha256: SourceDigestListSchema,
+    qualityFlags: z.array(MigrationWrongBookQualityFlagSchema).max(8),
+    serializedValues: SerializedValueListSchema,
+  })
+  .strict();
+
 export const MigrationIsolatedFsrsCardSchema = z
   .object({
     schemaVersion: ContractVersionSchema,
@@ -234,6 +296,7 @@ export const MigrationIsolatedPayloadSchema = z
     mastery: z.array(MigrationIsolatedMasterySchema).max(100_000).default([]),
     studyRecords: z.array(MigrationIsolatedStudyRecordSchema).max(100_000).default([]),
     groupProgress: z.array(MigrationIsolatedGroupProgressSchema).max(100_000).default([]),
+    wrongBook: z.array(MigrationIsolatedWrongBookSchema).max(100_000).default([]),
     fsrsCards: z.array(MigrationIsolatedFsrsCardSchema).max(100_000).default([]),
     fsrsLogs: z.array(MigrationIsolatedFsrsLogSchema).max(100_000).default([]),
     archives: z.array(MigrationIsolatedArchiveSchema).max(200_000).default([]),
@@ -309,6 +372,18 @@ export const MigrationIsolatedPayloadSchema = z
         });
       }
       groupProgressIds.add(progress.groupProgressId);
+    }
+
+    const mistakeRecordIds = new Set<string>();
+    for (const [index, mistake] of payload.wrongBook.entries()) {
+      if (mistakeRecordIds.has(mistake.mistakeRecordId)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['wrongBook', index, 'mistakeRecordId'],
+          message: 'Isolated wrong-book payloads must contain one target per mistake record ID',
+        });
+      }
+      mistakeRecordIds.add(mistake.mistakeRecordId);
     }
 
     const studyEventIds = new Set<string>();
@@ -434,6 +509,8 @@ export type MigrationIsolatedFavorite = z.infer<typeof MigrationIsolatedFavorite
 export type MigrationIsolatedMastery = z.infer<typeof MigrationIsolatedMasterySchema>;
 export type MigrationIsolatedStudyRecord = z.infer<typeof MigrationIsolatedStudyRecordSchema>;
 export type MigrationIsolatedGroupProgress = z.infer<typeof MigrationIsolatedGroupProgressSchema>;
+export type MigrationIsolatedWrongAnswer = z.infer<typeof MigrationIsolatedWrongAnswerSchema>;
+export type MigrationIsolatedWrongBook = z.infer<typeof MigrationIsolatedWrongBookSchema>;
 export type MigrationIsolatedFsrsCard = z.infer<typeof MigrationIsolatedFsrsCardSchema>;
 export type MigrationIsolatedFsrsLog = z.infer<typeof MigrationIsolatedFsrsLogSchema>;
 export type MigrationIsolatedArchive = z.infer<typeof MigrationIsolatedArchiveSchema>;

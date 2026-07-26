@@ -88,7 +88,7 @@ Dexie 只存在于 Infrastructure。Domain、页面和 UI 组件不得 import De
 
 当前仍不实现 ReviewState 激活、FSRS 调度重算或 AI；canonical corpus、canonical idMap、
 disposition/quarantine 报告契约和只读 source-aware staging 已完成。Word/Override/Folder/Favorite/
-Mastery/StudyRecord/GroupProgress/FSRS 核心域现在可以从 Legacy Source Reader 生成
+Mastery/StudyRecord/GroupProgress/WrongBook/FSRS 核心域现在可以从 Legacy Source Reader 生成
 `migration-isolated-domain-slice` payload 和逐条 disposition，但该结果仍只作为隔离应用层输出，
 未写入 MigrationPersistencePort 或 active dataset。
 
@@ -150,8 +150,8 @@ Mastery/StudyRecord/GroupProgress/FSRS 核心域现在可以从 Legacy Source Re
 ## Task015 核心域纵向转换
 
 1. `MigrationDomainSliceUseCase` 只消费已经通过 Legacy Source Reader 的 source records，并将本轮
-   范围固定为 `words / overrides / folders / favorites / mastery / studyRecords / groupProgress / fsrsCards / fsrsLogs`；
-   groupProgress、wrongBook、AI、回收站、preferences 和 unknown 仍不会被静默标记为已迁移。
+   范围固定为 `words / overrides / folders / favorites / mastery / studyRecords / groupProgress / wrongBook / fsrsCards / fsrsLogs`；
+   AI、回收站、preferences 和 unknown 仍不会被静默标记为已迁移。
 2. Word/Override 目标只能来自 canonical idMap；Folder 以名称、语言和 migrationId 生成确定性
    `folder-v1-*`；Favorite 只接受唯一可解析的 Word 关系。
 3. 每条范围内 sourceRef 都进入 disposition report；成功/重复记录保留 rawArchive 引用，孤立或
@@ -159,9 +159,10 @@ Mastery/StudyRecord/GroupProgress/FSRS 核心域现在可以从 Legacy Source Re
 4. isolated payload 绑定 reader、idMap 和 disposition digest，并固定
    `writesPerformed:false`、`activePointerUpdated:false`。纵向用例不直接调用 persistence；现有
    staging dataset 通过可选 `isolatedDomainSlice` 字段保存该 payload。Mastery 只按 identity map
-   关联并 OR 合并，StudyRecord 只保留日期粒度，GroupProgress 只保留规范化组键与完成次数，FSRS
-   卡/日志只保存 v1 adapter 历史状态；disposition 对应的脱敏 serializedValue 已绑定到 inline
-   `archives`，独立 rawArchive/quarantine 存储、其他迁移域、V01–V25 或 active pointer 提交仍未实现。
+   关联并 OR 合并，StudyRecord 只保留日期粒度，GroupProgress 只保留规范化组键与完成次数，WrongBook
+   只保存可关联的聚合错题事实和有限最近答题，FSRS 卡/日志只保存 v1 adapter 历史状态；disposition
+   对应的脱敏 serializedValue 已绑定到 inline `archives`，独立 rawArchive/quarantine 存储、其他迁移域、
+   V01–V25 或 active pointer 提交仍未实现。
 5. `MigrationDomainSliceStagingUseCase` 复用统一 source preparation，串联 reader、domain slice 和
    staging；它只调用 stage，不调用 commit，重复输入由 payload digest 参与 replay 判定。
 

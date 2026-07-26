@@ -84,6 +84,12 @@ UI 新增独立的当前设备暂存入口，仍只执行 stage。实现决策�
 读取 v1。独立归档表、压缩/加密与保留周期仍待存储治理任务。实现决策见
 [ADR-024](../decisions/ADR-024-isolated-archive-payloads.md)。
 
+第十四小步新增 `wrongBook` isolated transformer：按既有 identity map 解析错题本目标，保守投影累计
+计数、维度/来源计数、状态、日期和最多 20 条最近答题；不确定字段通过 quality flag 保留，孤立目标
+进入 `RELATION_UNRESOLVED` quarantine，结果仍不写入 active dataset。实现决策见
+[ADR-025](../decisions/ADR-025-wrong-book-isolated-transformer.md)，契约说明见
+[v1 核心域纵向转换契约](../content/MIGRATION_DOMAIN_SLICE.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
@@ -93,7 +99,7 @@ UI 新增独立的当前设备暂存入口，仍只执行 stage。实现决策�
    复核字段覆盖。
 2. 用真实/批准的 fixture 复核第十、十一小步的设备来源、字段覆盖和分歧报告。
 3. 将 `archives` 从 inline isolated payload 接入独立的 rawArchive/quarantine 存储（含保留周期），
-   并继续实现 wrongBook、AI、recycleBin 和 preferences 等剩余域。
+   并继续实现 AI、recycleBin 和 preferences 等剩余域。
 4. V01–V25 自动化验证、固定 sourceFingerprint 幂等复跑和 active pointer 原子提交/回滚。
 
 ## 前置条件

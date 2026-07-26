@@ -150,6 +150,28 @@ describe('MigrationDomainSliceUseCase', () => {
         qualityFlags: ['COUNT_FLOORED'],
       }),
     ]);
+    expect(result.isolatedPayload.wrongBook).toHaveLength(1);
+    expect(result.isolatedPayload.wrongBook[0]).toMatchObject({
+      targetWordId: 'builtin-ja-core-00005',
+      language: 'ja',
+      rawWordId: 'builtin-ja-core-00005',
+      headwordSnapshot: '元気',
+      folderSnapshot: '日语基础',
+      totalWrong: 2,
+      totalCorrect: 1,
+      correctStreak: 1,
+      status: 'reinforcing',
+      dimensionCounts: {
+        spelling: 0,
+        listening: 0,
+        reading: 1,
+        meaning: 1,
+        usage: 0,
+        grammar: 0,
+      },
+      sourceCounts: { study: 2, filter: 0, aiQuiz: 0 },
+      recentAnswers: expect.any(Array),
+    });
     expect(result.isolatedPayload.fsrsCards).toHaveLength(1);
     expect(result.isolatedPayload.fsrsCards[0]).toMatchObject({
       targetWordId: 'builtin-ja-core-00005',
@@ -167,6 +189,11 @@ describe('MigrationDomainSliceUseCase', () => {
         }),
         expect.objectContaining({
           sourceRef: 'data.fsrsReviewLogs[2]',
+          outcome: 'quarantined',
+          quarantineCode: 'RELATION_UNRESOLVED',
+        }),
+        expect.objectContaining({
+          sourceRef: 'data.wrongBook["ja:missing-word"]',
           outcome: 'quarantined',
           quarantineCode: 'RELATION_UNRESOLVED',
         }),
