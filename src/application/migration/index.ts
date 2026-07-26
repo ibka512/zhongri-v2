@@ -11,3 +11,11 @@ export {
   type MigrationStagingDependencies,
   type StageV1BackupInput,
 } from './MigrationStagingUseCase';
+export {
+  MigrationSourceSnapshotInputError,
+  MigrationSourceSnapshotUseCase,
+  type CaptureMigrationSourceSnapshotInput,
+  type MigrationSelectedBackupInput,
+  type MigrationSourceEntryInput,
+  type MigrationSourceSnapshotDependencies,
+} from './MigrationSourceSnapshotUseCase';

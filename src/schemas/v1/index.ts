@@ -84,6 +84,17 @@ export {
 } from './MigrationStagingSchema';
 
 export {
+  MigrationSelectedBackupSchema,
+  MigrationSensitiveKeyPresenceSchema,
+  MigrationSourceSnapshotEntrySchema,
+  MigrationSourceSnapshotSchema,
+  type MigrationSelectedBackup,
+  type MigrationSensitiveKeyPresence,
+  type MigrationSourceSnapshot,
+  type MigrationSourceSnapshotEntry,
+} from './MigrationSourceSnapshotSchema';
+
+export {
   CanonicalCorpusAcceptanceTargetSchema,
   CanonicalCorpusManifestSchema,
   CanonicalManifestSchema,
