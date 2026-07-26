@@ -30,6 +30,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-024：在 isolated payload 内绑定 rawArchive 与 quarantine 内容](./ADR-024-isolated-archive-payloads.md)
 - [ADR-025：以隔离 payload 保存错题本事实](./ADR-025-wrong-book-isolated-transformer.md)
 - [ADR-026：以隔离 payload 保存回收站项目](./ADR-026-recycle-bin-isolated-transformer.md)
+- [ADR-027：以隔离 payload 保存 AI 会话历史](./ADR-027-ai-conversation-isolated-transformer.md)
 
 ## 未来
 

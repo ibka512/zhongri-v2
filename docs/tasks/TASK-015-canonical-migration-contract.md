@@ -96,6 +96,12 @@ UI 新增独立的当前设备暂存入口，仍只执行 stage。实现决策�
 [ADR-026](../decisions/ADR-026-recycle-bin-isolated-transformer.md)，契约说明见
 [v1 核心域纵向转换契约](../content/MIGRATION_DOMAIN_SLICE.md)。
 
+第十六小步新增 `aiConversations` isolated transformer：按 cacheKey/旧 ID/内容指纹生成确定性会话 ID，
+保留 dateText、系统提示词、预设、Word 快照和有序消息；未知 role、日期、语言或超长消息通过 quality
+flag 保留，结果不调用 AI、不激活会话。实现决策见
+[ADR-027](../decisions/ADR-027-ai-conversation-isolated-transformer.md)，契约说明见
+[v1 核心域纵向转换契约](../content/MIGRATION_DOMAIN_SLICE.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
@@ -105,7 +111,7 @@ UI 新增独立的当前设备暂存入口，仍只执行 stage。实现决策�
    复核字段覆盖。
 2. 用真实/批准的 fixture 复核第十、十一小步的设备来源、字段覆盖和分歧报告。
 3. 将 `archives` 从 inline isolated payload 接入独立的 rawArchive/quarantine 存储（含保留周期），
-   并继续实现 AI、preferences 等剩余域。
+   并继续实现 aiQuizHistory、preferences 等剩余域。
 4. V01–V25 自动化验证、固定 sourceFingerprint 幂等复跑和 active pointer 原子提交/回滚。
 
 ## 前置条件

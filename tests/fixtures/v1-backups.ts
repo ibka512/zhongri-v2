@@ -191,7 +191,22 @@ export function createMasteryStudyFsrsDomainSliceV1Backup() {
           needsReview: true,
         },
       },
-      aiConversations: [],
+      aiConversations: [
+        {
+          id: 'conversation-1',
+          date: '2026-07-23T09:00:00.000Z',
+          sentence: '元気ですか？',
+          word: '元気',
+          lang: 'ja',
+          cacheKey: 'word:builtin-ja-core-00005',
+          systemPrompt: 'legacy prompt',
+          presetId: 'free_legacy',
+          messages: [
+            { role: 'user', content: '元気ですか？' },
+            { role: 'assistant', content: 'はい、元気です。' },
+          ],
+        },
+      ],
       fsrsCards: {
         'ja:builtin-ja-core-00005:meaning': {
           wordId: 'builtin-ja-core-00005',

@@ -61,6 +61,16 @@ const MigrationRecycleBinQualityFlagSchema = z.enum([
   'PAYLOAD_INVALID',
 ]);
 
+const MigrationAiConversationQualityFlagSchema = z.enum([
+  'CONVERSATION_ID_GENERATED',
+  'DATE_INVALID',
+  'LANGUAGE_DEFAULTED',
+  'MESSAGE_ROLE_UNKNOWN',
+  'MESSAGE_CONTENT_DEFAULTED',
+  'MESSAGE_TRUNCATED',
+  'TARGET_UNRESOLVED',
+]);
+
 const MigrationReviewDimensionSchema = z.enum(['spelling', 'reading', 'listening', 'meaning']);
 const MigrationFsrsQualityFlagSchema = z.enum([
   'ELAPSED_DAYS_DEFAULTED',
@@ -249,6 +259,40 @@ export const MigrationIsolatedRecycleBinItemSchema = z
   })
   .strict();
 
+export const MigrationIsolatedAiConversationMessageSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    role: z.enum(['user', 'assistant', 'system', 'unknown']),
+    content: z.string().max(30 * 1024),
+    serializedValue: z
+      .string()
+      .min(1)
+      .max(30 * 1024 * 1024),
+  })
+  .strict();
+
+export const MigrationIsolatedAiConversationSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    conversationId: IdentifierSchema,
+    legacyId: IdentifierSchema.nullable(),
+    cacheKey: z.string().max(500).nullable(),
+    dateText: z.string().max(200).nullable(),
+    updatedAt: z.string().datetime({ offset: true }).nullable(),
+    sentence: z.string().max(4_000).nullable(),
+    wordSnapshot: z.string().max(200).nullable(),
+    language: LanguageSchema.nullable(),
+    resolvedTargetWordId: WordIdSchema.nullable(),
+    systemPrompt: z.string().max(20_000),
+    presetId: z.string().max(200).nullable(),
+    messages: z.array(MigrationIsolatedAiConversationMessageSchema).max(1_000),
+    sourceRefs: SourceRefListSchema,
+    sourceRecordDigestsSha256: SourceDigestListSchema,
+    qualityFlags: z.array(MigrationAiConversationQualityFlagSchema).max(7),
+    serializedValues: SerializedValueListSchema,
+  })
+  .strict();
+
 export const MigrationIsolatedFsrsCardSchema = z
   .object({
     schemaVersion: ContractVersionSchema,
@@ -328,6 +372,7 @@ export const MigrationIsolatedPayloadSchema = z
     groupProgress: z.array(MigrationIsolatedGroupProgressSchema).max(100_000).default([]),
     wrongBook: z.array(MigrationIsolatedWrongBookSchema).max(100_000).default([]),
     recycleBin: z.array(MigrationIsolatedRecycleBinItemSchema).max(100_000).default([]),
+    aiConversations: z.array(MigrationIsolatedAiConversationSchema).max(100_000).default([]),
     fsrsCards: z.array(MigrationIsolatedFsrsCardSchema).max(100_000).default([]),
     fsrsLogs: z.array(MigrationIsolatedFsrsLogSchema).max(100_000).default([]),
     archives: z.array(MigrationIsolatedArchiveSchema).max(200_000).default([]),
@@ -427,6 +472,18 @@ export const MigrationIsolatedPayloadSchema = z
         });
       }
       recycleBinItemIds.add(item.itemId);
+    }
+
+    const conversationIds = new Set<string>();
+    for (const [index, conversation] of payload.aiConversations.entries()) {
+      if (conversationIds.has(conversation.conversationId)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['aiConversations', index, 'conversationId'],
+          message: 'Isolated AI conversation payloads must contain one target per conversation ID',
+        });
+      }
+      conversationIds.add(conversation.conversationId);
     }
 
     const studyEventIds = new Set<string>();
@@ -555,6 +612,10 @@ export type MigrationIsolatedGroupProgress = z.infer<typeof MigrationIsolatedGro
 export type MigrationIsolatedWrongAnswer = z.infer<typeof MigrationIsolatedWrongAnswerSchema>;
 export type MigrationIsolatedWrongBook = z.infer<typeof MigrationIsolatedWrongBookSchema>;
 export type MigrationIsolatedRecycleBinItem = z.infer<typeof MigrationIsolatedRecycleBinItemSchema>;
+export type MigrationIsolatedAiConversationMessage = z.infer<
+  typeof MigrationIsolatedAiConversationMessageSchema
+>;
+export type MigrationIsolatedAiConversation = z.infer<typeof MigrationIsolatedAiConversationSchema>;
 export type MigrationIsolatedFsrsCard = z.infer<typeof MigrationIsolatedFsrsCardSchema>;
 export type MigrationIsolatedFsrsLog = z.infer<typeof MigrationIsolatedFsrsLogSchema>;
 export type MigrationIsolatedArchive = z.infer<typeof MigrationIsolatedArchiveSchema>;

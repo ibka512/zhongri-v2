@@ -5,6 +5,8 @@ import {
   MigrationDomainSliceResultSchema,
   MigrationLegacySourceSchema,
   MigrationIsolatedArchiveSchema,
+  MigrationIsolatedAiConversationMessageSchema,
+  MigrationIsolatedAiConversationSchema,
   MigrationIsolatedFavoriteSchema,
   MigrationIsolatedFsrsCardSchema,
   MigrationIsolatedFsrsLogSchema,
@@ -23,6 +25,8 @@ import {
   type MigrationIdentityMapEntry,
   type MigrationIdentityMapRecordInput,
   type MigrationIsolatedArchive,
+  type MigrationIsolatedAiConversation,
+  type MigrationIsolatedAiConversationMessage,
   type MigrationIsolatedFavorite,
   type MigrationIsolatedFsrsCard,
   type MigrationIsolatedFsrsLog,
@@ -113,6 +117,15 @@ type RecycleBinQualityFlag =
   | 'RETENTION_UNDETERMINED'
   | 'PAYLOAD_INVALID';
 
+type AiConversationQualityFlag =
+  | 'CONVERSATION_ID_GENERATED'
+  | 'DATE_INVALID'
+  | 'LANGUAGE_DEFAULTED'
+  | 'MESSAGE_ROLE_UNKNOWN'
+  | 'MESSAGE_CONTENT_DEFAULTED'
+  | 'MESSAGE_TRUNCATED'
+  | 'TARGET_UNRESOLVED';
+
 interface WrongBookCountProjection {
   value: number;
   qualityFlags: WrongBookQualityFlag[];
@@ -177,6 +190,23 @@ function readLegacyIdentifier(value: unknown, ...keys: readonly string[]): strin
     }
   }
   return null;
+}
+
+function stringifyLegacyValue(value: unknown): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  try {
+    return JSON.stringify(value) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 function readBooleanField(value: unknown, key: string): boolean | null {
@@ -335,6 +365,38 @@ function parseWrongBookAnswers(value: unknown): {
   }
   return {
     answers: answers.slice(0, 20),
+    qualityFlags,
+  };
+}
+
+function parseAiConversationMessage(value: unknown): {
+  message: MigrationIsolatedAiConversationMessage;
+  qualityFlags: AiConversationQualityFlag[];
+} {
+  const qualityFlags: AiConversationQualityFlag[] = [];
+  const record = isRecord(value) ? value : null;
+  const rawRole = stringValue(record?.role)?.toLowerCase() ?? null;
+  const knownRoles = new Set(['user', 'assistant', 'system']);
+  const role = knownRoles.has(rawRole ?? '')
+    ? (rawRole as 'user' | 'assistant' | 'system')
+    : 'unknown';
+  if (role === 'unknown') {
+    qualityFlags.push('MESSAGE_ROLE_UNKNOWN');
+  }
+  const rawContent = record ? (record.content ?? record.text ?? record.message) : value;
+  const serializedContent = stringifyLegacyValue(rawContent);
+  const content = boundedText(serializedContent, 30 * 1024) ?? '';
+  if (serializedContent === null || serializedContent.length > 30 * 1024) {
+    qualityFlags.push('MESSAGE_CONTENT_DEFAULTED');
+  }
+  const serializedValue = stringifyLegacyValue(value) ?? '';
+  return {
+    message: MigrationIsolatedAiConversationMessageSchema.parse({
+      schemaVersion: 1,
+      role,
+      content,
+      serializedValue: serializedValue || 'null',
+    }),
     qualityFlags,
   };
 }
@@ -1367,6 +1429,165 @@ export class MigrationDomainSliceUseCase {
       );
     }
 
+    const aiConversationPayloadByKey = new Map<string, MigrationIsolatedAiConversation>();
+    for (const { record, value } of sourceValueRecords(source, 'aiConversations')) {
+      if (!isRecord(value)) {
+        dispositionRecords.push(
+          createQuarantineDisposition(
+            record,
+            'AI_CONVERSATION_INVALID',
+            'CORRUPT_V1_RECORD',
+            'warning',
+          ),
+        );
+        continue;
+      }
+
+      const qualityFlags: AiConversationQualityFlag[] = [];
+      const legacyId = boundedText(readLegacyIdentifier(value, 'legacyId', 'id'), 128);
+      const cacheKey = boundedText(readField(value, 'cacheKey'), 500);
+      if (!legacyId && !cacheKey) {
+        qualityFlags.push('CONVERSATION_ID_GENERATED');
+      }
+      const conversationDigest = await this.dependencies.digest.sha256(
+        JSON.stringify({
+          schemaVersion: 1,
+          migrationId: source.migrationId,
+          cacheKey,
+          legacyId,
+          serializedValue: !cacheKey && !legacyId ? record.serializedValue : null,
+        }),
+      );
+      assertDigest(conversationDigest, 'AI conversation ID');
+      const conversationId = `conversation-v1:${conversationDigest.slice(0, 24)}`;
+      const dateText = boundedText(readField(value, 'date', 'dateText'), 200);
+      const explicitUpdatedAt = readDateField(value, 'updatedAt');
+      const updatedAt = explicitUpdatedAt.present
+        ? explicitUpdatedAt
+        : readDateField(value, 'date');
+      if (updatedAt.present && !updatedAt.valid) {
+        qualityFlags.push('DATE_INVALID');
+      }
+
+      const rawLanguage = languageValue(value.lang ?? value.language);
+      const language = rawLanguage ?? 'ja';
+      if (!rawLanguage) {
+        qualityFlags.push('LANGUAGE_DEFAULTED');
+      }
+      const wordSnapshot = boundedText(readField(value, 'word', 'headword', 'term'), 200);
+      const relation = resolveRelationFromValue(
+        {
+          ...value,
+          id: null,
+          lang: language,
+          wordId: readField(value, 'wordId', 'wordID', 'word_id') ?? wordSnapshot,
+        },
+        null,
+      );
+      const entry = resolveWordRelation(wordEntryByRawId, wordEntriesByHeadword, relation);
+      if ((relation.rawWordId || wordSnapshot) && !entry?.targetWordId) {
+        qualityFlags.push('TARGET_UNRESOLVED');
+      }
+
+      let messages: MigrationIsolatedAiConversationMessage[] = [];
+      if (Array.isArray(value.messages)) {
+        const parsedMessages = value.messages.map((message) => parseAiConversationMessage(message));
+        messages = parsedMessages.map(({ message }) => message).slice(0, 1_000);
+        qualityFlags.push(...parsedMessages.flatMap(({ qualityFlags: flags }) => flags));
+        if (value.messages.length > 1_000) {
+          qualityFlags.push('MESSAGE_TRUNCATED');
+        }
+      } else if (Object.prototype.hasOwnProperty.call(value, 'messages')) {
+        qualityFlags.push('MESSAGE_CONTENT_DEFAULTED');
+      }
+
+      const payload = MigrationIsolatedAiConversationSchema.parse({
+        schemaVersion: 1,
+        conversationId,
+        legacyId,
+        cacheKey,
+        dateText,
+        updatedAt: updatedAt.valid ? updatedAt.value : null,
+        sentence: boundedText(readField(value, 'sentence'), 4_000),
+        wordSnapshot,
+        language,
+        resolvedTargetWordId: entry?.targetWordId ?? null,
+        systemPrompt: boundedText(stringifyLegacyValue(value.systemPrompt), 20_000) ?? '',
+        presetId: boundedText(readField(value, 'presetId'), 200),
+        messages,
+        sourceRefs: [record.sourceRef],
+        sourceRecordDigestsSha256: [record.sourceRecordDigestSha256],
+        qualityFlags: [...new Set(qualityFlags)].sort(compareStrings),
+        serializedValues: [record.serializedValue],
+      });
+      const dedupeKey = cacheKey ?? legacyId ?? conversationId;
+      const existing = aiConversationPayloadByKey.get(dedupeKey);
+      if (existing) {
+        const preferred = payload.messages.length >= existing.messages.length ? payload : existing;
+        const mergedUpdatedAt =
+          existing.updatedAt && payload.updatedAt
+            ? compareStrings(existing.updatedAt, payload.updatedAt) >= 0
+              ? existing.updatedAt
+              : payload.updatedAt
+            : (existing.updatedAt ?? payload.updatedAt);
+        aiConversationPayloadByKey.set(
+          dedupeKey,
+          MigrationIsolatedAiConversationSchema.parse({
+            ...preferred,
+            conversationId: existing.conversationId,
+            legacyId: existing.legacyId ?? payload.legacyId,
+            cacheKey: existing.cacheKey ?? payload.cacheKey,
+            dateText: existing.dateText ?? payload.dateText,
+            updatedAt: mergedUpdatedAt,
+            sentence: existing.sentence ?? payload.sentence,
+            wordSnapshot: existing.wordSnapshot ?? payload.wordSnapshot,
+            language: existing.language ?? payload.language,
+            resolvedTargetWordId: existing.resolvedTargetWordId ?? payload.resolvedTargetWordId,
+            systemPrompt:
+              existing.systemPrompt.length >= payload.systemPrompt.length
+                ? existing.systemPrompt
+                : payload.systemPrompt,
+            presetId: existing.presetId ?? payload.presetId,
+            sourceRefs: [...new Set([...existing.sourceRefs, ...payload.sourceRefs])].sort(
+              compareStrings,
+            ),
+            sourceRecordDigestsSha256: [
+              ...new Set([
+                ...existing.sourceRecordDigestsSha256,
+                ...payload.sourceRecordDigestsSha256,
+              ]),
+            ].sort(compareStrings),
+            qualityFlags: [...new Set([...existing.qualityFlags, ...payload.qualityFlags])].sort(
+              compareStrings,
+            ),
+            serializedValues: [
+              ...new Set([...existing.serializedValues, ...payload.serializedValues]),
+            ].sort(compareStrings),
+          }),
+        );
+        dispositionRecords.push(
+          createDedupedDisposition(
+            record,
+            'aiConversations',
+            'DUPLICATE_AI_CONVERSATION',
+            existing.conversationId,
+            existing.sourceRefs[0],
+          ),
+        );
+        continue;
+      }
+      aiConversationPayloadByKey.set(dedupeKey, payload);
+      dispositionRecords.push(
+        createMigratedDisposition(
+          record,
+          'aiConversations',
+          'AI_CONVERSATION_MAPPED',
+          conversationId,
+          payload.qualityFlags.length > 0 ? 'warning' : 'info',
+        ),
+      );
+    }
+
     const masteryPayloadByTargetId = new Map<string, MigrationIsolatedMastery>();
     for (const { record, value } of sourceValueRecords(source, 'mastery')) {
       const sourceKey = readSourceKey(record.sourceRef, 'data.mtWordClears');
@@ -1766,7 +1987,6 @@ export class MigrationDomainSliceUseCase {
 
     const handledSourceRefs = new Set(dispositionRecords.map((record) => record.sourceRef));
     const unsupportedBusinessDomains = new Set<MigrationLegacySourceRecord['domain']>([
-      'aiConversations',
       'aiQuizHistory',
     ]);
     for (const record of source.records) {
@@ -1857,6 +2077,9 @@ export class MigrationDomainSliceUseCase {
       ),
       recycleBin: [...recycleBinPayloadByItemId.values()].sort((left, right) =>
         compareStrings(left.itemId, right.itemId),
+      ),
+      aiConversations: [...aiConversationPayloadByKey.values()].sort((left, right) =>
+        compareStrings(left.conversationId, right.conversationId),
       ),
       fsrsCards: [...fsrsCardPayloadByRelation.values()].sort((left, right) =>
         compareStrings(left.reviewCardId, right.reviewCardId),

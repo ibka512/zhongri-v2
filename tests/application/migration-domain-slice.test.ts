@@ -182,6 +182,19 @@ describe('MigrationDomainSliceUseCase', () => {
         resolvedTargetWordId: 'builtin-ja-core-00005',
       }),
     ]);
+    expect(result.isolatedPayload.aiConversations).toEqual([
+      expect.objectContaining({
+        legacyId: 'conversation-1',
+        cacheKey: 'word:builtin-ja-core-00005',
+        language: 'ja',
+        resolvedTargetWordId: 'builtin-ja-core-00005',
+        updatedAt: '2026-07-23T09:00:00.000Z',
+        messages: [
+          expect.objectContaining({ role: 'user', content: '元気ですか？' }),
+          expect.objectContaining({ role: 'assistant', content: 'はい、元気です。' }),
+        ],
+      }),
+    ]);
     expect(result.isolatedPayload.fsrsCards).toHaveLength(1);
     expect(result.isolatedPayload.fsrsCards[0]).toMatchObject({
       targetWordId: 'builtin-ja-core-00005',
