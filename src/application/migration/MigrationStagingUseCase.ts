@@ -23,6 +23,22 @@ export interface StageV1BackupInput {
   isolatedDomainSlice?: MigrationIsolatedPayload | null;
 }
 
+export interface PrepareV1MigrationSourceInput {
+  report: MigrationPreviewReport;
+  text: string;
+  sourceSnapshot?: MigrationSourceSnapshot | null;
+}
+
+export interface PreparedV1MigrationSource {
+  sourceSnapshot: MigrationSourceSnapshot | null;
+  sanitizedSourceText: string;
+  rawBackupDigest: string;
+  sanitizedDigest: string;
+  sourceFingerprint: string;
+  snapshotDigestSha256: string;
+  containsRedactedSecrets: boolean;
+}
+
 export interface MigrationStagingDependencies {
   digest: TextDigestPort;
   now: () => Date;
@@ -96,76 +112,107 @@ function createMigrationId(sourceFingerprint: string): string {
   return `v1-v2:${sourceFingerprint.slice(0, 24)}:spec-1`;
 }
 
+export async function prepareV1MigrationSource(
+  input: PrepareV1MigrationSourceInput,
+  dependencies: Pick<MigrationStagingDependencies, 'digest'>,
+): Promise<PreparedV1MigrationSource> {
+  const report = MigrationPreviewReportSchema.parse(input.report);
+  if (report.status === 'blocked') {
+    throw new MigrationStagingInputError(
+      'BLOCKED_REPORT',
+      '这份备份仍有阻断问题，不能创建迁移暂存。',
+    );
+  }
+
+  let source: unknown;
+  try {
+    source = JSON.parse(input.text);
+  } catch {
+    throw new MigrationStagingInputError(
+      'INVALID_SOURCE',
+      '备份内容已无法解析，请重新选择并运行预检。',
+    );
+  }
+
+  const sourceSnapshot = input.sourceSnapshot
+    ? MigrationSourceSnapshotSchema.parse(input.sourceSnapshot)
+    : null;
+  const sanitized = sourceSnapshot ? null : sanitizeSensitiveKeys(source);
+  const sanitizedSourceText =
+    sourceSnapshot?.selectedBackup?.sanitizedText ?? JSON.stringify(sanitized?.value);
+  if (!sanitizedSourceText) {
+    throw new MigrationStagingInputError(
+      'INVALID_SOURCE',
+      '备份内容无法生成脱敏暂存文本，请重新选择并运行预检。',
+    );
+  }
+
+  const [rawBackupDigest, sanitizedDigest] = await Promise.all([
+    dependencies.digest.sha256(input.text),
+    dependencies.digest.sha256(sanitizedSourceText),
+  ]);
+
+  if (rawBackupDigest !== report.source.fileDigestSha256) {
+    throw new MigrationStagingInputError(
+      'SOURCE_CHANGED',
+      '备份内容与预检报告不一致，请重新运行预检。',
+    );
+  }
+
+  if (sourceSnapshot) {
+    const selectedBackup = sourceSnapshot.selectedBackup;
+    if (
+      !selectedBackup ||
+      selectedBackup.fileName !== report.source.fileName ||
+      selectedBackup.rawDigestSha256 !== rawBackupDigest ||
+      selectedBackup.sanitizedDigestSha256 !== sanitizedDigest
+    ) {
+      throw new MigrationStagingInputError(
+        'SNAPSHOT_MISMATCH',
+        '来源快照与当前预检备份不一致，请重新读取来源并运行预检。',
+      );
+    }
+  }
+
+  const sourceFingerprint = sourceSnapshot?.sourceFingerprint ?? rawBackupDigest;
+  const snapshotDigestSha256 = sourceSnapshot?.snapshotDigestSha256 ?? sanitizedDigest;
+  const containsRedactedSecrets = sourceSnapshot
+    ? sourceSnapshot.sensitiveKeyPresence.some((entry) => entry.present)
+    : (sanitized?.redacted ?? false);
+
+  return {
+    sourceSnapshot,
+    sanitizedSourceText,
+    rawBackupDigest,
+    sanitizedDigest,
+    sourceFingerprint,
+    snapshotDigestSha256,
+    containsRedactedSecrets,
+  };
+}
+
 export class MigrationStagingUseCase {
   constructor(private readonly dependencies: MigrationStagingDependencies) {}
 
   async stage(input: StageV1BackupInput): Promise<StageMigrationResult> {
     const report = MigrationPreviewReportSchema.parse(input.report);
-    if (report.status === 'blocked') {
-      throw new MigrationStagingInputError(
-        'BLOCKED_REPORT',
-        '这份备份仍有阻断问题，不能创建迁移暂存。',
-      );
-    }
-
-    let source: unknown;
-    try {
-      source = JSON.parse(input.text);
-    } catch {
-      throw new MigrationStagingInputError(
-        'INVALID_SOURCE',
-        '备份内容已无法解析，请重新选择并运行预检。',
-      );
-    }
-
-    const sourceSnapshot = input.sourceSnapshot
-      ? MigrationSourceSnapshotSchema.parse(input.sourceSnapshot)
-      : null;
-    const sanitized = sourceSnapshot ? null : sanitizeSensitiveKeys(source);
-    const sanitizedSourceText =
-      sourceSnapshot?.selectedBackup?.sanitizedText ?? JSON.stringify(sanitized?.value);
+    const prepared = await prepareV1MigrationSource(
+      {
+        report,
+        text: input.text,
+        sourceSnapshot: input.sourceSnapshot,
+      },
+      this.dependencies,
+    );
     const reportText = JSON.stringify(report);
-    if (!sanitizedSourceText) {
-      throw new MigrationStagingInputError(
-        'INVALID_SOURCE',
-        '备份内容无法生成脱敏暂存文本，请重新选择并运行预检。',
-      );
-    }
 
-    const [rawBackupDigest, sanitizedDigest, reportDigestSha256, pointer] = await Promise.all([
-      this.dependencies.digest.sha256(input.text),
-      this.dependencies.digest.sha256(sanitizedSourceText),
+    const [reportDigestSha256, pointer] = await Promise.all([
       this.dependencies.digest.sha256(reportText),
       this.dependencies.persistence.getActiveMigrationDatasetPointer(),
     ]);
 
-    if (rawBackupDigest !== report.source.fileDigestSha256) {
-      throw new MigrationStagingInputError(
-        'SOURCE_CHANGED',
-        '备份内容与预检报告不一致，请重新运行预检。',
-      );
-    }
-
-    if (sourceSnapshot) {
-      const selectedBackup = sourceSnapshot.selectedBackup;
-      if (
-        !selectedBackup ||
-        selectedBackup.fileName !== report.source.fileName ||
-        selectedBackup.rawDigestSha256 !== rawBackupDigest ||
-        selectedBackup.sanitizedDigestSha256 !== sanitizedDigest
-      ) {
-        throw new MigrationStagingInputError(
-          'SNAPSHOT_MISMATCH',
-          '来源快照与当前预检备份不一致，请重新读取来源并运行预检。',
-        );
-      }
-    }
-
-    const sourceFingerprint = sourceSnapshot?.sourceFingerprint ?? rawBackupDigest;
-    const snapshotDigestSha256 = sourceSnapshot?.snapshotDigestSha256 ?? sanitizedDigest;
-    const containsRedactedSecrets = sourceSnapshot
-      ? sourceSnapshot.sensitiveKeyPresence.some((entry) => entry.present)
-      : (sanitized?.redacted ?? false);
+    const sourceFingerprint = prepared.sourceFingerprint;
+    const snapshotDigestSha256 = prepared.snapshotDigestSha256;
 
     const now = this.dependencies.now().toISOString();
     const migrationId = createMigrationId(sourceFingerprint);
@@ -187,10 +234,10 @@ export class MigrationStagingUseCase {
       datasetId,
       migrationId,
       sourceFingerprint,
-      sanitizedSourceText,
+      sanitizedSourceText: prepared.sanitizedSourceText,
       snapshotDigestSha256,
       reportDigestSha256,
-      sourceSnapshot,
+      sourceSnapshot: prepared.sourceSnapshot,
       previewReport: report,
       isolatedDomainSlice,
       validation,
@@ -215,7 +262,7 @@ export class MigrationStagingUseCase {
       commitMarker: null,
       snapshotDigestSha256,
       reportDigestSha256,
-      containsRedactedSecrets,
+      containsRedactedSecrets: prepared.containsRedactedSecrets,
       validation,
     });
 

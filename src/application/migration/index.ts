@@ -8,7 +8,10 @@ export {
 export {
   MigrationStagingInputError,
   MigrationStagingUseCase,
+  prepareV1MigrationSource,
   type MigrationStagingDependencies,
+  type PrepareV1MigrationSourceInput,
+  type PreparedV1MigrationSource,
   type StageV1BackupInput,
 } from './MigrationStagingUseCase';
 export {
@@ -45,3 +48,9 @@ export {
   type CreateMigrationDomainSliceInput,
   type MigrationDomainSliceDependencies,
 } from './MigrationDomainSliceUseCase';
+export {
+  MigrationDomainSliceStagingUseCase,
+  type MigrationDomainSliceStagingDependencies,
+  type StageMigrationDomainSliceInput,
+  type StageMigrationDomainSliceResult,
+} from './MigrationDomainSliceStagingUseCase';

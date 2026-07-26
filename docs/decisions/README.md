@@ -23,6 +23,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-017：以统一处置报告固化迁移质量守恒与隔离边界](./ADR-017-migration-disposition-and-quarantine-report.md)
 - [ADR-018：以只读 Legacy Source Reader 固定规范化来源记录边界](./ADR-018-legacy-source-reader-contract.md)
 - [ADR-019：以核心域纵向切片验证 isolated payload 边界](./ADR-019-core-domain-slice-isolated-payload.md)
+- [ADR-020：以单一 Application 编排把核心域结果接入隔离 staging](./ADR-020-core-domain-staging-orchestration.md)
 
 ## 未来
 

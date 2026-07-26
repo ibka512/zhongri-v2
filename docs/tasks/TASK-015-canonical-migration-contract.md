@@ -56,14 +56,19 @@ Word/Override/Folder/Favorite isolated payload，并为每条核心域 sourceRef
 [v1 核心域纵向转换契约](../content/MIGRATION_DOMAIN_SLICE.md)，实现决策见
 [ADR-019](../decisions/ADR-019-core-domain-slice-isolated-payload.md)。
 
+第九小步新增 `MigrationDomainSliceStagingUseCase`：统一编排脱敏来源准备、Legacy Source Reader、
+核心域转换和现有 staging，用例返回 source/slice/staging 三份结果；staging replay 额外绑定
+isolated payload digest，仍不执行 commit。实现决策见
+[ADR-020](../decisions/ADR-020-core-domain-staging-orchestration.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
 
 1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的
    synthetic 方案，并把设备 snapshot 记录接入 LegacyReader。
-2. 将第八小步 isolated payload 的 staging 字段接入真实 orchestration，并在真实/批准的 fixture
-   上扩展 Mastery/StudyRecord/FSRS 等逐域转换。
+2. 将第九小步 orchestration 接入真实设备来源和 UI/CLI 调用，再在真实/批准的 fixture 上扩展
+   Mastery/StudyRecord/FSRS 等逐域转换。
 3. 将处置报告接入 rawArchive/quarantine payload 的实际隔离存储。
 4. V01–V25 自动化验证、固定 sourceFingerprint 幂等复跑和 active pointer 原子提交/回滚。
 

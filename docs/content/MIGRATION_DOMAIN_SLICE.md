@@ -63,3 +63,13 @@ staging 存储入口，仍不提交 active pointer，也不改变 Word、ReviewS
 - reader → transformer → report → isolated payload 的 digest 绑定；
 - 重复运行完全相同，且没有 persistence/active pointer 写入。
 - 将 isolated payload 作为可选字段存入现有 staging dataset，同时 active pointer 保持为空。
+
+## 统一编排入口
+
+`MigrationDomainSliceStagingUseCase` 现在提供单一 Application 入口，固定执行：
+
+`prepareV1MigrationSource → Legacy Source Reader → Domain Slice → MigrationStagingUseCase`
+
+它复用 staging 的来源一致性和脱敏逻辑，返回 source、slice 和 staging 三份可审计结果；重复调用
+相同输入会复用 staging dataset，payload digest 不同则不会静默复用旧结果。该入口只执行隔离
+`stage`，不执行 commit。
