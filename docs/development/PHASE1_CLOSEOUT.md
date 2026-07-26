@@ -9,6 +9,7 @@
 - LearnerProfile v1、ReviewState v1、可重放投影、FSRS v6 调度和 Today Plan 优先级已经进入仓库。
 - 当前状态是“Task 013 技术实现与本地浏览器断网复测完成，完整 Phase 1 收口中”，不是“完整 Phase 1 已完成”。
 - 仓库仍只有 20 个真实 N5 日语词条；迁移数据仍停留在预检与隔离 staging，尚未转换并激活业务域。
+- GOV-001 已通过 PR #22 合并；Task 015（Issue #23）当前先建立 canonical corpus 完整性门禁，完整资产和真实脱敏 fixture 到位前不会激活迁移。
 
 ## Task 013 验收证据
 

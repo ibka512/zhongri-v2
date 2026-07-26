@@ -35,7 +35,7 @@ FSRS 复习调度
 
 仓库已经具备可维护的 React + TypeScript + Vite 基础、核心数据契约、UI Lab 和
 GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已由产品负责人验收。
-Task 012 已完成，Task 013 的代码实现和本地浏览器断网复测已经完成，当前进行 GOV-001 交接治理和 Phase 1 收口验收。
+Task 012 已完成，Task 013 的代码实现和本地浏览器断网复测已经完成，GOV-001 已通过 PR #22 合并，当前进行 Task 015 迁移契约与 Phase 1 收口验收。
 
 ## 已完成任务
 
@@ -53,6 +53,7 @@ Task 012 已完成，Task 013 的代码实现和本地浏览器断网复测已�
 - **Task 011**：建立首批真实 N5 词条、固定来源 Manifest 和 canonical 身份仓储。
 - **Task 012**：建立正式每日五词计划、混合题型、结果页和可恢复纵向闭环。
 - **Task 013**：完成 LearnerProfile v1、ReviewState v1、可重放投影、FSRS v6 和 Today Plan 优先级的代码实现。
+- **GOV-001**：通过 PR #22 纳入产品基线、任务授权、验收证据和跨 AI 交接治理。
 
 准确提交记录见 [TASKS.md](./TASKS.md)。
 
@@ -99,17 +100,17 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **GOV-001：仓库交接与基线治理**（[Issue #21](https://github.com/ibka512/zhongri-v2/issues/21)）；Task 013 已完成代码实现与本地浏览器断网复测。
+当前任务是 **Task 015：v1 迁移逐域转换与 canonical 身份层**（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）；Task 013 已完成代码实现与本地浏览器断网复测，GOV-001 已合并。
 
-范围包括仓库内产品基线、任务合同、交接记录、Phase 1 收口证据和统一验证门禁；不修改学习业务、Schema、FSRS 参数、迁移算法或 AI Gateway。
+当前 Task 的第一小步只包括 canonical corpus Schema、固定 9,828/5,906/3,922 目标和 fail-closed 完整性验证；不激活不完整资产，不伪造迁移记录，不修改 FSRS 参数或接入 AI。
 
 Task 013 的实现与决策见 [ADR-011](./decisions/ADR-011-replayable-profile-fsrs.md)，其验收证据见 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
 
 ## 下一步路线
 
-1. 完成 GOV-001 的交接治理、提交、推送和 draft PR。
-2. 为完整迁移转换、9,828 词身份层、首次设置/数据页、五十音/TTS 和英语/IPA 切片分别定义并授权 Task。
-3. 完成 Phase 1 的双语核心闭环验收，之后再接入 AI Gateway。
+1. 完成 Task 015 的 canonical 资产输入、逐域转换、V01–V25 验证和激活/回滚验收。
+2. 为首次设置/数据页、五十音/TTS 和英语/IPA 切片分别定义并授权 Task。
+3. 完成 Phase 1 的双语核心闭环验收，之后再接入 AI Gateway（Issue #20）。
 
 详细验收证据见 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
 

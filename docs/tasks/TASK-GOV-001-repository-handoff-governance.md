@@ -2,7 +2,7 @@
 
 ## 状态
 
-实现完成，对应 [GitHub Issue #21](https://github.com/ibka512/zhongri-v2/issues/21)，等待提交、推送和 draft PR。
+已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并，对应 [GitHub Issue #21](https://github.com/ibka512/zhongri-v2/issues/21)。
 
 ## 目标
 

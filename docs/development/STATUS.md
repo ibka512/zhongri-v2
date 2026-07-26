@@ -21,7 +21,8 @@
 
 ## 当前
 
-- **GOV-001：仓库交接与基线治理** 正在进行。Task 013 已通过 PR #19 合并，本地浏览器断网启动/恢复复测已完成。
+- **Task 015：v1 迁移逐域转换与 canonical 身份层** 正在进行（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）。GOV-001 已通过 PR #22 合并，Task 013 已通过 PR #19 合并。
+- Task 015 当前只完成 canonical corpus Schema、9,828/5,906/3,922 目标声明和完整性验证测试；完整 canonical 资产、真实脱敏 backup fixture 和逐域 transformer 仍被明确阻塞。
 - LearnerProfile v1 与 ReviewState v1 从 LearningEvent 全量重放，不创建第二份学习事实。
 - 官方 `ts-fsrs` 的 FSRS v6 只负责长期到期时间，并通过 ReviewScheduler Port 隔离。
 - Today Plan 优先当天到期复习、最近仍答错的词，再稳定补足五个基础词。
@@ -30,9 +31,9 @@
 
 ## 下一步
 
-- 完成 GOV-001 的交接治理、提交、推送和 draft PR。
-- 已完成 Task013 的本地浏览器断网复核并同步验收结论。
-- 定义并授权 Phase 1 后续 Task：完整迁移、首次设置/数据页、五十音/TTS、英语/IPA。
+- 补齐完整 canonical source manifest、SHA-256 清单和脱敏 v5+/v10、legacy v4 fixture；在缺少输入时保持 fail-closed。
+- 在 Task 015 内实现 source snapshot、逐域转换、quarantine、V01–V25 可执行验证和激活/回滚演练。
+- Task 015 通过后再定义首次设置/数据页、五十音/TTS、英语/IPA；Phase 1 验收后才进入 AI Gateway。
 - Phase 1 验收后，才在已验证画像摘要之上建立 AI Gateway；基础课程仍保持可离线完成。
 
 验收证据与剩余交付见 [Phase 1 收口记录](./PHASE1_CLOSEOUT.md)。
