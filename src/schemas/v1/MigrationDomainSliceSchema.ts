@@ -52,6 +52,15 @@ const MigrationWrongBookQualityFlagSchema = z.enum([
   'RECENT_ANSWER_TRUNCATED',
 ]);
 
+const MigrationRecycleBinQualityFlagSchema = z.enum([
+  'ITEM_ID_GENERATED',
+  'KIND_UNKNOWN',
+  'DATE_INVALID',
+  'TARGET_UNRESOLVED',
+  'RETENTION_UNDETERMINED',
+  'PAYLOAD_INVALID',
+]);
+
 const MigrationReviewDimensionSchema = z.enum(['spelling', 'reading', 'listening', 'meaning']);
 const MigrationFsrsQualityFlagSchema = z.enum([
   'ELAPSED_DAYS_DEFAULTED',
@@ -219,6 +228,27 @@ export const MigrationIsolatedWrongBookSchema = z
   })
   .strict();
 
+export const MigrationIsolatedRecycleBinItemSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    itemId: IdentifierSchema,
+    batchId: IdentifierSchema.nullable(),
+    kind: z.enum(['word', 'conversation', 'example', 'unknown']),
+    label: z.string().max(200),
+    deletedAt: z.string().datetime({ offset: true }).nullable(),
+    expiresAt: z.string().datetime({ offset: true }).nullable(),
+    retentionStatus: z.enum(['active', 'expired', 'unknown']),
+    resolvedTargetWordId: WordIdSchema.nullable(),
+    sourceRefs: SourceRefListSchema,
+    sourceRecordDigestsSha256: SourceDigestListSchema,
+    qualityFlags: z.array(MigrationRecycleBinQualityFlagSchema).max(6),
+    serializedValue: z
+      .string()
+      .min(1)
+      .max(30 * 1024 * 1024),
+  })
+  .strict();
+
 export const MigrationIsolatedFsrsCardSchema = z
   .object({
     schemaVersion: ContractVersionSchema,
@@ -297,6 +327,7 @@ export const MigrationIsolatedPayloadSchema = z
     studyRecords: z.array(MigrationIsolatedStudyRecordSchema).max(100_000).default([]),
     groupProgress: z.array(MigrationIsolatedGroupProgressSchema).max(100_000).default([]),
     wrongBook: z.array(MigrationIsolatedWrongBookSchema).max(100_000).default([]),
+    recycleBin: z.array(MigrationIsolatedRecycleBinItemSchema).max(100_000).default([]),
     fsrsCards: z.array(MigrationIsolatedFsrsCardSchema).max(100_000).default([]),
     fsrsLogs: z.array(MigrationIsolatedFsrsLogSchema).max(100_000).default([]),
     archives: z.array(MigrationIsolatedArchiveSchema).max(200_000).default([]),
@@ -384,6 +415,18 @@ export const MigrationIsolatedPayloadSchema = z
         });
       }
       mistakeRecordIds.add(mistake.mistakeRecordId);
+    }
+
+    const recycleBinItemIds = new Set<string>();
+    for (const [index, item] of payload.recycleBin.entries()) {
+      if (recycleBinItemIds.has(item.itemId)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['recycleBin', index, 'itemId'],
+          message: 'Isolated recycle-bin payloads must contain one item per item ID',
+        });
+      }
+      recycleBinItemIds.add(item.itemId);
     }
 
     const studyEventIds = new Set<string>();
@@ -511,6 +554,7 @@ export type MigrationIsolatedStudyRecord = z.infer<typeof MigrationIsolatedStudy
 export type MigrationIsolatedGroupProgress = z.infer<typeof MigrationIsolatedGroupProgressSchema>;
 export type MigrationIsolatedWrongAnswer = z.infer<typeof MigrationIsolatedWrongAnswerSchema>;
 export type MigrationIsolatedWrongBook = z.infer<typeof MigrationIsolatedWrongBookSchema>;
+export type MigrationIsolatedRecycleBinItem = z.infer<typeof MigrationIsolatedRecycleBinItemSchema>;
 export type MigrationIsolatedFsrsCard = z.infer<typeof MigrationIsolatedFsrsCardSchema>;
 export type MigrationIsolatedFsrsLog = z.infer<typeof MigrationIsolatedFsrsLogSchema>;
 export type MigrationIsolatedArchive = z.infer<typeof MigrationIsolatedArchiveSchema>;

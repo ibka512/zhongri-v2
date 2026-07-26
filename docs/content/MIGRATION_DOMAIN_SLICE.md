@@ -5,7 +5,7 @@
 本轮在已完成的 Legacy Source Reader、canonical idMap 和 disposition report 之上，新增
 `MigrationDomainSliceUseCase`。当前 isolated transformer 已贯通核心词域和第一批学习事实域：
 
-`words → overrides → folders → favorites → mastery → studyRecords → groupProgress → wrongBook → fsrsCards → fsrsLogs`
+`words → overrides → folders → favorites → mastery → studyRecords → groupProgress → wrongBook → recycleBin → fsrsCards → fsrsLogs`
 
 本轮的 synthetic fixture 不是任何用户的真实历史。它只验证 `db/userWords`、
 `wordOverrides`、`folders/folderLangs`、`stars`、`mtWordClears`、`studyRecords`、
@@ -16,7 +16,7 @@ backup 到位前，不能把测试结果描述为真实迁移完成。
 
 用例输入是已经由 `MigrationLegacySourceReaderUseCase` 校验的
 `MigrationLegacySourceSchema`。用例选择 `words`、`overrides`、`folders`、`favorites`、
-`mastery`、`studyRecords`、`groupProgress`、`wrongBook`、`fsrsCards` 和 `fsrsLogs` 记录；AI、回收站、
+`mastery`、`studyRecords`、`groupProgress`、`wrongBook`、`recycleBin`、`fsrsCards` 和 `fsrsLogs` 记录；AI、
 preferences 和 unknown 仍保留在 reader 结果中，等待后续 transformer，不会被静默当成已迁移。
 
 输出 `MigrationDomainSliceResultSchema` 同时绑定三个结果：
@@ -25,7 +25,7 @@ preferences 和 unknown 仍保留在 reader 结果中，等待后续 transformer
 - `dispositionReport`：已接入域的每条 sourceRef 都有 `migrated`、`deduped` 或 `quarantined` 去向，
   成功/去重记录生成 rawArchive 引用，quarantine 不生成活跃目标；
 - `isolatedPayload`：包含 canonical/user Word、Override、Folder、Favorite、Mastery、StudyEvent、GroupProgress、
-  WrongBook、legacy ReviewCard 和 ReviewLog 目标，带 reader、idMap、处置报告和自身 payload 摘要。
+  WrongBook、RecycleBin、legacy ReviewCard 和 ReviewLog 目标，带 reader、idMap、处置报告和自身 payload 摘要。
 
 `isolatedPayload.datasetId` 固定派生自 `migrationId`，并明确携带
 `writesPerformed: false` 与 `activePointerUpdated: false`。纵向用例本身不调用
@@ -53,6 +53,8 @@ staging 存储入口，仍不提交 active pointer，也不改变 Word、ReviewS
    组键取最大值去重，不推导具体 StudySession 或组成员。
 9. WrongBook 只保存能关联到既有 Word 身份的错题本聚合事实；计数使用非负整数投影，状态/日期/最近答题
    的不确定性通过 quality flag 保留，最近答题最多 20 条，不从汇总反造 LearningEvent。
+10. RecycleBin 只保存 tombstone 和脱敏嵌套快照；kind、时间和可关联 Word 目标保守解析，以 source
+    exportDate 判断过期，不执行 restore/cleanup，也不把已删除内容写回活跃域。
 
 ## 安全与后续边界
 
@@ -61,7 +63,7 @@ staging 存储入口，仍不提交 active pointer，也不改变 Word、ReviewS
 - disposition report 生成 rawArchive/quarantine 引用后，当前 transformer 会把已脱敏的对应
   `serializedValue` 绑定到 isolated payload 的 `archives`；独立 Dexie archive 表、压缩/加密和保留
   周期仍待后续 `MigrationMetadata`/存储切片。
-- 该切片不代表真实 Mastery、StudyRecord、FSRS、WrongBook 字段覆盖、AI、V01–V25 或 active pointer 已完成；
+- 该切片不代表真实 Mastery、StudyRecord、FSRS、WrongBook、RecycleBin 字段覆盖、AI、V01–V25 或 active pointer 已完成；
   staging 字段接线仍需真实来源和后续验证。
 - 下一步是在真实脱敏 fixture（或负责人批准的字段形状 synthetic fixture）上扩展剩余域，并把
   isolated payload 接入 staging 持久化，再实现验证和激活/回滚。
@@ -75,6 +77,7 @@ staging 存储入口，仍不提交 active pointer，也不改变 Word、ReviewS
 - `daily_punch`/`pendulum` 的 StudyEvent 映射、日期质量标记和确定性去重；
 - `mtGroupClears` 组完成次数的确定性 ID、小数取整和 quality flag；
 - `wrongBook` 的身份关联、计数/状态/日期投影、最近答题上限和关系 quarantine；
+- `recycleBin` 的 item ID、kind、时间基准、过期状态和 resolved target 投影；
 - legacy FSRS 卡的完整状态保存、坏卡/孤立日志 quarantine、日志内容指纹去重；
 - 孤立 Override 的 quarantine 与数量守恒；
 - reader → transformer → report → isolated payload 的 digest 绑定；

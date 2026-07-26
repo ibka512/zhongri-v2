@@ -172,6 +172,16 @@ describe('MigrationDomainSliceUseCase', () => {
       sourceCounts: { study: 2, filter: 0, aiQuiz: 0 },
       recentAnswers: expect.any(Array),
     });
+    expect(result.isolatedPayload.recycleBin).toEqual([
+      expect.objectContaining({
+        itemId: 'trash-word-001',
+        batchId: 'trash-batch-001',
+        kind: 'word',
+        label: '元気',
+        retentionStatus: 'active',
+        resolvedTargetWordId: 'builtin-ja-core-00005',
+      }),
+    ]);
     expect(result.isolatedPayload.fsrsCards).toHaveLength(1);
     expect(result.isolatedPayload.fsrsCards[0]).toMatchObject({
       targetWordId: 'builtin-ja-core-00005',

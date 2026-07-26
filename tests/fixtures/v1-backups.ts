@@ -274,7 +274,17 @@ export function createMasteryStudyFsrsDomainSliceV1Backup() {
         'ja:missing-word': { wordId: 'missing-word', lang: 'ja', totalWrong: 1 },
       },
       aiQuizHistory: [],
-      recycleBin: [],
+      recycleBin: [
+        {
+          id: 'trash-word-001',
+          batchId: 'trash-batch-001',
+          kind: 'word',
+          label: '元気',
+          deletedAt: '2026-07-22T00:00:00.000Z',
+          expiresAt: '2026-08-01T00:00:00.000Z',
+          payload: { wordId: 'builtin-ja-core-00005', lang: 'ja', word: '元気' },
+        },
+      ],
     },
     preferences: { theme: 'dark' },
   };

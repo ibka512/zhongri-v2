@@ -13,6 +13,7 @@ import {
   MigrationIsolatedMasterySchema,
   MigrationIsolatedOverrideSchema,
   MigrationIsolatedPayloadSchema,
+  MigrationIsolatedRecycleBinItemSchema,
   MigrationIsolatedStudyRecordSchema,
   MigrationIsolatedWrongAnswerSchema,
   MigrationIsolatedWrongBookSchema,
@@ -30,6 +31,7 @@ import {
   type MigrationIsolatedMastery,
   type MigrationIsolatedOverride,
   type MigrationIsolatedWord,
+  type MigrationIsolatedRecycleBinItem,
   type MigrationIsolatedStudyRecord,
   type MigrationIsolatedWrongAnswer,
   type MigrationIsolatedWrongBook,
@@ -103,6 +105,14 @@ type WrongBookQualityFlag =
   | 'RECENT_ANSWER_INVALID'
   | 'RECENT_ANSWER_TRUNCATED';
 
+type RecycleBinQualityFlag =
+  | 'ITEM_ID_GENERATED'
+  | 'KIND_UNKNOWN'
+  | 'DATE_INVALID'
+  | 'TARGET_UNRESOLVED'
+  | 'RETENTION_UNDETERMINED'
+  | 'PAYLOAD_INVALID';
+
 interface WrongBookCountProjection {
   value: number;
   qualityFlags: WrongBookQualityFlag[];
@@ -152,6 +162,23 @@ function readField(value: unknown, ...keys: readonly string[]): string | null {
   return null;
 }
 
+function readLegacyIdentifier(value: unknown, ...keys: readonly string[]): string | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+  for (const key of keys) {
+    const candidate = value[key];
+    if (typeof candidate === 'number' && Number.isSafeInteger(candidate) && candidate >= 0) {
+      return String(candidate);
+    }
+    const text = stringValue(candidate);
+    if (text) {
+      return text;
+    }
+  }
+  return null;
+}
+
 function readBooleanField(value: unknown, key: string): boolean | null {
   if (!isRecord(value) || typeof value[key] !== 'boolean') {
     return null;
@@ -184,6 +211,35 @@ function readDateField(value: unknown, ...keys: readonly string[]): ParsedDate {
     const raw = value[key];
     if (raw === null || raw === '') {
       return { value: null, present: true, valid: true };
+    }
+    if (typeof raw !== 'string') {
+      return { value: null, present: true, valid: false };
+    }
+    const parsed = new Date(raw);
+    return Number.isNaN(parsed.getTime())
+      ? { value: null, present: true, valid: false }
+      : { value: parsed.toISOString(), present: true, valid: true };
+  }
+  return { value: null, present: false, valid: false };
+}
+
+function readRecycleDateField(value: unknown, ...keys: readonly string[]): ParsedDate {
+  if (!isRecord(value)) {
+    return { value: null, present: false, valid: false };
+  }
+  for (const key of keys) {
+    if (!Object.prototype.hasOwnProperty.call(value, key)) {
+      continue;
+    }
+    const raw = value[key];
+    if (raw === null || raw === '') {
+      return { value: null, present: true, valid: true };
+    }
+    if (typeof raw === 'number' && Number.isFinite(raw) && raw >= 0) {
+      const parsed = new Date(raw);
+      return Number.isNaN(parsed.getTime())
+        ? { value: null, present: true, valid: false }
+        : { value: parsed.toISOString(), present: true, valid: true };
     }
     if (typeof raw !== 'string') {
       return { value: null, present: true, valid: false };
@@ -1205,6 +1261,112 @@ export class MigrationDomainSliceUseCase {
       );
     }
 
+    const recycleBinPayloadByItemId = new Map<string, MigrationIsolatedRecycleBinItem>();
+    for (const { record, value } of sourceValueRecords(source, 'recycleBin')) {
+      const itemValue = isRecord(value) ? value : null;
+      const payloadValue = itemValue && isRecord(itemValue.payload) ? itemValue.payload : null;
+      const relationValue =
+        itemValue && payloadValue ? { ...itemValue, ...payloadValue } : (payloadValue ?? itemValue);
+      const qualityFlags: RecycleBinQualityFlag[] = [];
+      const rawItemId = readLegacyIdentifier(itemValue, 'itemId', 'id');
+      let itemId = boundedText(rawItemId, 128);
+      if (!itemId) {
+        const itemDigest = await this.dependencies.digest.sha256(
+          JSON.stringify({
+            schemaVersion: 1,
+            migrationId: source.migrationId,
+            sourceRef: record.sourceRef,
+            serializedValue: record.serializedValue,
+          }),
+        );
+        assertDigest(itemDigest, 'recycle-bin item ID');
+        itemId = `recycle-v1:${itemDigest.slice(0, 24)}`;
+        qualityFlags.push('ITEM_ID_GENERATED');
+      }
+
+      const rawKind = stringValue(itemValue?.kind)?.toLowerCase() ?? null;
+      const knownKinds = new Set(['word', 'conversation', 'example']);
+      const kind = knownKinds.has(rawKind ?? '')
+        ? (rawKind as 'word' | 'conversation' | 'example')
+        : 'unknown';
+      if (kind === 'unknown') {
+        qualityFlags.push('KIND_UNKNOWN');
+      }
+      if (!itemValue) {
+        qualityFlags.push('PAYLOAD_INVALID');
+      }
+
+      const deletedAt = readRecycleDateField(itemValue, 'deletedAt', 'deleted_at');
+      const expiresAt = readRecycleDateField(itemValue, 'expiresAt', 'expires_at');
+      if ((deletedAt.present && !deletedAt.valid) || (expiresAt.present && !expiresAt.valid)) {
+        qualityFlags.push('DATE_INVALID');
+      }
+
+      const relation = resolveRelationFromValue(relationValue, null);
+      const entry = resolveWordRelation(wordEntryByRawId, wordEntriesByHeadword, relation);
+      const resolvedTargetWordId = entry?.targetWordId ?? null;
+      if ((kind === 'word' || kind === 'example') && !resolvedTargetWordId) {
+        qualityFlags.push('TARGET_UNRESOLVED');
+      }
+
+      let retentionStatus: 'active' | 'expired' | 'unknown' = 'active';
+      if (expiresAt.present && !expiresAt.valid) {
+        retentionStatus = 'unknown';
+        qualityFlags.push('RETENTION_UNDETERMINED');
+      } else if (expiresAt.value) {
+        const migrationDate = source.exportDate ? new Date(source.exportDate) : null;
+        if (!migrationDate || Number.isNaN(migrationDate.getTime())) {
+          retentionStatus = 'unknown';
+          qualityFlags.push('RETENTION_UNDETERMINED');
+        } else {
+          retentionStatus = expiresAt.value <= migrationDate.toISOString() ? 'expired' : 'active';
+        }
+      }
+      if (!itemValue) {
+        retentionStatus = 'unknown';
+      }
+
+      const uniqueQualityFlags = [...new Set(qualityFlags)].sort(compareStrings);
+      const payload = MigrationIsolatedRecycleBinItemSchema.parse({
+        schemaVersion: 1,
+        itemId,
+        batchId: boundedText(readLegacyIdentifier(itemValue, 'batchId', 'batch_id'), 128),
+        kind,
+        label: boundedText(readField(itemValue, 'label', 'title'), 200) ?? '已删除项目',
+        deletedAt: deletedAt.valid ? deletedAt.value : null,
+        expiresAt: expiresAt.valid ? expiresAt.value : null,
+        retentionStatus,
+        resolvedTargetWordId,
+        sourceRefs: [record.sourceRef],
+        sourceRecordDigestsSha256: [record.sourceRecordDigestSha256],
+        qualityFlags: uniqueQualityFlags,
+        serializedValue: record.serializedValue,
+      });
+      const existing = recycleBinPayloadByItemId.get(itemId);
+      if (existing) {
+        dispositionRecords.push(
+          createDedupedDisposition(
+            record,
+            'recycleBin',
+            'DUPLICATE_RECYCLE_BIN_ITEM',
+            existing.itemId,
+            existing.sourceRefs[0],
+          ),
+        );
+        continue;
+      }
+      recycleBinPayloadByItemId.set(itemId, payload);
+      dispositionRecords.push(
+        createMigratedDisposition(
+          record,
+          'recycleBin',
+          'RECYCLE_BIN_ITEM_MAPPED',
+          itemId,
+          uniqueQualityFlags.length > 0 ? 'warning' : 'info',
+        ),
+      );
+    }
+
     const masteryPayloadByTargetId = new Map<string, MigrationIsolatedMastery>();
     for (const { record, value } of sourceValueRecords(source, 'mastery')) {
       const sourceKey = readSourceKey(record.sourceRef, 'data.mtWordClears');
@@ -1606,7 +1768,6 @@ export class MigrationDomainSliceUseCase {
     const unsupportedBusinessDomains = new Set<MigrationLegacySourceRecord['domain']>([
       'aiConversations',
       'aiQuizHistory',
-      'recycleBin',
     ]);
     for (const record of source.records) {
       if (
@@ -1693,6 +1854,9 @@ export class MigrationDomainSliceUseCase {
       ),
       wrongBook: [...wrongBookPayloadByTargetId.values()].sort((left, right) =>
         compareStrings(left.mistakeRecordId, right.mistakeRecordId),
+      ),
+      recycleBin: [...recycleBinPayloadByItemId.values()].sort((left, right) =>
+        compareStrings(left.itemId, right.itemId),
       ),
       fsrsCards: [...fsrsCardPayloadByRelation.values()].sort((left, right) =>
         compareStrings(left.reviewCardId, right.reviewCardId),
