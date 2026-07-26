@@ -24,3 +24,8 @@ export {
   type CaptureV1SourceSnapshotDependencies,
   type CaptureV1SourceSnapshotInput,
 } from './CaptureV1SourceSnapshotUseCase';
+export {
+  MigrationIdentityMapInputError,
+  MigrationIdentityMapUseCase,
+  type MigrationIdentityMapDependencies,
+} from './MigrationIdentityMapUseCase';

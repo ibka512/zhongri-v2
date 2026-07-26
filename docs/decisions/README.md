@@ -19,6 +19,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-013：固定 jp-study 提交并导入完整 canonical corpus](./ADR-013-full-canonical-corpus-import.md)
 - [ADR-014：以脱敏稳定快照固定 v1 迁移来源边界](./ADR-014-v1-source-snapshot-contract.md)
 - [ADR-015：以只读浏览器读取器把 v1 来源快照接入 staging](./ADR-015-browser-v1-source-adapter-and-staging.md)
+- [ADR-016：以确定性 idMap 固化 canonical 与用户词身份](./ADR-016-deterministic-canonical-id-map.md)
 
 ## 未来
 

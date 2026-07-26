@@ -86,8 +86,9 @@ Dexie 只存在于 Infrastructure。Domain、页面和 UI 组件不得 import De
 6. 回滚只把 active pointer 恢复为 `priorActiveDatasetId`，保留快照、报告和诊断数据。
 7. 学习事件与会话表不参与迁移事务；staging 不代表业务域已完成迁移。
 
-当前仍不实现完整 canonical 资产、Word/Override/idMap、关系域转换、ReviewState 激活、
-FSRS 调度或 AI。
+当前仍不实现 Word/Override 的逐域转换、关系域转换、ReviewState 激活、FSRS 调度迁移或 AI；
+canonical corpus、canonical idMap 契约和只读 source-aware staging 已完成，但 idMap 仍只作为
+隔离应用层结果，未写入 active dataset。
 
 ## Task011 canonical 内容身份
 
@@ -98,7 +99,19 @@ FSRS 调度或 AI。
 4. 解析先查精确 `language + wordId`；仅在 ID 未命中时提供唯一
    `language + normalized headword` 候选。
 5. 同语言重名返回 ambiguous；相同 ID 出现在另一语言返回 language-conflict，不自动合并。
-6. 本切片只有 20 个 N5 日语词条；完整 9,828 资产、用户词和迁移转换仍需独立任务。
+6. 完整 9,828 条资产已作为迁移身份底座导入；用户词、Override 和逐域关系转换仍需 Task 015
+   的真实 fixture 与后续 transformer。
+
+## Task015 canonical idMap
+
+1. `MigrationIdentityMapUseCase` 先执行 canonical 完整性校验，再按迁移规格 §5 固化
+   `oldRef → targetWordId`，并把语言缺省、置信度、冲突和 quarantine 原因写入 entry。
+2. 用户词合法且唯一的旧 ID 原样保留；无 ID 或确定性冲突按固定字段和原始记录摘要生成
+   `user-v1-*`，不使用随机数或运行时间。
+3. entries 按 sourceRef 排序并计算稳定 map digest；后续逐域转换只能消费这份 idMap，不能重新
+   按 headword 推导身份。
+4. 当前不写入 Word/UserWord/Override、active pointer 或 ReviewState；真实 fixture 到位后再
+   接入 transformer 和 V01–V25。
 
 ## Task012 正式每日课程
 
