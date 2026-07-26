@@ -195,6 +195,29 @@ describe('MigrationDomainSliceUseCase', () => {
         ],
       }),
     ]);
+    expect(result.isolatedPayload.aiQuizHistory).toEqual([
+      expect.objectContaining({
+        legacyId: 'quiz-1',
+        title: '元気小测',
+        createdAt: '2026-07-23T10:00:00.000Z',
+        durationMs: 1200,
+        total: 2,
+        correct: 1,
+        answers: [
+          expect.objectContaining({
+            questionId: 'q1',
+            language: 'ja',
+            resolvedTargetWordId: 'builtin-ja-core-00005',
+            isCorrect: true,
+          }),
+          expect.objectContaining({
+            questionId: 'q2',
+            resolvedTargetWordId: 'builtin-ja-core-00005',
+            isCorrect: false,
+          }),
+        ],
+      }),
+    ]);
     expect(result.isolatedPayload.fsrsCards).toHaveLength(1);
     expect(result.isolatedPayload.fsrsCards[0]).toMatchObject({
       targetWordId: 'builtin-ja-core-00005',

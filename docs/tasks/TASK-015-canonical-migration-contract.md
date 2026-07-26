@@ -102,6 +102,11 @@ flag 保留，结果不调用 AI、不激活会话。实现决策见
 [ADR-027](../decisions/ADR-027-ai-conversation-isolated-transformer.md)，契约说明见
 [v1 核心域纵向转换契约](../content/MIGRATION_DOMAIN_SLICE.md)。
 
+第十七小步新增 `aiQuizHistory` isolated transformer：按旧 quiz ID 或确定性来源指纹保存小测元数据和
+最多 100 条逐题答案，统计缺失/冲突、语言/词条关联和答案截断通过 quality flag 保留，不反造
+LearningEvent。实现决策见 [ADR-028](../decisions/ADR-028-ai-quiz-history-isolated-transformer.md)，
+契约说明见 [v1 核心域纵向转换契约](../content/MIGRATION_DOMAIN_SLICE.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
@@ -111,7 +116,7 @@ flag 保留，结果不调用 AI、不激活会话。实现决策见
    复核字段覆盖。
 2. 用真实/批准的 fixture 复核第十、十一小步的设备来源、字段覆盖和分歧报告。
 3. 将 `archives` 从 inline isolated payload 接入独立的 rawArchive/quarantine 存储（含保留周期），
-   并继续实现 aiQuizHistory、preferences 等剩余域。
+   并继续实现 preferences、独立 archive 存储等剩余域。
 4. V01–V25 自动化验证、固定 sourceFingerprint 幂等复跑和 active pointer 原子提交/回滚。
 
 ## 前置条件

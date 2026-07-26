@@ -71,6 +71,19 @@ const MigrationAiConversationQualityFlagSchema = z.enum([
   'TARGET_UNRESOLVED',
 ]);
 
+const MigrationAiQuizQualityFlagSchema = z.enum([
+  'QUIZ_ID_GENERATED',
+  'DATE_INVALID',
+  'COUNT_DEFAULTED',
+  'COUNT_FLOORED',
+  'COUNT_CONFLICT',
+  'ANSWER_FIELD_DEFAULTED',
+  'ANSWER_LANGUAGE_UNKNOWN',
+  'ANSWER_TARGET_UNRESOLVED',
+  'ANSWER_TRUNCATED',
+  'HISTORY_TRUNCATED',
+]);
+
 const MigrationReviewDimensionSchema = z.enum(['spelling', 'reading', 'listening', 'meaning']);
 const MigrationFsrsQualityFlagSchema = z.enum([
   'ELAPSED_DAYS_DEFAULTED',
@@ -293,6 +306,54 @@ export const MigrationIsolatedAiConversationSchema = z
   })
   .strict();
 
+export const MigrationIsolatedAiQuizAnswerSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    questionId: IdentifierSchema.nullable(),
+    type: z.string().max(100).nullable(),
+    dimension: z.string().max(100).nullable(),
+    wordSnapshot: z.string().max(200).nullable(),
+    language: LanguageSchema.nullable(),
+    prompt: z.string().max(4_000).nullable(),
+    userAnswer: z.string().max(4_000).nullable(),
+    correctAnswer: z.string().max(4_000).nullable(),
+    explanation: z.string().max(4_000).nullable(),
+    isCorrect: z.boolean().nullable(),
+    resolvedTargetWordId: WordIdSchema.nullable(),
+    serializedValue: z
+      .string()
+      .min(1)
+      .max(30 * 1024 * 1024),
+  })
+  .strict();
+
+export const MigrationIsolatedAiQuizSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    quizId: IdentifierSchema,
+    legacyId: IdentifierSchema.nullable(),
+    title: z.string().max(200),
+    createdAt: z.string().datetime({ offset: true }).nullable(),
+    durationMs: z.number().int().nonnegative().nullable(),
+    total: z.number().int().nonnegative(),
+    correct: z.number().int().nonnegative(),
+    answers: z.array(MigrationIsolatedAiQuizAnswerSchema).max(100),
+    sourceRefs: SourceRefListSchema,
+    sourceRecordDigestsSha256: SourceDigestListSchema,
+    qualityFlags: z.array(MigrationAiQuizQualityFlagSchema).max(10),
+    serializedValues: SerializedValueListSchema,
+  })
+  .strict()
+  .superRefine((quiz, context) => {
+    if (quiz.correct > quiz.total) {
+      context.addIssue({
+        code: 'custom',
+        path: ['correct'],
+        message: 'AI quiz correct count cannot exceed total count',
+      });
+    }
+  });
+
 export const MigrationIsolatedFsrsCardSchema = z
   .object({
     schemaVersion: ContractVersionSchema,
@@ -373,6 +434,7 @@ export const MigrationIsolatedPayloadSchema = z
     wrongBook: z.array(MigrationIsolatedWrongBookSchema).max(100_000).default([]),
     recycleBin: z.array(MigrationIsolatedRecycleBinItemSchema).max(100_000).default([]),
     aiConversations: z.array(MigrationIsolatedAiConversationSchema).max(100_000).default([]),
+    aiQuizHistory: z.array(MigrationIsolatedAiQuizSchema).max(100).default([]),
     fsrsCards: z.array(MigrationIsolatedFsrsCardSchema).max(100_000).default([]),
     fsrsLogs: z.array(MigrationIsolatedFsrsLogSchema).max(100_000).default([]),
     archives: z.array(MigrationIsolatedArchiveSchema).max(200_000).default([]),
@@ -484,6 +546,18 @@ export const MigrationIsolatedPayloadSchema = z
         });
       }
       conversationIds.add(conversation.conversationId);
+    }
+
+    const quizIds = new Set<string>();
+    for (const [index, quiz] of payload.aiQuizHistory.entries()) {
+      if (quizIds.has(quiz.quizId)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['aiQuizHistory', index, 'quizId'],
+          message: 'Isolated AI quiz payloads must contain one target per quiz ID',
+        });
+      }
+      quizIds.add(quiz.quizId);
     }
 
     const studyEventIds = new Set<string>();
@@ -616,6 +690,8 @@ export type MigrationIsolatedAiConversationMessage = z.infer<
   typeof MigrationIsolatedAiConversationMessageSchema
 >;
 export type MigrationIsolatedAiConversation = z.infer<typeof MigrationIsolatedAiConversationSchema>;
+export type MigrationIsolatedAiQuizAnswer = z.infer<typeof MigrationIsolatedAiQuizAnswerSchema>;
+export type MigrationIsolatedAiQuiz = z.infer<typeof MigrationIsolatedAiQuizSchema>;
 export type MigrationIsolatedFsrsCard = z.infer<typeof MigrationIsolatedFsrsCardSchema>;
 export type MigrationIsolatedFsrsLog = z.infer<typeof MigrationIsolatedFsrsLogSchema>;
 export type MigrationIsolatedArchive = z.infer<typeof MigrationIsolatedArchiveSchema>;

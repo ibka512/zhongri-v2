@@ -7,6 +7,8 @@ import {
   MigrationIsolatedArchiveSchema,
   MigrationIsolatedAiConversationMessageSchema,
   MigrationIsolatedAiConversationSchema,
+  MigrationIsolatedAiQuizAnswerSchema,
+  MigrationIsolatedAiQuizSchema,
   MigrationIsolatedFavoriteSchema,
   MigrationIsolatedFsrsCardSchema,
   MigrationIsolatedFsrsLogSchema,
@@ -27,6 +29,8 @@ import {
   type MigrationIsolatedArchive,
   type MigrationIsolatedAiConversation,
   type MigrationIsolatedAiConversationMessage,
+  type MigrationIsolatedAiQuiz,
+  type MigrationIsolatedAiQuizAnswer,
   type MigrationIsolatedFavorite,
   type MigrationIsolatedFsrsCard,
   type MigrationIsolatedFsrsLog,
@@ -126,6 +130,18 @@ type AiConversationQualityFlag =
   | 'MESSAGE_TRUNCATED'
   | 'TARGET_UNRESOLVED';
 
+type AiQuizQualityFlag =
+  | 'QUIZ_ID_GENERATED'
+  | 'DATE_INVALID'
+  | 'COUNT_DEFAULTED'
+  | 'COUNT_FLOORED'
+  | 'COUNT_CONFLICT'
+  | 'ANSWER_FIELD_DEFAULTED'
+  | 'ANSWER_LANGUAGE_UNKNOWN'
+  | 'ANSWER_TARGET_UNRESOLVED'
+  | 'ANSWER_TRUNCATED'
+  | 'HISTORY_TRUNCATED';
+
 interface WrongBookCountProjection {
   value: number;
   qualityFlags: WrongBookQualityFlag[];
@@ -207,6 +223,19 @@ function stringifyLegacyValue(value: unknown): string | null {
   } catch {
     return null;
   }
+}
+
+function readStringifiedField(value: unknown, ...keys: readonly string[]): string | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+  for (const key of keys) {
+    if (!Object.prototype.hasOwnProperty.call(value, key)) {
+      continue;
+    }
+    return stringifyLegacyValue(value[key]);
+  }
+  return null;
 }
 
 function readBooleanField(value: unknown, key: string): boolean | null {
@@ -399,6 +428,68 @@ function parseAiConversationMessage(value: unknown): {
     }),
     qualityFlags,
   };
+}
+
+function parseAiQuizAnswer(
+  value: unknown,
+  wordEntryByRawId: ReadonlyMap<string, MigrationIdentityMapEntry[]>,
+  wordEntriesByHeadword: ReadonlyMap<string, MigrationIdentityMapEntry[]>,
+): {
+  answer: MigrationIsolatedAiQuizAnswer;
+  qualityFlags: AiQuizQualityFlag[];
+} {
+  const qualityFlags: AiQuizQualityFlag[] = [];
+  const record = isRecord(value) ? value : null;
+  const language = languageValue(record?.lang ?? record?.language);
+  if (record && Object.prototype.hasOwnProperty.call(record, 'lang') && !language) {
+    qualityFlags.push('ANSWER_LANGUAGE_UNKNOWN');
+  }
+  const wordSnapshot = boundedText(
+    readStringifiedField(record, 'word', 'wordSnapshot', 'headword', 'term'),
+    200,
+  );
+  const matchedWordId = readLegacyIdentifier(record, 'matchedWordId', 'wordId', 'wordID');
+  const relation = resolveRelationFromValue(
+    {
+      ...(record ?? {}),
+      id: null,
+      wordId: matchedWordId ?? wordSnapshot,
+    },
+    null,
+  );
+  const entry = resolveWordRelation(wordEntryByRawId, wordEntriesByHeadword, relation);
+  const resolvedTargetWordId = entry?.targetWordId ?? null;
+  if ((relation.rawWordId || wordSnapshot) && !resolvedTargetWordId) {
+    qualityFlags.push('ANSWER_TARGET_UNRESOLVED');
+  }
+  const isCorrect = readBooleanField(record, 'isCorrect') ?? readBooleanField(record, 'correct');
+  if (
+    record &&
+    !Object.prototype.hasOwnProperty.call(record, 'isCorrect') &&
+    !Object.prototype.hasOwnProperty.call(record, 'correct')
+  ) {
+    qualityFlags.push('ANSWER_FIELD_DEFAULTED');
+  }
+  const serializedValue = stringifyLegacyValue(value) ?? 'null';
+  const answer = MigrationIsolatedAiQuizAnswerSchema.parse({
+    schemaVersion: 1,
+    questionId: boundedText(readLegacyIdentifier(record, 'questionId', 'questionID', 'id'), 128),
+    type: boundedText(readStringifiedField(record, 'type'), 100),
+    dimension: boundedText(readStringifiedField(record, 'dimension'), 100),
+    wordSnapshot,
+    language,
+    prompt: boundedText(readStringifiedField(record, 'prompt'), 4_000),
+    userAnswer: boundedText(readStringifiedField(record, 'userAnswer', 'answer'), 4_000),
+    correctAnswer: boundedText(
+      readStringifiedField(record, 'correctAnswer', 'expectedAnswer'),
+      4_000,
+    ),
+    explanation: boundedText(readStringifiedField(record, 'explanation'), 4_000),
+    isCorrect,
+    resolvedTargetWordId,
+    serializedValue,
+  });
+  return { answer, qualityFlags };
 }
 
 function readDateOnly(value: unknown): {
@@ -1588,6 +1679,164 @@ export class MigrationDomainSliceUseCase {
       );
     }
 
+    const aiQuizPayloadById = new Map<string, MigrationIsolatedAiQuiz>();
+    for (const { record, value } of sourceValueRecords(source, 'aiQuizHistory')) {
+      if (!isRecord(value)) {
+        dispositionRecords.push(
+          createQuarantineDisposition(record, 'AI_QUIZ_INVALID', 'CORRUPT_V1_RECORD', 'warning'),
+        );
+        continue;
+      }
+
+      const qualityFlags: AiQuizQualityFlag[] = [];
+      const legacyId = boundedText(readLegacyIdentifier(value, 'quizId', 'id'), 128);
+      if (!legacyId) {
+        qualityFlags.push('QUIZ_ID_GENERATED');
+      }
+      const quizDigest = await this.dependencies.digest.sha256(
+        JSON.stringify({
+          schemaVersion: 1,
+          migrationId: source.migrationId,
+          legacyId,
+          sourceRef: !legacyId ? record.sourceRef : null,
+          serializedValue: !legacyId ? record.serializedValue : null,
+        }),
+      );
+      assertDigest(quizDigest, 'AI quiz ID');
+      const quizId = `quiz-v1:${quizDigest.slice(0, 24)}`;
+
+      const rawAnswers = Array.isArray(value.answers) ? value.answers : [];
+      if (Object.prototype.hasOwnProperty.call(value, 'answers') && !Array.isArray(value.answers)) {
+        qualityFlags.push('ANSWER_FIELD_DEFAULTED');
+      }
+      const parsedAnswers = rawAnswers
+        .slice(0, 100)
+        .map((answer) => parseAiQuizAnswer(answer, wordEntryByRawId, wordEntriesByHeadword));
+      const answers = parsedAnswers.map(({ answer }) => answer);
+      qualityFlags.push(...parsedAnswers.flatMap(({ qualityFlags: flags }) => flags));
+      if (rawAnswers.length > 100) {
+        qualityFlags.push('ANSWER_TRUNCATED');
+      }
+
+      const totalRaw = readNumberField(value, 'total', 'totalQuestions');
+      const correctRaw = readNumberField(value, 'correct', 'correctCount');
+      const totalProjection = projectWrongBookCount(value, 'total', 'totalQuestions');
+      const correctProjection = projectWrongBookCount(value, 'correct', 'correctCount');
+      const countQualityFlags = (flags: readonly WrongBookQualityFlag[]) =>
+        flags.filter(
+          (flag): flag is 'COUNT_DEFAULTED' | 'COUNT_FLOORED' =>
+            flag === 'COUNT_DEFAULTED' || flag === 'COUNT_FLOORED',
+        );
+      qualityFlags.push(
+        ...countQualityFlags(totalProjection.qualityFlags),
+        ...countQualityFlags(correctProjection.qualityFlags),
+      );
+      const derivedTotal = answers.length;
+      const derivedCorrect = answers.filter((answer) => answer.isCorrect === true).length;
+      let total = totalProjection.value;
+      let correct = correctProjection.value;
+      if (!totalRaw.present && derivedTotal > 0) {
+        total = derivedTotal;
+      }
+      if (!correctRaw.present && derivedTotal > 0) {
+        correct = derivedCorrect;
+      }
+      if (correct > total) {
+        correct = total;
+        qualityFlags.push('COUNT_CONFLICT');
+      }
+
+      const durationRaw = readNumberField(value, 'durationMs', 'duration');
+      let durationMs: number | null = null;
+      if (durationRaw.present && Number.isFinite(durationRaw.value) && durationRaw.value >= 0) {
+        durationMs = Math.floor(durationRaw.value);
+        if (!Number.isInteger(durationRaw.value)) {
+          qualityFlags.push('COUNT_DEFAULTED');
+        }
+      } else if (durationRaw.present) {
+        qualityFlags.push('COUNT_DEFAULTED');
+      }
+      const createdAt = readDateField(value, 'createdAt', 'date', 'time');
+      if (createdAt.present && !createdAt.valid) {
+        qualityFlags.push('DATE_INVALID');
+      }
+      const payload = MigrationIsolatedAiQuizSchema.parse({
+        schemaVersion: 1,
+        quizId,
+        legacyId,
+        title: boundedText(readStringifiedField(value, 'title'), 200) ?? '本次小测',
+        createdAt: createdAt.valid ? createdAt.value : null,
+        durationMs,
+        total,
+        correct,
+        answers,
+        sourceRefs: [record.sourceRef],
+        sourceRecordDigestsSha256: [record.sourceRecordDigestSha256],
+        qualityFlags: [...new Set(qualityFlags)].sort(compareStrings).slice(0, 9),
+        serializedValues: [record.serializedValue],
+      });
+      const existing = aiQuizPayloadById.get(quizId);
+      if (existing) {
+        const preferred = payload.answers.length >= existing.answers.length ? payload : existing;
+        const mergedTotal = Math.max(existing.total, payload.total);
+        const mergedCorrect = Math.min(Math.max(existing.correct, payload.correct), mergedTotal);
+        const mergedCreatedAt =
+          existing.createdAt && payload.createdAt
+            ? compareStrings(existing.createdAt, payload.createdAt) >= 0
+              ? existing.createdAt
+              : payload.createdAt
+            : (existing.createdAt ?? payload.createdAt);
+        aiQuizPayloadById.set(
+          quizId,
+          MigrationIsolatedAiQuizSchema.parse({
+            ...preferred,
+            quizId: existing.quizId,
+            legacyId: existing.legacyId ?? payload.legacyId,
+            title: existing.title.length >= payload.title.length ? existing.title : payload.title,
+            createdAt: mergedCreatedAt,
+            durationMs: existing.durationMs ?? payload.durationMs,
+            total: mergedTotal,
+            correct: mergedCorrect,
+            sourceRefs: [...new Set([...existing.sourceRefs, ...payload.sourceRefs])].sort(
+              compareStrings,
+            ),
+            sourceRecordDigestsSha256: [
+              ...new Set([
+                ...existing.sourceRecordDigestsSha256,
+                ...payload.sourceRecordDigestsSha256,
+              ]),
+            ].sort(compareStrings),
+            qualityFlags: [...new Set([...existing.qualityFlags, ...payload.qualityFlags])]
+              .sort(compareStrings)
+              .slice(0, 9),
+            serializedValues: [
+              ...new Set([...existing.serializedValues, ...payload.serializedValues]),
+            ].sort(compareStrings),
+          }),
+        );
+        dispositionRecords.push(
+          createDedupedDisposition(
+            record,
+            'aiQuizHistory',
+            'DUPLICATE_AI_QUIZ',
+            existing.quizId,
+            existing.sourceRefs[0],
+          ),
+        );
+        continue;
+      }
+      aiQuizPayloadById.set(quizId, payload);
+      dispositionRecords.push(
+        createMigratedDisposition(
+          record,
+          'aiQuizHistory',
+          'AI_QUIZ_MAPPED',
+          quizId,
+          payload.qualityFlags.length > 0 ? 'warning' : 'info',
+        ),
+      );
+    }
+
     const masteryPayloadByTargetId = new Map<string, MigrationIsolatedMastery>();
     for (const { record, value } of sourceValueRecords(source, 'mastery')) {
       const sourceKey = readSourceKey(record.sourceRef, 'data.mtWordClears');
@@ -1986,9 +2235,7 @@ export class MigrationDomainSliceUseCase {
     }
 
     const handledSourceRefs = new Set(dispositionRecords.map((record) => record.sourceRef));
-    const unsupportedBusinessDomains = new Set<MigrationLegacySourceRecord['domain']>([
-      'aiQuizHistory',
-    ]);
+    const unsupportedBusinessDomains = new Set<MigrationLegacySourceRecord['domain']>();
     for (const record of source.records) {
       if (
         handledSourceRefs.has(record.sourceRef) ||
@@ -2042,6 +2289,30 @@ export class MigrationDomainSliceUseCase {
     }
     archives.sort((left, right) => compareStrings(left.archiveRef, right.archiveRef));
 
+    const sortedAiQuizHistory = [...aiQuizPayloadById.values()].sort((left, right) => {
+      if (left.createdAt && right.createdAt && left.createdAt !== right.createdAt) {
+        return compareStrings(right.createdAt, left.createdAt);
+      }
+      if (left.createdAt && !right.createdAt) {
+        return -1;
+      }
+      if (!left.createdAt && right.createdAt) {
+        return 1;
+      }
+      return compareStrings(left.quizId, right.quizId);
+    });
+    const aiQuizHistory =
+      sortedAiQuizHistory.length <= 100
+        ? sortedAiQuizHistory
+        : sortedAiQuizHistory.slice(0, 100).map((quiz) =>
+            MigrationIsolatedAiQuizSchema.parse({
+              ...quiz,
+              qualityFlags: [...new Set([...quiz.qualityFlags, 'HISTORY_TRUNCATED' as const])]
+                .sort(compareStrings)
+                .slice(0, 9),
+            }),
+          );
+
     const payloadFields = {
       schemaVersion: 1 as const,
       stagingKind: 'migration-isolated-domain-slice' as const,
@@ -2081,6 +2352,7 @@ export class MigrationDomainSliceUseCase {
       aiConversations: [...aiConversationPayloadByKey.values()].sort((left, right) =>
         compareStrings(left.conversationId, right.conversationId),
       ),
+      aiQuizHistory,
       fsrsCards: [...fsrsCardPayloadByRelation.values()].sort((left, right) =>
         compareStrings(left.reviewCardId, right.reviewCardId),
       ),
