@@ -22,13 +22,14 @@ npm run build:pages
 
 ## 修改流程
 
-1. 阅读 `docs/PROJECT_CONTEXT.md`、`docs/TASKS.md` 和相关 ADR。
-2. 说明修改范围、涉及层级和不包含的内容。
-3. 检查工作区，保留无关的用户改动。
-4. 只修改当前 Task 授权范围。
-5. 运行 format、lint、test 和 build。
-6. 使用与任务一致的单一 Commit。
-7. 更新受影响的项目文档。
+1. 阅读 `docs/development/HANDOFF.md`、`docs/PROJECT_CONTEXT.md` 和 `docs/TASKS.md`。
+2. 阅读当前 Task 合同、相关基线和 ADR。
+3. 说明修改范围、涉及层级和不包含的内容。
+4. 检查工作区，保留无关的用户改动。
+5. 只修改当前 Task 授权范围。
+6. 运行 `npm run verify`。
+7. 使用与任务一致的单一 Commit。
+8. 更新受影响的项目文档和 HANDOFF。
 
 ## 依赖规则
 

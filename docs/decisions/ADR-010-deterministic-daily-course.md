@@ -38,7 +38,7 @@ LearnerProfile 与 FSRS 尚未实现，AI Gateway 也属于后续阶段。Task01
   会话题目引用校验和测试发现。
 - Task013 可在真实 LearningEvent 上建立 LearnerProfile 与复习调度，无需改写 Task012
   产生的事实。
-- Task014 之后的 AI 只能补充受 Schema 约束的题目、语境和解释，不能替代基础课程或历史。
+- Phase 2 之后的 AI 只能补充受 Schema 约束的题目、语境和解释，不能替代基础课程或历史。
 
 ## 当前不包含
 

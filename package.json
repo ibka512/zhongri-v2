@@ -13,7 +13,9 @@
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "verify:docs": "node scripts/verify-docs.mjs",
+    "verify": "node scripts/verify.mjs"
   },
   "engines": {
     "node": ">=22"

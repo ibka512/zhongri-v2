@@ -4,11 +4,14 @@
 
 按顺序阅读：
 
-1. `docs/PROJECT_CONTEXT.md`
-2. `docs/TASKS.md`
-3. `docs/ROADMAP.md`
-4. `docs/architecture/ARCHITECTURE.md`
-5. 与任务相关的 `docs/decisions/` ADR
+1. `docs/development/HANDOFF.md`
+2. `docs/PROJECT_CONTEXT.md`
+3. `docs/TASKS.md`
+4. 当前 Task 对应的 `docs/tasks/` 合同
+5. `docs/baseline/README.md` 与当前任务相关的基线文档
+6. `docs/ROADMAP.md`
+7. `docs/architecture/ARCHITECTURE.md`
+8. 与任务相关的 `docs/decisions/` ADR
 
 `ROADMAP.md` 只描述方向，不构成开发授权。只有 `TASKS.md` 中已由负责人定义的当前
 Task 可以执行。
@@ -22,6 +25,7 @@ Task 可以执行。
 - 大改动拆分提交。
 - 不自行开始未定义的 Task。
 - 修改实现后同步更新受影响的知识库文档。
+- 每次暂停、提交、合并或切换 Task 前更新 `docs/development/HANDOFF.md`。
 
 ## 开发流程
 
@@ -35,12 +39,10 @@ AI 修改代码前必须：
 修改后必须运行：
 
 ```bash
-npm run lint
-npm run test
-npm run build
+npm run verify
 ```
 
-涉及 Markdown、CSS 或配置文件时，同时运行 `npm run format:check`。
+`npm run verify` 已包含文档链接、格式、Lint、TypeScript、测试、默认构建和 Pages 构建。
 
 ## 禁止行为
 
@@ -50,6 +52,7 @@ npm run build
 - 让页面直接操作 IndexedDB。
 - 未经讨论新增依赖。
 - 修改 Schema 却不更新 ADR、兼容性说明和测试。
+- 从 `ROADMAP.md` 直接推断开发授权。
 
 ## 代码规则
 
@@ -71,14 +74,11 @@ npm run build
 - 重要架构、Schema 和兼容性决策使用 ADR。
 - 不把计划中的能力写成已经实现。
 - 不伪造用户数据、历史指标或 GitHub 同步状态。
+- 不把本机 Downloads、临时目录或聊天上下文作为项目唯一事实来源。
 
-## 测试规则
+## AI 交接规则
 
-修改后必须运行：
-
-```bash
-npm run format:check
-npm run lint
-npm run build
-npm run test
-```
+- 当前事实以代码、测试和 `PROJECT_CONTEXT.md` 为准；产品目标以 `docs/baseline/` 为准。
+- 当前授权以 `TASKS.md` 和对应 Task 合同为准；路线图只描述方向。
+- 发现规范冲突时先记录并新增 ADR，不得静默选择。
+- PR 必须说明影响范围、验证命令、剩余风险，并更新 HANDOFF。
