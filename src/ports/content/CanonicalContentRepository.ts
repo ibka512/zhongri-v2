@@ -1,4 +1,9 @@
-import type { CanonicalManifest, CanonicalWord, Language } from '../../schemas/v1';
+import type {
+  CanonicalCorpusManifest,
+  CanonicalManifest,
+  CanonicalWord,
+  Language,
+} from '../../schemas/v1';
 
 export interface ResolveCanonicalIdentityInput {
   language: Language;
@@ -34,10 +39,27 @@ export interface CanonicalIntegrityReport {
   errors: readonly string[];
 }
 
+export interface CanonicalCorpusIntegrityReport {
+  valid: boolean;
+  expectedTotalWordCount: number;
+  actualTotalWordCount: number;
+  expectedLanguageCounts: Readonly<Record<Language, number>>;
+  actualLanguageCounts: Readonly<Record<Language, number>>;
+  expectedWordIdsSha256: string;
+  actualWordIdsSha256: string;
+  expectedContentSha256: string;
+  actualContentSha256: string;
+  errors: readonly string[];
+}
+
+export type CanonicalContentManifest = CanonicalManifest | CanonicalCorpusManifest;
+export type CanonicalContentIntegrityReport =
+  CanonicalIntegrityReport | CanonicalCorpusIntegrityReport;
+
 export interface CanonicalContentRepositoryPort {
-  getManifest: () => CanonicalManifest;
+  getManifest: () => CanonicalContentManifest;
   listByLanguage: (language: Language) => readonly CanonicalWord[];
   findById: (language: Language, wordId: string) => CanonicalWord | null;
   resolveIdentity: (input: ResolveCanonicalIdentityInput) => CanonicalIdentityResolution;
-  verifyIntegrity: () => Promise<CanonicalIntegrityReport>;
+  verifyIntegrity: () => Promise<CanonicalContentIntegrityReport>;
 }

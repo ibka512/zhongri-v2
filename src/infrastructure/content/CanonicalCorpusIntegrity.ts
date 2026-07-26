@@ -1,4 +1,4 @@
-import type { TextDigestPort } from '../../ports';
+import type { CanonicalCorpusIntegrityReport, TextDigestPort } from '../../ports';
 import {
   CanonicalCorpusManifestSchema,
   CanonicalWordSchema,
@@ -13,18 +13,7 @@ import {
   createCanonicalWordIdsPayload,
 } from './StaticCanonicalContentRepository';
 
-export interface CanonicalCorpusIntegrityReport {
-  valid: boolean;
-  expectedTotalWordCount: number;
-  actualTotalWordCount: number;
-  expectedLanguageCounts: Readonly<Record<Language, number>>;
-  actualLanguageCounts: Readonly<Record<Language, number>>;
-  expectedWordIdsSha256: string;
-  actualWordIdsSha256: string;
-  expectedContentSha256: string;
-  actualContentSha256: string;
-  errors: readonly string[];
-}
+export type { CanonicalCorpusIntegrityReport } from '../../ports';
 
 function countLanguages(words: readonly CanonicalWord[]): Record<Language, number> {
   return words.reduce<Record<Language, number>>(

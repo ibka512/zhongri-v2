@@ -1,12 +1,12 @@
-import { jaN5StarterManifest, jaN5StarterWords } from '../content';
-import { StaticCanonicalContentRepository } from '../infrastructure/content';
+import { jpStudyCanonicalCorpusManifest, loadJpStudyCanonicalWords } from '../content';
+import { StaticCanonicalCorpusContentRepository } from '../infrastructure/content';
 import { webTextDigest } from '../infrastructure/system';
-import type { CanonicalContentRepositoryPort, CanonicalIntegrityReport } from '../ports';
+import type { CanonicalContentIntegrityReport, CanonicalContentRepositoryPort } from '../ports';
 
 export class CanonicalContentIntegrityError extends Error {
-  readonly report: CanonicalIntegrityReport;
+  readonly report: CanonicalContentIntegrityReport;
 
-  constructor(report: CanonicalIntegrityReport) {
+  constructor(report: CanonicalContentIntegrityReport) {
     super(`Canonical content integrity failed: ${report.errors.join('; ')}`);
     this.name = 'CanonicalContentIntegrityError';
     this.report = report;
@@ -14,9 +14,9 @@ export class CanonicalContentIntegrityError extends Error {
 }
 
 export async function createCanonicalContentRepository(): Promise<CanonicalContentRepositoryPort> {
-  const repository = new StaticCanonicalContentRepository({
-    manifest: jaN5StarterManifest,
-    words: jaN5StarterWords,
+  const repository = new StaticCanonicalCorpusContentRepository({
+    manifest: jpStudyCanonicalCorpusManifest,
+    words: await loadJpStudyCanonicalWords(),
     digest: webTextDigest,
   });
   const report = await repository.verifyIntegrity();

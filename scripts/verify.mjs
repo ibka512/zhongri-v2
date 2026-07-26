@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const checks = [
+  ['verify:canonical'],
   ['verify:docs'],
   ['format:check'],
   ['lint'],

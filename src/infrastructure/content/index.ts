@@ -8,3 +8,4 @@ export {
   createCanonicalContentPayload,
   createCanonicalWordIdsPayload,
 } from './StaticCanonicalContentRepository';
+export { StaticCanonicalCorpusContentRepository } from './StaticCanonicalCorpusContentRepository';
