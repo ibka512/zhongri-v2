@@ -5,9 +5,9 @@
 ## 当前快照
 
 - 稳定基线：`main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31 和交接 PR #32）
-- 当前交接分支：`codex/task-015-canonical-idmap`
+- 当前交接分支：`codex/task-015-disposition-report`
 - 稳定基线提交：`7e47966`（PR #32 合并后的 main；source adapter 和 source-aware staging 已进入稳定基线）
-- 当前实现提交：`674288e`（确定性 canonical/user idMap 契约、Schema、应用层 resolver、测试和 ADR-016）
+- 当前实现提交：`3b068dc`（统一 disposition/quarantine 报告契约、Schema、应用层 use case、测试和 ADR-017）
 - 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层
 - 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排、source-aware staging、确定性 canonical/user idMap 和统一 disposition/quarantine 报告契约已完成；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，真实脱敏 fixture 与逐域迁移仍待完成
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
