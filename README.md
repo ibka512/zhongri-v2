@@ -27,9 +27,9 @@ Task013 的代码实现已经合并，本地浏览器断网复测已通过，当
 LearningEvent 重放画像与 ReviewState，网站根入口优先安排当天到期复习和最近仍答错的词，
 再稳定补足五词。
 
-当前工作项是 Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）：canonical corpus 已从固定 `jp-study` 提交导入 9,828 条，脱敏 source snapshot contract 已完成，正在继续只读 source adapter、逐域转换和可审计激活边界。GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并。
+当前工作项是 Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）：canonical corpus 已从固定 `jp-study` 提交导入 9,828 条，脱敏 source snapshot contract、只读 source adapter 和 source-aware staging 已完成，正在继续真实 fixture、逐域转换和可审计激活边界。GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并。
 
-尚未实现浏览器 source adapter、v1 逐域迁移与激活、AI、FSRS 参数训练或真实音频；canonical 资产和 snapshot contract 已固定并通过测试。
+尚未实现真实 v1 逐域迁移与激活、AI、FSRS 参数训练或真实音频；canonical 资产、snapshot contract 和只读 source adapter 已固定并通过测试。
 
 ## 开发状态
 
@@ -49,7 +49,7 @@ LearningEvent 重放画像与 ReviewState，网站根入口优先安排当天到
 - Task 011：真实日语词条与 canonical 身份底座，已完成。
 - Task 012：正式每日课程纵向切片，已完成。
 - GOV-001：仓库交接与基线治理，已通过 PR #22 合并。
-- Task 015：v1 迁移逐域转换与 canonical 身份层，canonical 资产与 source snapshot contract 已导入，迁移转换实施中。
+- Task 015：v1 迁移逐域转换与 canonical 身份层，canonical 资产、source snapshot contract、只读 source adapter 与 staging 接线已导入，迁移转换实施中。
 - Task 013：学习者画像与 FSRS 复习调度，代码已合并，浏览器断网验收通过。
 
 详细状态见 [开发状态](./docs/development/STATUS.md) 和 [Phase 1 收口记录](./docs/development/PHASE1_CLOSEOUT.md)。

@@ -19,3 +19,8 @@ export {
   type MigrationSourceEntryInput,
   type MigrationSourceSnapshotDependencies,
 } from './MigrationSourceSnapshotUseCase';
+export {
+  CaptureV1SourceSnapshotUseCase,
+  type CaptureV1SourceSnapshotDependencies,
+  type CaptureV1SourceSnapshotInput,
+} from './CaptureV1SourceSnapshotUseCase';

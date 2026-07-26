@@ -8,13 +8,16 @@ import type {
 import {
   MigrationPreviewReportSchema,
   MigrationRunSchema,
+  MigrationSourceSnapshotSchema,
   MigrationStagingDatasetSchema,
   type MigrationPreviewReport,
+  type MigrationSourceSnapshot,
 } from '../../schemas/v1';
 
 export interface StageV1BackupInput {
   report: MigrationPreviewReport;
   text: string;
+  sourceSnapshot?: MigrationSourceSnapshot | null;
 }
 
 export interface MigrationStagingDependencies {
@@ -26,7 +29,11 @@ export interface MigrationStagingDependencies {
 export class MigrationStagingInputError extends Error {
   constructor(
     readonly code:
-      'BLOCKED_REPORT' | 'INVALID_SOURCE' | 'SOURCE_CHANGED' | 'SOURCE_TOO_DEEPLY_NESTED',
+      | 'BLOCKED_REPORT'
+      | 'INVALID_SOURCE'
+      | 'SOURCE_CHANGED'
+      | 'SOURCE_TOO_DEEPLY_NESTED'
+      | 'SNAPSHOT_MISMATCH',
     message: string,
   ) {
     super(message);
@@ -108,23 +115,54 @@ export class MigrationStagingUseCase {
       );
     }
 
-    const sanitized = sanitizeSensitiveKeys(source);
-    const sanitizedSourceText = JSON.stringify(sanitized.value);
+    const sourceSnapshot = input.sourceSnapshot
+      ? MigrationSourceSnapshotSchema.parse(input.sourceSnapshot)
+      : null;
+    const sanitized = sourceSnapshot ? null : sanitizeSensitiveKeys(source);
+    const sanitizedSourceText =
+      sourceSnapshot?.selectedBackup?.sanitizedText ?? JSON.stringify(sanitized?.value);
     const reportText = JSON.stringify(report);
-    const [sourceFingerprint, snapshotDigestSha256, reportDigestSha256, pointer] =
-      await Promise.all([
-        this.dependencies.digest.sha256(input.text),
-        this.dependencies.digest.sha256(sanitizedSourceText),
-        this.dependencies.digest.sha256(reportText),
-        this.dependencies.persistence.getActiveMigrationDatasetPointer(),
-      ]);
+    if (!sanitizedSourceText) {
+      throw new MigrationStagingInputError(
+        'INVALID_SOURCE',
+        '备份内容无法生成脱敏暂存文本，请重新选择并运行预检。',
+      );
+    }
 
-    if (sourceFingerprint !== report.source.fileDigestSha256) {
+    const [rawBackupDigest, sanitizedDigest, reportDigestSha256, pointer] = await Promise.all([
+      this.dependencies.digest.sha256(input.text),
+      this.dependencies.digest.sha256(sanitizedSourceText),
+      this.dependencies.digest.sha256(reportText),
+      this.dependencies.persistence.getActiveMigrationDatasetPointer(),
+    ]);
+
+    if (rawBackupDigest !== report.source.fileDigestSha256) {
       throw new MigrationStagingInputError(
         'SOURCE_CHANGED',
         '备份内容与预检报告不一致，请重新运行预检。',
       );
     }
+
+    if (sourceSnapshot) {
+      const selectedBackup = sourceSnapshot.selectedBackup;
+      if (
+        !selectedBackup ||
+        selectedBackup.fileName !== report.source.fileName ||
+        selectedBackup.rawDigestSha256 !== rawBackupDigest ||
+        selectedBackup.sanitizedDigestSha256 !== sanitizedDigest
+      ) {
+        throw new MigrationStagingInputError(
+          'SNAPSHOT_MISMATCH',
+          '来源快照与当前预检备份不一致，请重新读取来源并运行预检。',
+        );
+      }
+    }
+
+    const sourceFingerprint = sourceSnapshot?.sourceFingerprint ?? rawBackupDigest;
+    const snapshotDigestSha256 = sourceSnapshot?.snapshotDigestSha256 ?? sanitizedDigest;
+    const containsRedactedSecrets = sourceSnapshot
+      ? sourceSnapshot.sensitiveKeyPresence.some((entry) => entry.present)
+      : (sanitized?.redacted ?? false);
 
     const now = this.dependencies.now().toISOString();
     const migrationId = createMigrationId(sourceFingerprint);
@@ -138,6 +176,7 @@ export class MigrationStagingUseCase {
       sanitizedSourceText,
       snapshotDigestSha256,
       reportDigestSha256,
+      sourceSnapshot,
       previewReport: report,
       validation,
       createdAt: now,
@@ -161,7 +200,7 @@ export class MigrationStagingUseCase {
       commitMarker: null,
       snapshotDigestSha256,
       reportDigestSha256,
-      containsRedactedSecrets: sanitized.redacted,
+      containsRedactedSecrets,
       validation,
     });
 

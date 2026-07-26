@@ -9,6 +9,8 @@
 - `CanonicalManifestSchema`：锁定 canonical 资产来源、数量和完整性摘要。
 - `CanonicalCorpusManifestSchema`：锁定日英双语 corpus 的总量、语言分布、来源和摘要。
 - `MigrationSourceSnapshotSchema`：锁定 v1 来源键值、备份脱敏档案、版本元数据和可复跑指纹。
+- `MigrationStagingDatasetSchema.sourceSnapshot`：可选地把完整脱敏来源快照挂到隔离 staging；
+  旧备份 staging 记录以 `null` 兼容。
 - `TodayPlanSchema`：锁定某个本地日期的基础课程身份、内容版本和题目引用。
 
 Schema 必须保持纯 TypeScript，不依赖 React、浏览器 API、数据库或 AI 实现。
