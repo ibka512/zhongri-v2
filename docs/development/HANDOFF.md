@@ -6,6 +6,7 @@
 
 - 分支：`codex/task-015-migration-contract`
 - 基线提交：`b01814a`（GOV-001 PR #22 合并提交）
+- 当前实现提交：`2f32d32`（canonical corpus migration gate）
 - 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层
 - 当前状态：canonical corpus 契约与 fail-closed 完整性门禁已实现，`npm run verify` 已于 2026-07-26 通过；对应 [Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)，完整资产与真实脱敏 fixture 仍待提供
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
