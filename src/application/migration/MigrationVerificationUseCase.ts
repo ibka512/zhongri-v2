@@ -575,7 +575,7 @@ export class MigrationVerificationUseCase {
                 category: category.category,
                 availableCount: category.availableCount,
                 sampleCount: category.sampleCount,
-                mismatches: category.mismatchSourceRefs,
+                mismatchCount: category.mismatchSourceRefs.length,
               })),
             }
           : null,
