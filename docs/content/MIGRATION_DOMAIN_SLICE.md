@@ -29,8 +29,9 @@ unknown 仍保留在 reader 结果中，未被静默标记为已迁移。
 
 `isolatedPayload.datasetId` 固定派生自 `migrationId`，并明确携带
 `writesPerformed: false` 与 `activePointerUpdated: false`。纵向用例本身不调用
-`MigrationPersistencePort`；现有 `StageV1BackupInput.isolatedDomainSlice` 已提供可选的隔离
-staging 存储入口，仍不提交 active pointer，也不改变 Word、ReviewState 或 FSRS。
+`MigrationPersistencePort`；现有 `StageV1BackupInput.isolatedDomainSlice` 提供隔离 staging 入口，
+`stageMigration` 会在同一事务中把 inline `archives` 投影到独立 `migrationArchives` 表，仍不提交
+active pointer，也不改变 Word、ReviewState 或 FSRS。
 
 ## 身份与关系规则
 
@@ -67,12 +68,13 @@ staging 存储入口，仍不提交 active pointer，也不改变 Word、ReviewS
 - Override payload 只保留 Legacy Reader 已脱敏的 `serializedValue`；明文 API Key 在更早的
   reader 边界已经 fail-closed。
 - disposition report 生成 rawArchive/quarantine 引用后，当前 transformer 会把已脱敏的对应
-  `serializedValue` 绑定到 isolated payload 的 `archives`；独立 Dexie archive 表、压缩/加密和保留
-  周期仍待后续 `MigrationMetadata`/存储切片。
+  `serializedValue` 绑定到 isolated payload 的 `archives`；staging 事务同时写入独立
+  `migrationArchives` 记录，默认按 stable-version-cycle 保护，未确定周期时 `retentionUntil=null`，
+  不自动清理、不压缩/加密。
 - 该切片不代表真实 Mastery、StudyRecord、FSRS、WrongBook、RecycleBin、AIConversation、AIQuizHistory、Preference 字段覆盖、V01–V25 或 active pointer 已完成；
   staging 字段接线仍需真实来源和后续验证。
-- 下一步是在真实脱敏 fixture（或负责人批准的字段形状 synthetic fixture）上扩展剩余域，并把
-  isolated payload 接入 staging 持久化，再实现验证和激活/回滚。
+- 下一步是在真实脱敏 fixture（或负责人批准的字段形状 synthetic fixture）上复核字段覆盖，再实现
+  V01–V25 验证和激活/回滚；独立 archive 记录仍只读、隔离，不代表 active 数据已提交。
 
 ## 测试证据
 

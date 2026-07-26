@@ -102,13 +102,13 @@ Infrastructure Adapters
 
 当前任务是 **Task 015：v1 迁移逐域转换与 canonical 身份层**（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）；完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，Task 013 已完成代码实现与本地浏览器断网复测，GOV-001 已合并。
 
-当前 Task 已完成 canonical corpus Schema、固定 9,828/5,906/3,922 目标、真实资产导入、fail-closed 完整性验证、脱敏 source snapshot contract、只读浏览器 source adapter、source-aware staging、确定性 canonical idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、Word/Override/Folder/Favorite/Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/FSRS isolated 纵向转换、inline archive payload 和统一 staging orchestration；下一步是取得可审计 backup fixture 复核真实字段覆盖并开始剩余域迁移，不伪造用户事实，不修改 FSRS 参数或接入 AI。
+当前 Task 已完成 canonical corpus Schema、固定 9,828/5,906/3,922 目标、真实资产导入、fail-closed 完整性验证、脱敏 source snapshot contract、只读浏览器 source adapter、source-aware staging、确定性 canonical idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、Word/Override/Folder/Favorite/Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/FSRS isolated 纵向转换、inline archive payload、独立 migrationArchives 存储和统一 staging orchestration；下一步是取得可审计 backup fixture 复核真实字段覆盖并开始剩余验证，不伪造用户事实，不修改 FSRS 参数或接入 AI。
 
 Task 013 的实现与决策见 [ADR-011](./decisions/ADR-011-replayable-profile-fsrs.md)，其验收证据见 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
 
 ## 下一步路线
 
-1. 用真实/批准的 fixture 复核设备来源与 Mastery/StudyRecord/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/FSRS 字段覆盖，再完成独立 archive/quarantine 存储、Task 015 的剩余逐域转换、V01–V25 验证和激活/回滚验收。
+1. 用真实/批准的 fixture 复核设备来源与 Mastery/StudyRecord/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/FSRS 字段覆盖，再完成 Task 015 的剩余逐域转换、V01–V25 验证和激活/回滚验收。
 2. 为首次设置/数据页、五十音/TTS 和英语/IPA 切片分别定义并授权 Task。
 3. 完成 Phase 1 的双语核心闭环验收，之后再接入 AI Gateway（Issue #20）。
 

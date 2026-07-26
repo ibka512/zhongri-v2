@@ -10,12 +10,15 @@ import {
 } from '../../ports';
 import {
   ActiveMigrationDatasetPointerSchema,
+  MigrationArchiveRecordSchema,
   MigrationRunSchema,
   MigrationStagingDatasetSchema,
   type ActiveMigrationDatasetPointer,
+  type MigrationArchiveRecord,
   type MigrationRun,
   type MigrationStagingDataset,
 } from '../../schemas/v1';
+import { createMigrationArchiveRecords } from './MigrationArchiveRecords';
 
 function createEmptyPointer(): ActiveMigrationDatasetPointer {
   return ActiveMigrationDatasetPointerSchema.parse({
@@ -45,6 +48,7 @@ function isSameStagingInput(
 export class InMemoryMigrationPersistence implements MigrationPersistencePort {
   readonly #runs = new Map<string, MigrationRun>();
   readonly #datasets = new Map<string, MigrationStagingDataset>();
+  readonly #archives = new Map<string, MigrationArchiveRecord>();
   #pointer = createEmptyPointer();
   #nextFailure: Error | null = null;
 
@@ -55,6 +59,7 @@ export class InMemoryMigrationPersistence implements MigrationPersistencePort {
   async stageMigration(input: StageMigrationInput): Promise<StageMigrationResult> {
     const run = MigrationRunSchema.parse(input.run);
     const dataset = MigrationStagingDatasetSchema.parse(input.dataset);
+    const archives = createMigrationArchiveRecords(dataset);
     const existingRun = this.#runs.get(run.migrationId);
     const existingDataset = this.#datasets.get(dataset.datasetId);
 
@@ -68,9 +73,15 @@ export class InMemoryMigrationPersistence implements MigrationPersistencePort {
           this.#throwNextFailure();
           this.#runs.set(run.migrationId, run);
           this.#datasets.set(dataset.datasetId, dataset);
+          for (const archive of archives) {
+            this.#archives.set(archive.archiveRef, archive);
+          }
           return { status: 'staged', run, dataset };
         }
 
+        for (const archive of archives) {
+          this.#archives.set(archive.archiveRef, archive);
+        }
         return {
           status: 'replayed',
           run: MigrationRunSchema.parse(existingRun),
@@ -90,6 +101,9 @@ export class InMemoryMigrationPersistence implements MigrationPersistencePort {
     this.#throwNextFailure();
     this.#runs.set(run.migrationId, run);
     this.#datasets.set(dataset.datasetId, dataset);
+    for (const archive of archives) {
+      this.#archives.set(archive.archiveRef, archive);
+    }
 
     return { status: 'staged', run, dataset };
   }
@@ -207,6 +221,13 @@ export class InMemoryMigrationPersistence implements MigrationPersistencePort {
   async findMigrationDataset(datasetId: string): Promise<MigrationStagingDataset | null> {
     const dataset = this.#datasets.get(datasetId);
     return dataset ? MigrationStagingDatasetSchema.parse(dataset) : null;
+  }
+
+  async findMigrationArchives(migrationId: string): Promise<readonly MigrationArchiveRecord[]> {
+    return [...this.#archives.values()]
+      .filter((archive) => archive.migrationId === migrationId)
+      .sort((left, right) => left.archiveRef.localeCompare(right.archiveRef))
+      .map((archive) => MigrationArchiveRecordSchema.parse(archive));
   }
 
   async getActiveMigrationDatasetPointer(): Promise<ActiveMigrationDatasetPointer> {

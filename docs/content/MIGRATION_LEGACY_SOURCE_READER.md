@@ -60,7 +60,8 @@ transformer 处置，避免错误类型被静默当成空域。
 - 递归发现 `deepseekApiKey`（含大小写和分隔符变体）且值不是 `[REDACTED]` 时，在任何摘要计算
   前拒绝读取；错误消息和输出均不包含 secret。
 - 非法 JSON、根节点类型错误、超过 100 层嵌套、不可序列化值和摘要适配器异常均 fail-closed。
-- reader 只生成内存中的版本化报告；rawArchive/quarantine payload 由后续隔离存储负责。
+- reader 只生成内存中的版本化报告；rawArchive/quarantine 内容由后续 domain slice 绑定到 inline
+  archives，并由 staging 事务投影到独立 migrationArchives 存储。
 
 ## 当前不包含
 

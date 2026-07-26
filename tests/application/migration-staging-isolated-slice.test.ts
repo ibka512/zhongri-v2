@@ -51,6 +51,20 @@ describe('MigrationStagingUseCase with a core domain slice', () => {
     expect(staged.staging.status).toBe('staged');
     expect(replay.staging.status).toBe('replayed');
     expect(stored?.isolatedDomainSlice).toEqual(staged.slice.isolatedPayload);
+    const archives = await persistence.findMigrationArchives(staged.staging.run.migrationId);
+    expect(archives).toHaveLength(staged.slice.isolatedPayload.archives.length);
+    expect(archives).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          migrationId: staged.staging.run.migrationId,
+          datasetId: staged.staging.dataset.datasetId,
+          archiveKind: 'rawArchive',
+          retentionPolicy: 'stable-version-cycle',
+          retentionUntil: null,
+          cleanupConfirmedAt: null,
+        }),
+      ]),
+    );
     expect(staged.slice.dispositionReport.counts.quarantined).toBe(0);
     expect((await persistence.getActiveMigrationDatasetPointer()).activeDatasetId).toBeNull();
   });

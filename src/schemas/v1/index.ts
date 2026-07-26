@@ -178,6 +178,13 @@ export {
 } from './MigrationDomainSliceSchema';
 
 export {
+  MigrationArchiveRecordSchema,
+  MigrationArchiveRetentionPolicySchema,
+  type MigrationArchiveRecord,
+  type MigrationArchiveRetentionPolicy,
+} from './MigrationArchiveSchema';
+
+export {
   MAX_MIGRATION_LEGACY_SOURCE_RECORDS,
   MAX_MIGRATION_LEGACY_SOURCE_TEXT_LENGTH,
   MigrationLegacySourceCountsSchema,

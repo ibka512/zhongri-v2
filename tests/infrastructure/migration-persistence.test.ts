@@ -7,6 +7,7 @@ import { DexieStudyPersistence } from '../../src/infrastructure/study';
 import type { MigrationPersistencePort, StageMigrationInput } from '../../src/ports';
 import {
   LearningEventSchema,
+  MigrationIsolatedPayloadSchema,
   MigrationPreviewReportSchema,
   MigrationRunSchema,
   MigrationStagingDatasetSchema,
@@ -18,7 +19,7 @@ const reportDigest = 'c'.repeat(64);
 const migrationId = `v1-v2:${fingerprint.slice(0, 24)}:spec-1`;
 const datasetId = `dataset:${migrationId}`;
 
-function createStageInput(): StageMigrationInput {
+function createStageInput(includeArchive = false): StageMigrationInput {
   const previewReport = MigrationPreviewReportSchema.parse({
     schemaVersion: 1,
     previewedAt: '2026-07-24T05:00:00.000Z',
@@ -76,6 +77,36 @@ function createStageInput(): StageMigrationInput {
     containsRedactedSecrets: false,
     validation,
   });
+  const isolatedDomainSlice = includeArchive
+    ? MigrationIsolatedPayloadSchema.parse({
+        schemaVersion: 1,
+        stagingKind: 'migration-isolated-domain-slice',
+        datasetId,
+        migrationId,
+        sourceFingerprint: fingerprint,
+        sourceReaderDigestSha256: 'd'.repeat(64),
+        identityMapDigestSha256: 'e'.repeat(64),
+        dispositionReportDigestSha256: 'f'.repeat(64),
+        words: [],
+        overrides: [],
+        folders: [],
+        favorites: [],
+        archives: [
+          {
+            schemaVersion: 1,
+            archiveRef: `raw-v1:${'1'.repeat(64)}`,
+            archiveKind: 'rawArchive',
+            sourceRef: 'preferences["theme"]',
+            domain: 'preferences',
+            sourceRecordDigestSha256: '2'.repeat(64),
+            serializedValue: '"dark"',
+          },
+        ],
+        writesPerformed: false,
+        activePointerUpdated: false,
+        payloadDigestSha256: '3'.repeat(64),
+      })
+    : null;
   const dataset = MigrationStagingDatasetSchema.parse({
     schemaVersion: 1,
     datasetId,
@@ -85,6 +116,7 @@ function createStageInput(): StageMigrationInput {
     snapshotDigestSha256: snapshotDigest,
     reportDigestSha256: reportDigest,
     previewReport,
+    isolatedDomainSlice,
     validation,
     createdAt: '2026-07-24T05:00:00.000Z',
   });
@@ -127,7 +159,7 @@ const harnesses: Array<{ name: string; create: () => PersistenceHarness }> = [
 describe.each(harnesses)('$name migration persistence contract', ({ create }) => {
   it('stages idempotently, commits by pointer and preserves the dataset after rollback', async () => {
     const { cleanup, persistence } = create();
-    const input = createStageInput();
+    const input = createStageInput(true);
 
     const staged = await persistence.stageMigration(input);
     const replay = await persistence.stageMigration(input);
@@ -151,6 +183,17 @@ describe.each(harnesses)('$name migration persistence contract', ({ create }) =>
       priorActiveDatasetId: null,
     });
     expect(await persistence.findMigrationDataset(datasetId)).toEqual(input.dataset);
+    expect(await persistence.findMigrationArchives(migrationId)).toEqual([
+      expect.objectContaining({
+        archiveRef: `raw-v1:${'1'.repeat(64)}`,
+        migrationId,
+        datasetId,
+        createdAt: '2026-07-24T05:00:00.000Z',
+        retentionPolicy: 'stable-version-cycle',
+        retentionUntil: null,
+        cleanupConfirmedAt: null,
+      }),
+    ]);
 
     const restarted = await persistence.stageMigration(input);
     expect(restarted.status).toBe('staged');

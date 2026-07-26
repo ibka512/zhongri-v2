@@ -1,5 +1,6 @@
 import type {
   ActiveMigrationDatasetPointer,
+  MigrationArchiveRecord,
   MigrationRun,
   MigrationStagingDataset,
 } from '../../schemas/v1';
@@ -45,6 +46,7 @@ export interface MigrationPersistencePort {
   rollbackMigration: (input: RollbackMigrationInput) => Promise<RollbackMigrationResult>;
   findMigrationRun: (migrationId: string) => Promise<MigrationRun | null>;
   findMigrationDataset: (datasetId: string) => Promise<MigrationStagingDataset | null>;
+  findMigrationArchives: (migrationId: string) => Promise<readonly MigrationArchiveRecord[]>;
   getActiveMigrationDatasetPointer: () => Promise<ActiveMigrationDatasetPointer>;
 }
 

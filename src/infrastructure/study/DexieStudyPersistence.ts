@@ -18,6 +18,7 @@ import {
   ActiveMigrationDatasetPointerSchema,
   LearnerProfileSchema,
   LearningEventSchema,
+  MigrationArchiveRecordSchema,
   LearningProjectionSchema,
   MigrationRunSchema,
   MigrationStagingDatasetSchema,
@@ -29,12 +30,14 @@ import {
   type LearnerProfile,
   type LearningEvent,
   type LearningProjection,
+  type MigrationArchiveRecord,
   type MigrationRun,
   type MigrationStagingDataset,
   type ReviewState,
   type StudySessionCheckpoint,
   type StudySessionState,
 } from '../../schemas/v1';
+import { createMigrationArchiveRecords } from '../migration/MigrationArchiveRecords';
 
 interface IdempotencyRecord {
   key: string;
@@ -65,6 +68,7 @@ export class DexieStudyPersistence
   readonly idempotencyRecords!: Table<IdempotencyRecord, string>;
   readonly migrationRuns!: Table<MigrationRun, string>;
   readonly migrationDatasets!: Table<MigrationStagingDataset, string>;
+  readonly migrationArchives!: Table<MigrationArchiveRecord, string>;
   readonly migrationPointers!: Table<ActiveMigrationDatasetPointer, string>;
 
   constructor(databaseName = 'zhongri-v2', options?: DexieOptions) {
@@ -97,6 +101,19 @@ export class DexieStudyPersistence
       idempotencyRecords: '&key',
       migrationRuns: '&migrationId, sourceFingerprint, status, updatedAt',
       migrationDatasets: '&datasetId, migrationId, sourceFingerprint',
+      migrationPointers: '&id',
+      learnerProfiles: '&[userId+language], userId, language',
+      reviewStates: '&id, userId, itemId, due',
+    });
+    this.version(5).stores({
+      learningEvents: '&id, sessionId, userId, itemId, timestamp',
+      sessionCheckpoints: '&sessionId, updatedAt',
+      studySessions: '&sessionId, updatedAt',
+      idempotencyRecords: '&key',
+      migrationRuns: '&migrationId, sourceFingerprint, status, updatedAt',
+      migrationDatasets: '&datasetId, migrationId, sourceFingerprint',
+      migrationArchives:
+        '&archiveRef, migrationId, datasetId, archiveKind, retentionPolicy, retentionUntil',
       migrationPointers: '&id',
       learnerProfiles: '&[userId+language], userId, language',
       reviewStates: '&id, userId, itemId, due',
@@ -227,49 +244,59 @@ export class DexieStudyPersistence
   async stageMigration(input: StageMigrationInput): Promise<StageMigrationResult> {
     const run = MigrationRunSchema.parse(input.run);
     const dataset = MigrationStagingDatasetSchema.parse(input.dataset);
+    const archives = createMigrationArchiveRecords(dataset);
 
-    return this.transaction('rw', [this.migrationRuns, this.migrationDatasets], async () => {
-      const [existingRun, existingDataset] = await Promise.all([
-        this.migrationRuns.get(run.migrationId),
-        this.migrationDatasets.get(dataset.datasetId),
-      ]);
+    return this.transaction(
+      'rw',
+      [this.migrationRuns, this.migrationDatasets, this.migrationArchives],
+      async () => {
+        const [existingRun, existingDataset] = await Promise.all([
+          this.migrationRuns.get(run.migrationId),
+          this.migrationDatasets.get(dataset.datasetId),
+        ]);
 
-      if (existingRun || existingDataset) {
-        if (
-          existingRun &&
-          existingDataset &&
-          existingRun.sourceFingerprint === run.sourceFingerprint &&
-          existingRun.snapshotDigestSha256 === run.snapshotDigestSha256 &&
-          existingRun.reportDigestSha256 === run.reportDigestSha256 &&
-          existingDataset.snapshotDigestSha256 === dataset.snapshotDigestSha256 &&
-          existingDataset.reportDigestSha256 === dataset.reportDigestSha256
-        ) {
-          if (existingRun.status === 'ROLLED_BACK') {
-            await this.migrationRuns.put(run);
-            await this.migrationDatasets.put(dataset);
-            return { status: 'staged', run, dataset };
+        if (existingRun || existingDataset) {
+          if (
+            existingRun &&
+            existingDataset &&
+            existingRun.sourceFingerprint === run.sourceFingerprint &&
+            existingRun.snapshotDigestSha256 === run.snapshotDigestSha256 &&
+            existingRun.reportDigestSha256 === run.reportDigestSha256 &&
+            existingDataset.snapshotDigestSha256 === dataset.snapshotDigestSha256 &&
+            existingDataset.reportDigestSha256 === dataset.reportDigestSha256 &&
+            existingDataset.isolatedDomainSlice?.payloadDigestSha256 ===
+              dataset.isolatedDomainSlice?.payloadDigestSha256
+          ) {
+            if (existingRun.status === 'ROLLED_BACK') {
+              await this.migrationRuns.put(run);
+              await this.migrationDatasets.put(dataset);
+              await this.migrationArchives.bulkPut(archives);
+              return { status: 'staged', run, dataset };
+            }
+
+            await this.migrationArchives.bulkPut(archives);
+            return {
+              status: 'replayed',
+              run: MigrationRunSchema.parse(existingRun),
+              dataset: MigrationStagingDatasetSchema.parse(existingDataset),
+            };
           }
 
-          return {
-            status: 'replayed',
-            run: MigrationRunSchema.parse(existingRun),
-            dataset: MigrationStagingDatasetSchema.parse(existingDataset),
-          };
+          throw new MigrationStateConflictError(
+            `Migration "${run.migrationId}" already exists with different staging content`,
+          );
         }
 
-        throw new MigrationStateConflictError(
-          `Migration "${run.migrationId}" already exists with different staging content`,
-        );
-      }
+        if (run.status !== 'VALIDATING' || !run.validation.passed || !dataset.validation.passed) {
+          throw new MigrationStateConflictError('Only a validated dataset can enter safe staging');
+        }
 
-      if (run.status !== 'VALIDATING' || !run.validation.passed || !dataset.validation.passed) {
-        throw new MigrationStateConflictError('Only a validated dataset can enter safe staging');
-      }
-
-      await this.migrationRuns.add(run);
-      await this.migrationDatasets.add(dataset);
-      return { status: 'staged', run, dataset };
-    });
+        await this.migrationRuns.add(run);
+        await this.migrationDatasets.add(dataset);
+        await this.migrationArchives.bulkAdd(archives);
+        return { status: 'staged', run, dataset };
+      },
+    );
   }
 
   async commitMigration(input: CommitMigrationInput): Promise<CommitMigrationResult> {
@@ -392,6 +419,14 @@ export class DexieStudyPersistence
   async findMigrationDataset(datasetId: string): Promise<MigrationStagingDataset | null> {
     const dataset = await this.migrationDatasets.get(datasetId);
     return dataset ? MigrationStagingDatasetSchema.parse(dataset) : null;
+  }
+
+  async findMigrationArchives(migrationId: string): Promise<readonly MigrationArchiveRecord[]> {
+    const archives = await this.migrationArchives
+      .where('migrationId')
+      .equals(migrationId)
+      .sortBy('archiveRef');
+    return archives.map((archive) => MigrationArchiveRecordSchema.parse(archive));
   }
 
   async getActiveMigrationDatasetPointer(): Promise<ActiveMigrationDatasetPointer> {

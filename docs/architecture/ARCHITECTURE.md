@@ -81,8 +81,8 @@ Dexie 只存在于 Infrastructure。Domain、页面和 UI 组件不得 import De
 1. UI 只有在预检非 blocked 且用户明确操作后，才把原文件文本与报告交给 Application。
 2. Application 重新计算来源 SHA-256、验证报告一致性，并在写入前递归脱敏旧 API Key。
 3. `migrationId` 只由来源指纹与固定规格版本生成；同一输入重复执行复用原 staging。
-4. `MigrationPersistencePort` 保存 MigrationRun、脱敏隔离数据集并读取 active pointer。
-5. Dexie v3 在事务内同时更新 MigrationRun 和唯一 active pointer；失败时两者都不改变。
+4. `MigrationPersistencePort` 保存 MigrationRun、脱敏隔离数据集、独立 migration archive 记录并读取 active pointer。
+5. Dexie migration transaction 在 staging 时同时写入 dataset/archive，在 commit 时同时更新 MigrationRun 和唯一 active pointer；失败时事务内状态都不改变。
 6. 回滚只把 active pointer 恢复为 `priorActiveDatasetId`，保留快照、报告和诊断数据。
 7. 学习事件与会话表不参与迁移事务；staging 不代表业务域已完成迁移。
 
@@ -90,7 +90,7 @@ Dexie 只存在于 Infrastructure。Domain、页面和 UI 组件不得 import De
 disposition/quarantine 报告契约和只读 source-aware staging 已完成。Word/Override/Folder/Favorite/
 Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/FSRS 核心域现在可以从 Legacy Source Reader 生成
 `migration-isolated-domain-slice` payload 和逐条 disposition，但该结果仍只作为隔离应用层输出，
-未写入 MigrationPersistencePort 或 active dataset。
+staging 可以在同一事务中保存该 payload 及独立 archive 记录，但仍未写入 active dataset 或 active pointer。
 
 ## Task011 canonical 内容身份
 
@@ -158,12 +158,12 @@ Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/AIConversation/AIQuizHist
    类型错误记录进入 quarantine，payload 不包含活跃目标之外的未验证关系。
 4. isolated payload 绑定 reader、idMap 和 disposition digest，并固定
    `writesPerformed:false`、`activePointerUpdated:false`。纵向用例不直接调用 persistence；现有
-   staging dataset 通过可选 `isolatedDomainSlice` 字段保存该 payload。Mastery 只按 identity map
+   staging dataset 通过可选 `isolatedDomainSlice` 字段保存该 payload，并在 stage 事务中把 `archives`
+   投影到独立 `migrationArchives` 表。Mastery 只按 identity map
    关联并 OR 合并，StudyRecord 只保留日期粒度，GroupProgress 只保留规范化组键与完成次数，WrongBook
    只保存可关联的聚合错题事实和有限最近答题，RecycleBin 只保存 tombstone 和脱敏嵌套快照，FSRS
-   卡/日志只保存 v1 adapter 历史状态，AIConversation/AIQuizHistory 只保存脱敏会话、测验和答案快照，Preference 只保存白名单键和敏感重输标记；disposition 对应的脱敏 serializedValue 已绑定到 inline `archives`，
-   独立 rawArchive/quarantine 存储、其他迁移域、
-   V01–V25 或 active pointer 提交仍未实现。
+   卡/日志只保存 v1 adapter 历史状态，AIConversation/AIQuizHistory 只保存脱敏会话、测验和答案快照，Preference 只保存白名单键和敏感重输标记；disposition 对应的脱敏 serializedValue 同时绑定到 inline `archives` 与独立 archive 记录，
+   其他迁移域、V01–V25 或 active pointer 提交仍未实现。
 5. `MigrationDomainSliceStagingUseCase` 复用统一 source preparation，串联 reader、domain slice 和
    staging；它只调用 stage，不调用 commit，重复输入由 payload digest 参与 replay 判定。
 

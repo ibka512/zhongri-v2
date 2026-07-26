@@ -11,6 +11,8 @@
 - `MigrationSourceSnapshotSchema`：锁定 v1 来源键值、备份脱敏档案、版本元数据和可复跑指纹。
 - `MigrationStagingDatasetSchema.sourceSnapshot`：可选地把完整脱敏来源快照挂到隔离 staging；
   旧备份 staging 记录以 `null` 兼容。
+- `MigrationArchiveRecordSchema`：独立保存 staging 的 rawArchive/quarantine 内容、来源摘要、迁移归属
+  和稳定版本周期保留策略；记录不代表 active 业务数据。
 - `TodayPlanSchema`：锁定某个本地日期的基础课程身份、内容版本和题目引用。
 
 Schema 必须保持纯 TypeScript，不依赖 React、浏览器 API、数据库或 AI 实现。
