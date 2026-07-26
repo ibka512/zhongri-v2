@@ -185,6 +185,20 @@ export {
 } from './MigrationArchiveSchema';
 
 export {
+  MigrationVerificationCheckIdSchema,
+  MigrationVerificationCheckSchema,
+  MigrationVerificationCheckStatusSchema,
+  MigrationVerificationReportSchema,
+  MigrationVerificationSeveritySchema,
+  migrationVerificationCheckIds,
+  type MigrationVerificationCheck,
+  type MigrationVerificationCheckId,
+  type MigrationVerificationCheckStatus,
+  type MigrationVerificationReport,
+  type MigrationVerificationSeverity,
+} from './MigrationVerificationSchema';
+
+export {
   MAX_MIGRATION_LEGACY_SOURCE_RECORDS,
   MAX_MIGRATION_LEGACY_SOURCE_TEXT_LENGTH,
   MigrationLegacySourceCountsSchema,

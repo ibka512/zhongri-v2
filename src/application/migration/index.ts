@@ -54,3 +54,9 @@ export {
   type StageMigrationDomainSliceInput,
   type StageMigrationDomainSliceResult,
 } from './MigrationDomainSliceStagingUseCase';
+export {
+  MigrationVerificationInputError,
+  MigrationVerificationUseCase,
+  type CreateMigrationVerificationInput,
+  type MigrationVerificationDependencies,
+} from './MigrationVerificationUseCase';

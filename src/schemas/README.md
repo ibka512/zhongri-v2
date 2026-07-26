@@ -13,6 +13,8 @@
   旧备份 staging 记录以 `null` 兼容。
 - `MigrationArchiveRecordSchema`：独立保存 staging 的 rawArchive/quarantine 内容、来源摘要、迁移归属
   和稳定版本周期保留策略；记录不代表 active 业务数据。
+- `MigrationVerificationReportSchema`：固定 V01–V25 检查顺序和 passed/failed/unverified 结果；未验证
+  项不能作为 active 激活授权。
 - `TodayPlanSchema`：锁定某个本地日期的基础课程身份、内容版本和题目引用。
 
 Schema 必须保持纯 TypeScript，不依赖 React、浏览器 API、数据库或 AI 实现。

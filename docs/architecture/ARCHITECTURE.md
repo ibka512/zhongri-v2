@@ -163,9 +163,11 @@ staging 可以在同一事务中保存该 payload 及独立 archive 记录，但
    关联并 OR 合并，StudyRecord 只保留日期粒度，GroupProgress 只保留规范化组键与完成次数，WrongBook
    只保存可关联的聚合错题事实和有限最近答题，RecycleBin 只保存 tombstone 和脱敏嵌套快照，FSRS
    卡/日志只保存 v1 adapter 历史状态，AIConversation/AIQuizHistory 只保存脱敏会话、测验和答案快照，Preference 只保存白名单键和敏感重输标记；disposition 对应的脱敏 serializedValue 同时绑定到 inline `archives` 与独立 archive 记录，
-   其他迁移域、V01–V25 或 active pointer 提交仍未实现。
+   其他迁移域、V01–V25 的未验证证据或 active pointer 提交仍未实现。
 5. `MigrationDomainSliceStagingUseCase` 复用统一 source preparation，串联 reader、domain slice 和
    staging；它只调用 stage，不调用 commit，重复输入由 payload digest 参与 replay 判定。
+6. `MigrationVerificationUseCase` 只生成固定顺序的 V01–V25 报告；任何 `failed` 或 blocking
+   `unverified` 都阻断激活。该用例不调用 persistence，V18/V23/V25 的真实验收仍待后续 gate。
 
 ## Task012 正式每日课程
 

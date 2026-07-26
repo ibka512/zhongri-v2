@@ -74,7 +74,7 @@ active pointer，也不改变 Word、ReviewState 或 FSRS。
 - 该切片不代表真实 Mastery、StudyRecord、FSRS、WrongBook、RecycleBin、AIConversation、AIQuizHistory、Preference 字段覆盖、V01–V25 或 active pointer 已完成；
   staging 字段接线仍需真实来源和后续验证。
 - 下一步是在真实脱敏 fixture（或负责人批准的字段形状 synthetic fixture）上复核字段覆盖，再实现
-  V01–V25 验证和激活/回滚；独立 archive 记录仍只读、隔离，不代表 active 数据已提交。
+  V02/V18/V23/V25 的证据并接入激活/回滚 gate；独立 archive 记录仍只读、隔离，不代表 active 数据已提交。
 
 ## 测试证据
 
@@ -94,6 +94,8 @@ active pointer，也不改变 Word、ReviewState 或 FSRS。
 - reader → transformer → report → isolated payload 的 digest 绑定；
 - 重复运行完全相同，且没有 persistence/active pointer 写入。
 - 将 isolated payload 作为可选字段存入现有 staging dataset，同时 active pointer 保持为空。
+- `MigrationVerificationUseCase` 生成固定 V01–V25 报告；synthetic slice 可通过稳定不变量，未具备真实
+  双语 corpus、提醒、抽样或失败注入证据的项保持 `unverified`。
 
 ## 统一编排入口
 
