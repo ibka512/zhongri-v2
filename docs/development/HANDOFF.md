@@ -4,12 +4,12 @@
 
 ## 当前快照
 
-- 稳定基线：`main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35）
-- 当前交接分支：`codex/task-015-legacy-reader-handoff`
-- 稳定基线提交：`1b89840`（PR #35 合并后的 main；Legacy Source Reader 契约已进入稳定基线）
-- 当前实现提交：`1b89840`（只读 Legacy Source Reader Schema、应用层 use case、synthetic fixture 测试、ADR-018 和契约文档）
+- 稳定基线：`main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36）
+- 当前交接分支：`codex/task-015-core-domain-slice`
+- 稳定基线提交：`ff43872`（PR #36 合并后的 main；Legacy Source Reader 与前置契约已进入稳定基线）
+- 当前实现提交：`4a56cf8`（核心域纵向 transformer、isolated payload Schema、synthetic fixture、ADR-019 和契约文档；待推送并创建 PR）
 - 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层
-- 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排、source-aware staging、确定性 canonical/user idMap、统一 disposition/quarantine 报告契约和只读 Legacy Source Reader 契约已完成；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，真实脱敏 fixture、设备来源接线与逐域迁移仍待完成
+- 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排、source-aware staging、确定性 canonical/user idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader 和 Word/Override/Folder/Favorite 核心域纵向 transformer 已完成；isolated payload 已有可选 staging 字段但尚未接入真实 orchestration；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，真实脱敏 fixture、设备来源接线、剩余域和激活仍待完成
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
 - 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35 均已通过 CI 并合并；下次发布前仍按固定启动步骤复查认证状态。
 
@@ -28,18 +28,24 @@
 - `674288e` 新增 `MigrationIdentityMapSchema`、`MigrationIdentityMapUseCase` 和 ADR-016：固定语言、canonical 精确命中、用户 ID 保留/生成、冲突后缀、headword heuristic、override/relation quarantine 与稳定 map digest；本地 `npm run verify` 通过（31 个测试文件、127 个测试）。
 - 本轮新增 `MigrationDispositionReportSchema`、`MigrationDispositionReportUseCase` 和 ADR-017：统一 migrated/deduped/quarantined、rawArchive/quarantine 引用、V21 数量守恒和 identity-map digest 绑定；真实 payload 仍未写入 staging。
 - 当前切片新增 `MigrationLegacySourceSchema`、`MigrationLegacySourceReaderUseCase` 和 ADR-018：只读读取脱敏现代 v5+/v10 或 legacy v4 JSON，固定 sourceRef、逐条 digest、未知字段记录和 reader digest；不读取浏览器 API、不写入活跃域。
+- 本轮新增 `MigrationDomainSliceSchema`、`MigrationDomainSliceUseCase` 和 ADR-019：从 reader 输出贯通
+  `words / overrides / folders / favorites`，复用 idMap 生成 Word/Override/Folder/Favorite isolated
+  payload，并让每条核心域 sourceRef 进入 disposition；synthetic fixture 只验证字段形状，payload
+  固定 `writesPerformed:false` 与 `activePointerUpdated:false`；`MigrationStagingDataset` 已增加
+  可选 `isolatedDomainSlice` 字段，仍不触发 active pointer。
 
 ## 仍未完成
 
 - Phase 1 双语、迁移和产品页面仍未完成。
-- 真实 backup fixture、逐域 transformer 接线、rawArchive/quarantine payload 存储、V01–V25 和激活/回滚仍未完成。
+- 真实 backup fixture、设备来源接线、isolated payload 真实 orchestration、Mastery/StudyRecord/FSRS 等
+  剩余域、rawArchive/quarantine payload 存储、V01–V25 和激活/回滚仍未完成。
 - 首次设置、内容中心、设置与数据安全页。
 - 日语五十音/TTS、英语/IPA 双语纵向切片。
 - Phase 1 综合验收。
 
 ## 已验证命令
 
-以下命令已在本轮 Legacy Source Reader 实现和治理文件完成后通过（33 个测试文件、145 个测试）：
+以下命令已在本轮核心域纵向切片和治理文件完成后通过（35 个测试文件、148 个测试）：
 
 ```bash
 npm run verify
@@ -60,8 +66,8 @@ npm run verify
 
 ## 下一项工作
 
-1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或明确批准 synthetic fixture 方案；再将 Browser source snapshot 中的设备来源记录接入 LegacyReader。
-2. 将冻结的 idMap 和 disposition 报告接入 Word/Override/Folder/Favorite/Mastery/StudyRecord/FSRS 等逐域 transformer，并建立隔离 payload 存储。
+1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的 synthetic fixture 方案；再将 Browser source snapshot 中的设备来源记录接入 LegacyReader。
+2. 将本轮核心域 isolated payload 接入真实 staging orchestration，再把冻结的 idMap 和 disposition 报告扩展到 Mastery/StudyRecord/FSRS 等逐域 transformer。
 3. 在真实输入上实现 V01–V25 验证和激活/回滚。
 4. 迁移 Task 通过后再继续首次设置、内容和双语基础切片；Phase 1 验收完成后才进入 AI Gateway（Issue #20）。
 

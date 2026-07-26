@@ -47,21 +47,31 @@ candidate、跨语言冲突和关系/override quarantine；输出按 `sourceRef`
 [ADR-018](../decisions/ADR-018-legacy-source-reader-contract.md)，契约说明见
 [v1 Legacy Source Reader 契约](../content/MIGRATION_LEGACY_SOURCE_READER.md)。
 
+第八小步新增 `MigrationDomainSliceSchema` 与 `MigrationDomainSliceUseCase`：在 reader 输出之上
+贯通 `words / overrides / folders / favorites`，复用冻结的 canonical idMap，生成确定性
+Word/Override/Folder/Favorite isolated payload，并为每条核心域 sourceRef 生成
+`migrated / deduped / quarantined` disposition。synthetic fixture 只验证字段形状，不代表真实
+用户历史；payload 明确 `writesPerformed:false`、`activePointerUpdated:false`，纵向用例不直接写入
+`MigrationPersistencePort`，但现有 staging 已提供可选 payload 字段。契约说明见
+[v1 核心域纵向转换契约](../content/MIGRATION_DOMAIN_SLICE.md)，实现决策见
+[ADR-019](../decisions/ADR-019-core-domain-slice-isolated-payload.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
 
 1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的
    synthetic 方案，并把设备 snapshot 记录接入 LegacyReader。
-2. 将已冻结 canonical idMap 接入 Word/Override/Folder/Favorite/Mastery/StudyRecord/FSRS 等逐域转换。
-3. 将处置报告接入真实逐域 transformer，并实现 rawArchive/quarantine payload 的隔离存储。
+2. 将第八小步 isolated payload 的 staging 字段接入真实 orchestration，并在真实/批准的 fixture
+   上扩展 Mastery/StudyRecord/FSRS 等逐域转换。
+3. 将处置报告接入 rawArchive/quarantine payload 的实际隔离存储。
 4. V01–V25 自动化验证、固定 sourceFingerprint 幂等复跑和 active pointer 原子提交/回滚。
 
 ## 前置条件
 
 - 已固定的 9,828 canonical asset source、来源 manifest 和 SHA-256 清单已进入仓库。
-- canonical idMap 应用层契约和确定性生成算法已进入仓库，但尚未接入真实 backup fixture 或活跃
-  迁移写入。
+- canonical idMap 和 Word/Override/Folder/Favorite isolated payload 应用层契约及确定性算法已进入
+  仓库，但尚未接入真实 backup fixture 或活跃迁移写入。
 - 脱敏但字段形状真实的现代 v5+/v10 与 legacy v4 backup fixture，或负责人明确批准的
   synthetic fixture 方案；当前仓库的 synthetic fixture 只用于 snapshot 算法测试。
 - 真实输入到位前，不得把 20 条 N5 日语词条描述为完整 corpus，不得激活迁移业务域。

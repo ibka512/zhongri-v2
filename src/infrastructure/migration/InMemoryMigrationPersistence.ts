@@ -36,7 +36,9 @@ function isSameStagingInput(
     existingRun.snapshotDigestSha256 === input.run.snapshotDigestSha256 &&
     existingRun.reportDigestSha256 === input.run.reportDigestSha256 &&
     existingDataset.snapshotDigestSha256 === input.dataset.snapshotDigestSha256 &&
-    existingDataset.reportDigestSha256 === input.dataset.reportDigestSha256
+    existingDataset.reportDigestSha256 === input.dataset.reportDigestSha256 &&
+    existingDataset.isolatedDomainSlice?.payloadDigestSha256 ===
+      input.dataset.isolatedDomainSlice?.payloadDigestSha256
   );
 }
 
