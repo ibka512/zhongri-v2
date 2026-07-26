@@ -86,9 +86,9 @@ Dexie 只存在于 Infrastructure。Domain、页面和 UI 组件不得 import De
 6. 回滚只把 active pointer 恢复为 `priorActiveDatasetId`，保留快照、报告和诊断数据。
 7. 学习事件与会话表不参与迁移事务；staging 不代表业务域已完成迁移。
 
-当前仍不实现 Mastery/StudyRecord/FSRS 等剩余域、ReviewState 激活、FSRS 调度迁移或 AI；
-canonical corpus、canonical idMap、disposition/quarantine 报告契约和只读 source-aware staging
-已完成。Word/Override/Folder/Favorite 核心域现在已经可以从 Legacy Source Reader 生成
+当前仍不实现 ReviewState 激活、FSRS 调度重算或 AI；canonical corpus、canonical idMap、
+disposition/quarantine 报告契约和只读 source-aware staging 已完成。Word/Override/Folder/Favorite/
+Mastery/StudyRecord/FSRS 核心域现在可以从 Legacy Source Reader 生成
 `migration-isolated-domain-slice` payload 和逐条 disposition，但该结果仍只作为隔离应用层输出，
 未写入 MigrationPersistencePort 或 active dataset。
 
@@ -150,15 +150,17 @@ canonical corpus、canonical idMap、disposition/quarantine 报告契约和只�
 ## Task015 核心域纵向转换
 
 1. `MigrationDomainSliceUseCase` 只消费已经通过 Legacy Source Reader 的 source records，并将本轮
-   范围固定为 `words / overrides / folders / favorites`；其他域不会被静默标记为已迁移。
+   范围固定为 `words / overrides / folders / favorites / mastery / studyRecords / fsrsCards / fsrsLogs`；
+   groupProgress、wrongBook、AI、回收站、preferences 和 unknown 仍不会被静默标记为已迁移。
 2. Word/Override 目标只能来自 canonical idMap；Folder 以名称、语言和 migrationId 生成确定性
    `folder-v1-*`；Favorite 只接受唯一可解析的 Word 关系。
 3. 每条范围内 sourceRef 都进入 disposition report；成功/重复记录保留 rawArchive 引用，孤立或
    类型错误记录进入 quarantine，payload 不包含活跃目标之外的未验证关系。
 4. isolated payload 绑定 reader、idMap 和 disposition digest，并固定
    `writesPerformed:false`、`activePointerUpdated:false`。纵向用例不直接调用 persistence；现有
-   staging dataset 通过可选 `isolatedDomainSlice` 字段保存该 payload，但该切片尚未实现
-   rawArchive/quarantine 实际存储、其他迁移域、V01–V25 或 active pointer 提交。
+   staging dataset 通过可选 `isolatedDomainSlice` 字段保存该 payload。Mastery 只按 identity map
+   关联并 OR 合并，StudyRecord 只保留日期粒度，FSRS 卡/日志只保存 v1 adapter 历史状态；该切片
+   尚未实现 rawArchive/quarantine 实际存储、其他迁移域、V01–V25 或 active pointer 提交。
 5. `MigrationDomainSliceStagingUseCase` 复用统一 source preparation，串联 reader、domain slice 和
    staging；它只调用 stage，不调用 commit，重复输入由 payload digest 参与 replay 判定。
 
@@ -186,5 +188,5 @@ Task012 当时不包含 LearnerProfile、FSRS、AI Gateway、完整 canonical �
 5. Today Plan 只消费当天零点前的投影，按到期复习、最近错误、基础补位的顺序选满五词。
 6. UI 只接收 Application 提供的画像摘要，不直接访问 Dexie 或 FSRS。
 
-当前仍不实现 AI Gateway、FSRS 参数训练、旧 FSRS 迁移、完整 canonical 资产或迁移业务域
-激活。
+当前仍不实现 AI Gateway、FSRS 参数训练、FSRS 重算、完整 canonical 资产或迁移业务域激活；
+旧 FSRS 目前只进入不激活的 adapter-version isolated payload。

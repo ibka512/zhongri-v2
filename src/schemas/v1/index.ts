@@ -137,15 +137,23 @@ export {
 export {
   MigrationDomainSliceResultSchema,
   MigrationIsolatedFavoriteSchema,
+  MigrationIsolatedFsrsCardSchema,
+  MigrationIsolatedFsrsLogSchema,
   MigrationIsolatedFolderSchema,
+  MigrationIsolatedMasterySchema,
   MigrationIsolatedOverrideSchema,
   MigrationIsolatedPayloadSchema,
+  MigrationIsolatedStudyRecordSchema,
   MigrationIsolatedWordSchema,
   type MigrationDomainSliceResult,
   type MigrationIsolatedFavorite,
+  type MigrationIsolatedFsrsCard,
+  type MigrationIsolatedFsrsLog,
   type MigrationIsolatedFolder,
+  type MigrationIsolatedMastery,
   type MigrationIsolatedOverride,
   type MigrationIsolatedPayload,
+  type MigrationIsolatedStudyRecord,
   type MigrationIsolatedWord,
 } from './MigrationDomainSliceSchema';
 

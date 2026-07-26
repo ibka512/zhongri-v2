@@ -25,6 +25,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-019：以核心域纵向切片验证 isolated payload 边界](./ADR-019-core-domain-slice-isolated-payload.md)
 - [ADR-020：以单一 Application 编排把核心域结果接入隔离 staging](./ADR-020-core-domain-staging-orchestration.md)
 - [ADR-021：显式设备来源选择并把 source snapshot 接入 Legacy Source Reader](./ADR-021-device-source-reader-wiring.md)
+- [ADR-022：以只读隔离 payload 转换 Mastery、StudyRecord 与 FSRS](./ADR-022-mastery-study-fsrs-isolated-transformer.md)
 
 ## 未来
 

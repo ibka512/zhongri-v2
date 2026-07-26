@@ -9,7 +9,10 @@ import {
 import { jaN5StarterManifest, jaN5StarterWords } from '../../src/content';
 import { StaticCanonicalContentRepository } from '../../src/infrastructure/content';
 import { MigrationDomainSliceResultSchema } from '../../src/schemas/v1';
-import { createCoreDomainSliceV1Backup } from '../fixtures/v1-backups';
+import {
+  createCoreDomainSliceV1Backup,
+  createMasteryStudyFsrsDomainSliceV1Backup,
+} from '../fixtures/v1-backups';
 
 const migrationId = `v1-v2:${'a'.repeat(24)}:spec-1`;
 const sourceFingerprint = 'b'.repeat(64);
@@ -105,5 +108,64 @@ describe('MigrationDomainSliceUseCase', () => {
       'data.wordOverrides["builtin-ja-core-00005"]',
       'data.wordOverrides["missing-word-001"]',
     ]);
+  });
+
+  it('maps mastery, study events, FSRS cards and logs without activating them', async () => {
+    const backup = createMasteryStudyFsrsDomainSliceV1Backup();
+    const reader = new MigrationLegacySourceReaderUseCase({ digest });
+    const source = await reader.read({
+      migrationId,
+      sourceFingerprint,
+      sourceFileName: 'synthetic-learning-domain-v1.json',
+      sanitizedSourceText: JSON.stringify(backup),
+    });
+    const result = await new MigrationDomainSliceUseCase({
+      content: createContentRepository(),
+      digest,
+    }).create({ source });
+
+    expect(result.isolatedPayload.mastery).toEqual([
+      expect.objectContaining({
+        targetWordId: 'builtin-ja-core-00005',
+        language: 'ja',
+        dimensions: { spelling: true, reading: true, listening: false, meaning: false },
+        needsReview: true,
+      }),
+    ]);
+    expect(result.isolatedPayload.studyRecords).toHaveLength(3);
+    expect(result.isolatedPayload.studyRecords).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ eventType: 'DAILY_PUNCH' }),
+        expect.objectContaining({ eventType: 'GROUP_COMPLETED', groupLabel: '日语基础' }),
+        expect.objectContaining({
+          eventType: 'UNKNOWN',
+          qualityFlags: ['DATE_INVALID', 'UNKNOWN_TYPE'],
+        }),
+      ]),
+    );
+    expect(result.isolatedPayload.fsrsCards).toHaveLength(1);
+    expect(result.isolatedPayload.fsrsCards[0]).toMatchObject({
+      targetWordId: 'builtin-ja-core-00005',
+      dimension: 'meaning',
+      algorithm: 'ts-fsrs@v1-adapter',
+      due: '2026-07-25T00:00:00.000Z',
+    });
+    expect(result.isolatedPayload.fsrsLogs).toHaveLength(1);
+    expect(result.dispositionReport.entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceRef: 'data.fsrsCards["ja:missing-word:meaning"]',
+          outcome: 'quarantined',
+          quarantineCode: 'RELATION_UNRESOLVED',
+        }),
+        expect.objectContaining({
+          sourceRef: 'data.fsrsReviewLogs[2]',
+          outcome: 'quarantined',
+          quarantineCode: 'RELATION_UNRESOLVED',
+        }),
+      ]),
+    );
+    expect(result.isolatedPayload.writesPerformed).toBe(false);
+    expect(result.isolatedPayload.activePointerUpdated).toBe(false);
   });
 });

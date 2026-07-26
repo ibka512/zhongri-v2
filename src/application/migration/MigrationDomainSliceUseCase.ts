@@ -5,18 +5,26 @@ import {
   MigrationDomainSliceResultSchema,
   MigrationLegacySourceSchema,
   MigrationIsolatedFavoriteSchema,
+  MigrationIsolatedFsrsCardSchema,
+  MigrationIsolatedFsrsLogSchema,
   MigrationIsolatedFolderSchema,
+  MigrationIsolatedMasterySchema,
   MigrationIsolatedOverrideSchema,
   MigrationIsolatedPayloadSchema,
+  MigrationIsolatedStudyRecordSchema,
   MigrationIsolatedWordSchema,
   type MigrationDispositionInputRecord,
   type MigrationDomainSliceResult,
   type MigrationIdentityMapEntry,
   type MigrationIdentityMapRecordInput,
   type MigrationIsolatedFavorite,
+  type MigrationIsolatedFsrsCard,
+  type MigrationIsolatedFsrsLog,
   type MigrationIsolatedFolder,
+  type MigrationIsolatedMastery,
   type MigrationIsolatedOverride,
   type MigrationIsolatedWord,
+  type MigrationIsolatedStudyRecord,
   type MigrationLegacySource,
   type MigrationLegacySourceRecord,
 } from '../../schemas/v1';
@@ -57,6 +65,26 @@ interface FolderState {
   language: 'ja' | 'en';
   folderId: string;
   arrayRecord: MigrationLegacySourceRecord;
+}
+
+type ReviewDimension = 'spelling' | 'reading' | 'listening' | 'meaning';
+
+interface WordRelation {
+  language: 'ja' | 'en' | null;
+  rawWordId: string | null;
+  dimension: ReviewDimension | null;
+  rawKey: string | null;
+}
+
+interface ParsedNumber {
+  value: number;
+  present: boolean;
+}
+
+interface ParsedDate {
+  value: string | null;
+  present: boolean;
+  valid: boolean;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -108,6 +136,162 @@ function readBooleanField(value: unknown, key: string): boolean | null {
     return null;
   }
   return value[key] as boolean;
+}
+
+function readNumberField(value: unknown, ...keys: readonly string[]): ParsedNumber {
+  if (!isRecord(value)) {
+    return { value: 0, present: false };
+  }
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(value, key)) {
+      return typeof value[key] === 'number' && Number.isFinite(value[key])
+        ? { value: value[key] as number, present: true }
+        : { value: Number.NaN, present: true };
+    }
+  }
+  return { value: 0, present: false };
+}
+
+function readDateField(value: unknown, ...keys: readonly string[]): ParsedDate {
+  if (!isRecord(value)) {
+    return { value: null, present: false, valid: false };
+  }
+  for (const key of keys) {
+    if (!Object.prototype.hasOwnProperty.call(value, key)) {
+      continue;
+    }
+    const raw = value[key];
+    if (raw === null || raw === '') {
+      return { value: null, present: true, valid: true };
+    }
+    if (typeof raw !== 'string') {
+      return { value: null, present: true, valid: false };
+    }
+    const parsed = new Date(raw);
+    return Number.isNaN(parsed.getTime())
+      ? { value: null, present: true, valid: false }
+      : { value: parsed.toISOString(), present: true, valid: true };
+  }
+  return { value: null, present: false, valid: false };
+}
+
+function readDateOnly(value: unknown): {
+  value: string | null;
+  flag: 'DATE_MISSING' | 'DATE_INVALID' | null;
+} {
+  const raw = stringValue(value);
+  if (!raw) {
+    return { value: null, flag: 'DATE_MISSING' };
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return { value: raw, flag: null };
+  }
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) {
+    return { value: null, flag: 'DATE_INVALID' };
+  }
+  return { value: parsed.toISOString().slice(0, 10), flag: 'DATE_INVALID' };
+}
+
+function normalizeReviewDimension(
+  language: 'ja' | 'en' | null,
+  value: unknown,
+): ReviewDimension | null {
+  const normalized = stringValue(value)?.toLowerCase() ?? null;
+  if (!normalized) {
+    return null;
+  }
+  if (normalized === 'meaning') {
+    return 'meaning';
+  }
+  if (language === 'ja') {
+    if (normalized === 'kanji' || normalized === 'spelling') {
+      return 'spelling';
+    }
+    if (normalized === 'kana' || normalized === 'reading') {
+      return 'reading';
+    }
+  }
+  if (language === 'en') {
+    if (normalized === 'kanji' || normalized === 'word' || normalized === 'spelling') {
+      return 'spelling';
+    }
+    if (normalized === 'kana' || normalized === 'listening') {
+      return 'listening';
+    }
+  }
+  return null;
+}
+
+function parseWordRelationKey(rawKey: string | null): WordRelation {
+  if (!rawKey) {
+    return { language: null, rawWordId: null, dimension: null, rawKey: null };
+  }
+  const parts = rawKey.split(':');
+  if (parts.length < 2) {
+    return { language: null, rawWordId: null, dimension: null, rawKey };
+  }
+  const language = languageValue(parts[0]);
+  const rawWordId =
+    stringValue(
+      parts.length === 2 ? parts.slice(1).join(':') : parts.slice(1, parts.length - 1).join(':'),
+    ) ?? null;
+  const dimension = parts.length >= 3 ? normalizeReviewDimension(language, parts.at(-1)) : null;
+  return { language, rawWordId, dimension, rawKey };
+}
+
+function resolveRelationFromValue(value: unknown, rawKey: string | null): WordRelation {
+  const parsedKey = parseWordRelationKey(rawKey);
+  const language =
+    languageValue(isRecord(value) ? (value.lang ?? value.language) : undefined) ??
+    parsedKey.language;
+  const rawWordId = readField(value, 'wordId', 'wordID', 'word_id', 'id') ?? parsedKey.rawWordId;
+  const dimension =
+    normalizeReviewDimension(language, isRecord(value) ? value.dimension : undefined) ??
+    parsedKey.dimension;
+  return {
+    language,
+    rawWordId,
+    dimension,
+    rawKey: rawKey ?? (isRecord(value) ? readField(value, 'key', 'cardKey', 'rawKey') : null),
+  };
+}
+
+function relationKey(
+  language: 'ja' | 'en',
+  targetWordId: string,
+  dimension: ReviewDimension,
+): string {
+  return `${language}:${targetWordId}:${dimension}`;
+}
+
+function masteryDimensions(value: unknown, language: 'ja' | 'en') {
+  const spelling =
+    readBooleanField(value, 'kanji') ??
+    (language === 'en' ? readBooleanField(value, 'word') : null);
+  const reading = language === 'ja' ? readBooleanField(value, 'kana') : null;
+  const listening = language === 'en' ? readBooleanField(value, 'kana') : null;
+  const meaning = readBooleanField(value, 'meaning');
+  const needsReview = readBooleanField(value, 'needsReview');
+  return {
+    dimensions: {
+      spelling: spelling ?? false,
+      reading: reading ?? false,
+      listening: listening ?? false,
+      meaning: meaning ?? false,
+    },
+    needsReview: needsReview ?? false,
+    missingFields: [
+      spelling === null ? 'spelling' : null,
+      reading === null ? 'reading' : null,
+      listening === null ? 'listening' : null,
+      meaning === null ? 'meaning' : null,
+      needsReview === null ? 'needsReview' : null,
+    ].filter(
+      (field): field is 'spelling' | 'reading' | 'listening' | 'meaning' | 'needsReview' =>
+        field !== null,
+    ),
+  };
 }
 
 function parseSourceValue(record: MigrationLegacySourceRecord): unknown {
@@ -197,13 +381,14 @@ function createMigratedDisposition(
   domain: MigrationDispositionInputRecord['domain'],
   reasonCode: string,
   targetRef: string,
+  severity: 'info' | 'warning' | 'blocking' = 'info',
 ): MigrationDispositionInputRecord {
   return {
     sourceRef: record.sourceRef,
     domain,
     sourceRecordDigestSha256: record.sourceRecordDigestSha256,
     outcome: 'migrated',
-    severity: 'info',
+    severity,
     reasonCode,
     targetRefs: [targetRef],
     rawArchive: true,
@@ -235,6 +420,28 @@ function readWordEntryForSource(
   sourceRef: string,
 ): MigrationIdentityMapEntry | null {
   return entryBySourceRef.get(sourceRef) ?? null;
+}
+
+function resolveWordRelation(
+  wordEntryByRawId: ReadonlyMap<string, MigrationIdentityMapEntry[]>,
+  wordEntriesByHeadword: ReadonlyMap<string, MigrationIdentityMapEntry[]>,
+  relation: WordRelation,
+): MigrationIdentityMapEntry | null {
+  if (!relation.rawWordId || !relation.language) {
+    return null;
+  }
+  const rawCandidates = wordEntryByRawId.get(relation.rawWordId) ?? [];
+  const candidates = (
+    rawCandidates.length > 0
+      ? rawCandidates
+      : (wordEntriesByHeadword.get(normalizedText(relation.rawWordId) ?? '') ?? [])
+  ).filter((entry) => entry.language === relation.language && entry.outcome === 'mapped');
+  const uniqueTargets = new Map(
+    candidates
+      .filter((entry) => entry.targetWordId)
+      .map((entry) => [entry.targetWordId as string, entry]),
+  );
+  return uniqueTargets.size === 1 ? [...uniqueTargets.values()][0] : null;
 }
 
 function findCanonicalWord(
@@ -594,6 +801,428 @@ export class MigrationDomainSliceUseCase {
       );
     }
 
+    const masteryPayloadByTargetId = new Map<string, MigrationIsolatedMastery>();
+    for (const { record, value } of sourceValueRecords(source, 'mastery')) {
+      const sourceKey = readSourceKey(record.sourceRef, 'data.mtWordClears');
+      const relation = resolveRelationFromValue(value, sourceKey);
+      const entry = resolveWordRelation(wordEntryByRawId, wordEntriesByHeadword, relation);
+      if (!entry || !entry.targetWordId || !relation.language || !isRecord(value)) {
+        dispositionRecords.push(
+          createQuarantineDisposition(record, 'MASTERY_TARGET_UNRESOLVED', 'RELATION_UNRESOLVED'),
+        );
+        continue;
+      }
+
+      const projection = masteryDimensions(value, relation.language);
+      const existing = masteryPayloadByTargetId.get(entry.targetWordId);
+      if (existing) {
+        const allFields = ['spelling', 'reading', 'listening', 'meaning', 'needsReview'] as const;
+        const existingMissing = new Set(existing.missingFields);
+        const currentMissing = new Set(projection.missingFields);
+        const mergedMissingFields = allFields.filter(
+          (field) => existingMissing.has(field) && currentMissing.has(field),
+        );
+        const merged = MigrationIsolatedMasterySchema.parse({
+          ...existing,
+          dimensions: {
+            spelling: existing.dimensions.spelling || projection.dimensions.spelling,
+            reading: existing.dimensions.reading || projection.dimensions.reading,
+            listening: existing.dimensions.listening || projection.dimensions.listening,
+            meaning: existing.dimensions.meaning || projection.dimensions.meaning,
+          },
+          needsReview: existing.needsReview || projection.needsReview,
+          missingFields: mergedMissingFields,
+          sourceRefs: [...new Set([...existing.sourceRefs, record.sourceRef])].sort(compareStrings),
+          sourceRecordDigestsSha256: [
+            ...new Set([...existing.sourceRecordDigestsSha256, record.sourceRecordDigestSha256]),
+          ].sort(compareStrings),
+          serializedValues: [
+            ...new Set([...existing.serializedValues, record.serializedValue]),
+          ].sort(compareStrings),
+        });
+        masteryPayloadByTargetId.set(entry.targetWordId, merged);
+        dispositionRecords.push(
+          createDedupedDisposition(
+            record,
+            'mastery',
+            'DUPLICATE_MASTERY_TARGET',
+            entry.targetWordId,
+            existing.sourceRefs[0],
+          ),
+        );
+        continue;
+      }
+
+      const payload = MigrationIsolatedMasterySchema.parse({
+        schemaVersion: 1,
+        targetWordId: entry.targetWordId,
+        language: relation.language,
+        sourceRefs: [record.sourceRef],
+        sourceRecordDigestsSha256: [record.sourceRecordDigestSha256],
+        ...projection,
+        serializedValues: [record.serializedValue],
+      });
+      masteryPayloadByTargetId.set(entry.targetWordId, payload);
+      dispositionRecords.push(
+        createMigratedDisposition(
+          record,
+          'mastery',
+          'MASTERY_MAPPED',
+          `mastery-v1:${entry.targetWordId}`,
+        ),
+      );
+    }
+
+    const studyPayloadByFingerprint = new Map<string, MigrationIsolatedStudyRecord>();
+    for (const { record, value } of sourceValueRecords(source, 'studyRecords')) {
+      if (!isRecord(value)) {
+        dispositionRecords.push(
+          createQuarantineDisposition(
+            record,
+            'STUDY_RECORD_INVALID',
+            'RELATION_UNRESOLVED',
+            'warning',
+          ),
+        );
+        continue;
+      }
+      const rawType = stringValue(value.type)?.toLowerCase() ?? null;
+      const eventType =
+        rawType === 'daily_punch'
+          ? 'DAILY_PUNCH'
+          : rawType === 'pendulum'
+            ? 'GROUP_COMPLETED'
+            : 'UNKNOWN';
+      const dateProjection = readDateOnly(value.date);
+      const groupLabel = readField(value, 'group', 'groupLabel');
+      const qualityFlags = [
+        dateProjection.flag,
+        eventType === 'UNKNOWN' ? 'UNKNOWN_TYPE' : null,
+      ].filter((flag): flag is 'DATE_MISSING' | 'DATE_INVALID' | 'UNKNOWN_TYPE' => flag !== null);
+      const fingerprint = await this.dependencies.digest.sha256(
+        JSON.stringify({
+          schemaVersion: 1,
+          migrationId: source.migrationId,
+          eventType,
+          dateOnly: dateProjection.value,
+          groupLabel,
+        }),
+      );
+      assertDigest(fingerprint, 'study event ID');
+      const existing = studyPayloadByFingerprint.get(fingerprint);
+      if (existing) {
+        studyPayloadByFingerprint.set(
+          fingerprint,
+          MigrationIsolatedStudyRecordSchema.parse({
+            ...existing,
+            sourceRefs: [...new Set([...existing.sourceRefs, record.sourceRef])].sort(
+              compareStrings,
+            ),
+            sourceRecordDigestsSha256: [
+              ...new Set([...existing.sourceRecordDigestsSha256, record.sourceRecordDigestSha256]),
+            ].sort(compareStrings),
+            qualityFlags: [...new Set([...existing.qualityFlags, ...qualityFlags])].sort(
+              compareStrings,
+            ),
+            serializedValues: [
+              ...new Set([...existing.serializedValues, record.serializedValue]),
+            ].sort(compareStrings),
+          }),
+        );
+        dispositionRecords.push(
+          createDedupedDisposition(
+            record,
+            'studyRecords',
+            'DUPLICATE_STUDY_EVENT',
+            existing.eventId,
+            existing.sourceRefs[0],
+          ),
+        );
+        continue;
+      }
+      const eventId = `study-event-v1:${fingerprint.slice(0, 24)}`;
+      const payload = MigrationIsolatedStudyRecordSchema.parse({
+        schemaVersion: 1,
+        eventId,
+        eventType,
+        dateOnly: dateProjection.value,
+        rawDate: stringValue(value.date),
+        groupLabel,
+        sourceRefs: [record.sourceRef],
+        sourceRecordDigestsSha256: [record.sourceRecordDigestSha256],
+        qualityFlags,
+        serializedValues: [record.serializedValue],
+      });
+      studyPayloadByFingerprint.set(fingerprint, payload);
+      dispositionRecords.push(
+        createMigratedDisposition(
+          record,
+          'studyRecords',
+          eventType === 'UNKNOWN' ? 'STUDY_EVENT_UNKNOWN' : 'STUDY_EVENT_MAPPED',
+          eventId,
+          eventType === 'UNKNOWN' || qualityFlags.length > 0 ? 'warning' : 'info',
+        ),
+      );
+    }
+
+    const fsrsCardPayloadByRelation = new Map<string, MigrationIsolatedFsrsCard>();
+    for (const { record, value } of sourceValueRecords(source, 'fsrsCards')) {
+      const rawKey = readSourceKey(record.sourceRef, 'data.fsrsCards');
+      const relation = resolveRelationFromValue(value, rawKey);
+      const entry = resolveWordRelation(wordEntryByRawId, wordEntriesByHeadword, relation);
+      const cardValue = isRecord(value) ? value : null;
+      if (
+        !entry ||
+        !entry.targetWordId ||
+        !relation.language ||
+        !relation.dimension ||
+        !relation.rawKey ||
+        !cardValue
+      ) {
+        dispositionRecords.push(
+          createQuarantineDisposition(record, 'FSRS_CARD_RELATION_INVALID', 'RELATION_UNRESOLVED'),
+        );
+        continue;
+      }
+
+      const due = readDateField(cardValue, 'due');
+      const lastReviewedAt = readDateField(cardValue, 'last_review', 'lastReviewedAt');
+      const stability = readNumberField(cardValue, 'stability');
+      const difficulty = readNumberField(cardValue, 'difficulty');
+      const elapsedDays = readNumberField(cardValue, 'elapsed_days', 'elapsedDays');
+      const scheduledDays = readNumberField(cardValue, 'scheduled_days', 'scheduledDays');
+      const reps = readNumberField(cardValue, 'reps');
+      const lapses = readNumberField(cardValue, 'lapses');
+      const learningSteps = readNumberField(cardValue, 'learning_steps', 'learningSteps');
+      const state = readNumberField(cardValue, 'state');
+      const requiredNumberInvalid = (field: ParsedNumber, nonnegative = true) =>
+        !field.present || !Number.isFinite(field.value) || (nonnegative && field.value < 0);
+      const integerNumberInvalid = (field: ParsedNumber) =>
+        field.present &&
+        (!Number.isFinite(field.value) || !Number.isInteger(field.value) || field.value < 0);
+      if (
+        !due.present ||
+        !due.valid ||
+        !due.value ||
+        requiredNumberInvalid(stability) ||
+        requiredNumberInvalid(difficulty, false) ||
+        integerNumberInvalid(elapsedDays) ||
+        integerNumberInvalid(scheduledDays) ||
+        integerNumberInvalid(reps) ||
+        integerNumberInvalid(lapses) ||
+        integerNumberInvalid(learningSteps) ||
+        integerNumberInvalid(state) ||
+        (lastReviewedAt.present && !lastReviewedAt.valid)
+      ) {
+        dispositionRecords.push(
+          createQuarantineDisposition(record, 'FSRS_CARD_INVALID', 'CORRUPT_V1_RECORD'),
+        );
+        continue;
+      }
+
+      const qualityFlags = [
+        !elapsedDays.present ? 'ELAPSED_DAYS_DEFAULTED' : null,
+        !scheduledDays.present ? 'SCHEDULED_DAYS_DEFAULTED' : null,
+        !reps.present ? 'REPS_DEFAULTED' : null,
+        !lapses.present ? 'LAPSES_DEFAULTED' : null,
+        !learningSteps.present ? 'LEARNING_STEPS_DEFAULTED' : null,
+        !state.present ? 'STATE_DEFAULTED' : null,
+        !lastReviewedAt.present ? 'LAST_REVIEW_MISSING' : null,
+      ].filter(
+        (
+          flag,
+        ): flag is
+          | 'ELAPSED_DAYS_DEFAULTED'
+          | 'SCHEDULED_DAYS_DEFAULTED'
+          | 'REPS_DEFAULTED'
+          | 'LAPSES_DEFAULTED'
+          | 'LEARNING_STEPS_DEFAULTED'
+          | 'STATE_DEFAULTED'
+          | 'LAST_REVIEW_MISSING' => flag !== null,
+      );
+      const reviewCardDigest = await this.dependencies.digest.sha256(
+        JSON.stringify({
+          schemaVersion: 1,
+          migrationId: source.migrationId,
+          language: relation.language,
+          targetWordId: entry.targetWordId,
+          dimension: relation.dimension,
+        }),
+      );
+      assertDigest(reviewCardDigest, 'review card ID');
+      const reviewCardId = `review-card-v1:${reviewCardDigest.slice(0, 24)}`;
+      const relationId = relationKey(relation.language, entry.targetWordId, relation.dimension);
+      const existing = fsrsCardPayloadByRelation.get(relationId);
+      if (existing) {
+        dispositionRecords.push(
+          createDedupedDisposition(
+            record,
+            'fsrsCards',
+            'DUPLICATE_FSRS_CARD',
+            existing.reviewCardId,
+            existing.sourceRefs[0],
+          ),
+        );
+        continue;
+      }
+      const payload = MigrationIsolatedFsrsCardSchema.parse({
+        schemaVersion: 1,
+        reviewCardId,
+        targetWordId: entry.targetWordId,
+        language: relation.language,
+        dimension: relation.dimension,
+        rawKey: relation.rawKey,
+        due: due.value,
+        stability: stability.value,
+        difficulty: difficulty.value,
+        elapsedDays: elapsedDays.present ? elapsedDays.value : 0,
+        scheduledDays: scheduledDays.present ? scheduledDays.value : 0,
+        reps: reps.present ? reps.value : 0,
+        lapses: lapses.present ? lapses.value : 0,
+        learningSteps: learningSteps.present ? learningSteps.value : 0,
+        state: state.present ? state.value : 0,
+        lastReviewedAt: lastReviewedAt.value,
+        algorithm: 'ts-fsrs@v1-adapter',
+        sourceRefs: [record.sourceRef],
+        sourceRecordDigestsSha256: [record.sourceRecordDigestSha256],
+        qualityFlags,
+        serializedValues: [record.serializedValue],
+      });
+      fsrsCardPayloadByRelation.set(relationId, payload);
+      dispositionRecords.push(
+        createMigratedDisposition(record, 'fsrsCards', 'FSRS_CARD_MAPPED', reviewCardId),
+      );
+    }
+
+    const fsrsLogPayloadByFingerprint = new Map<string, MigrationIsolatedFsrsLog>();
+    for (const { record, value } of sourceValueRecords(source, 'fsrsLogs')) {
+      const logValue = isRecord(value) ? value : null;
+      const rawKey = logValue ? readField(logValue, 'key', 'cardKey', 'rawKey') : null;
+      const relation = resolveRelationFromValue(logValue, rawKey);
+      const entry = resolveWordRelation(wordEntryByRawId, wordEntriesByHeadword, relation);
+      if (!entry || !entry.targetWordId || !relation.language || !relation.dimension || !logValue) {
+        dispositionRecords.push(
+          createQuarantineDisposition(record, 'FSRS_LOG_RELATION_INVALID', 'RELATION_UNRESOLVED'),
+        );
+        continue;
+      }
+      const relationId = relationKey(relation.language, entry.targetWordId, relation.dimension);
+      const card = fsrsCardPayloadByRelation.get(relationId);
+      const rating = readNumberField(logValue, 'rating');
+      const reviewedAt = readDateField(logValue, 'review', 'reviewedAt');
+      const dueAfter = readDateField(logValue, 'due', 'dueAfter');
+      if (
+        !card ||
+        !rating.present ||
+        !Number.isInteger(rating.value) ||
+        rating.value < 1 ||
+        rating.value > 4 ||
+        !reviewedAt.present ||
+        !reviewedAt.valid ||
+        !reviewedAt.value ||
+        (dueAfter.present && !dueAfter.valid)
+      ) {
+        dispositionRecords.push(
+          createQuarantineDisposition(
+            record,
+            !card ? 'FSRS_LOG_CARD_MISSING' : 'FSRS_LOG_INVALID',
+            !card ? 'RELATION_UNRESOLVED' : 'CORRUPT_V1_RECORD',
+          ),
+        );
+        continue;
+      }
+      const sourceName = readField(logValue, 'source') ?? 'unknown';
+      const normalizedRawKey =
+        relation.rawKey ?? `${relation.language}:${relation.rawWordId}:${relation.dimension}`;
+      const fingerprint = await this.dependencies.digest.sha256(
+        JSON.stringify({
+          schemaVersion: 1,
+          targetWordId: entry.targetWordId,
+          language: relation.language,
+          dimension: relation.dimension,
+          rating: rating.value,
+          reviewedAt: reviewedAt.value,
+          dueAfter: dueAfter.value,
+          source: sourceName,
+        }),
+      );
+      assertDigest(fingerprint, 'review log ID');
+      const existing = fsrsLogPayloadByFingerprint.get(fingerprint);
+      if (existing) {
+        fsrsLogPayloadByFingerprint.set(
+          fingerprint,
+          MigrationIsolatedFsrsLogSchema.parse({
+            ...existing,
+            sourceRefs: [...new Set([...existing.sourceRefs, record.sourceRef])].sort(
+              compareStrings,
+            ),
+            sourceRecordDigestsSha256: [
+              ...new Set([...existing.sourceRecordDigestsSha256, record.sourceRecordDigestSha256]),
+            ].sort(compareStrings),
+            serializedValues: [
+              ...new Set([...existing.serializedValues, record.serializedValue]),
+            ].sort(compareStrings),
+          }),
+        );
+        dispositionRecords.push(
+          createDedupedDisposition(
+            record,
+            'fsrsLogs',
+            'DUPLICATE_FSRS_LOG',
+            existing.reviewLogId,
+            existing.sourceRefs[0],
+          ),
+        );
+        continue;
+      }
+      const reviewLogId = `review-log-v1:${fingerprint.slice(0, 24)}`;
+      const payload = MigrationIsolatedFsrsLogSchema.parse({
+        schemaVersion: 1,
+        reviewLogId,
+        reviewCardId: card.reviewCardId,
+        targetWordId: entry.targetWordId,
+        language: relation.language,
+        dimension: relation.dimension,
+        rawKey: normalizedRawKey,
+        source: sourceName,
+        rating: rating.value,
+        reviewedAt: reviewedAt.value,
+        dueAfter: dueAfter.value,
+        sourceRefs: [record.sourceRef],
+        sourceRecordDigestsSha256: [record.sourceRecordDigestSha256],
+        serializedValues: [record.serializedValue],
+      });
+      fsrsLogPayloadByFingerprint.set(fingerprint, payload);
+      dispositionRecords.push(
+        createMigratedDisposition(record, 'fsrsLogs', 'FSRS_LOG_MAPPED', reviewLogId),
+      );
+    }
+
+    const handledSourceRefs = new Set(dispositionRecords.map((record) => record.sourceRef));
+    const unsupportedBusinessDomains = new Set<MigrationLegacySourceRecord['domain']>([
+      'groupProgress',
+      'wrongBook',
+      'aiConversations',
+      'aiQuizHistory',
+      'recycleBin',
+    ]);
+    for (const record of source.records) {
+      if (
+        handledSourceRefs.has(record.sourceRef) ||
+        !unsupportedBusinessDomains.has(record.domain)
+      ) {
+        continue;
+      }
+      dispositionRecords.push(
+        createQuarantineDisposition(
+          record,
+          'DOMAIN_NOT_IN_SLICE',
+          'DOMAIN_NOT_IMPLEMENTED',
+          'warning',
+        ),
+      );
+    }
+
     const dispositionReport = await new MigrationDispositionReportUseCase({
       digest: this.dependencies.digest,
     }).create({
@@ -623,6 +1252,18 @@ export class MigrationDomainSliceUseCase {
       ),
       favorites: [...favoritePayloadByTargetId.values()].sort((left, right) =>
         compareStrings(left.targetWordId, right.targetWordId),
+      ),
+      mastery: [...masteryPayloadByTargetId.values()].sort((left, right) =>
+        compareStrings(left.targetWordId, right.targetWordId),
+      ),
+      studyRecords: [...studyPayloadByFingerprint.values()].sort((left, right) =>
+        compareStrings(left.eventId, right.eventId),
+      ),
+      fsrsCards: [...fsrsCardPayloadByRelation.values()].sort((left, right) =>
+        compareStrings(left.reviewCardId, right.reviewCardId),
+      ),
+      fsrsLogs: [...fsrsLogPayloadByFingerprint.values()].sort((left, right) =>
+        compareStrings(left.reviewLogId, right.reviewLogId),
       ),
       writesPerformed: false as const,
       activePointerUpdated: false as const,

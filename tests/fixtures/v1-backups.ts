@@ -146,3 +146,116 @@ export function createCoreDomainSliceV1Backup(includeOrphanOverride = true) {
     preferences: { theme: 'dark' },
   };
 }
+
+/**
+ * Synthetic field-shape fixture for the second migration transformer slice.
+ * It exercises mastery, date-only study events, one valid legacy FSRS card,
+ * a duplicate review log, and an orphan review log that must be quarantined.
+ */
+export function createMasteryStudyFsrsDomainSliceV1Backup() {
+  return {
+    format: 'zhongri-backup',
+    backupVersion: 10,
+    schemaVersion: 8,
+    appName: '钟日',
+    kind: 'manual',
+    exportDate: '2026-07-23T10:00:00.000Z',
+    data: {
+      db: [
+        {
+          _id: 'builtin-ja-core-00005',
+          lang: 'ja',
+          word: '元気',
+          kana: 'げんき',
+          meaning: '精神充沛，健康。',
+        },
+      ],
+      userWords: [],
+      wordOverrides: {},
+      wordStorageVersion: 1,
+      folders: [],
+      folderLangs: {},
+      stars: [],
+      records: [
+        { date: '2026-07-23', type: 'daily_punch' },
+        { date: '2026-07-23', type: 'pendulum', group: '日语基础' },
+        { date: '2026-07-23', type: 'daily_punch' },
+        { date: 'not-a-date', type: 'future_type' },
+      ],
+      mtGroupClears: {},
+      mtWordClears: {
+        'ja:builtin-ja-core-00005': {
+          kanji: true,
+          kana: true,
+          meaning: false,
+          needsReview: true,
+        },
+      },
+      aiConversations: [],
+      fsrsCards: {
+        'ja:builtin-ja-core-00005:meaning': {
+          wordId: 'builtin-ja-core-00005',
+          due: '2026-07-25T00:00:00.000Z',
+          stability: 2.3,
+          difficulty: 4.2,
+          elapsed_days: 1,
+          scheduled_days: 2,
+          reps: 3,
+          lapses: 0,
+          learning_steps: 0,
+          state: 2,
+          last_review: '2026-07-24T00:00:00.000Z',
+        },
+        'ja:missing-word:meaning': {
+          wordId: 'missing-word',
+          due: '2026-07-25T00:00:00.000Z',
+          stability: 2.3,
+          difficulty: 4.2,
+          elapsed_days: 1,
+          scheduled_days: 2,
+          reps: 3,
+          lapses: 0,
+          learning_steps: 0,
+          state: 2,
+          last_review: '2026-07-24T00:00:00.000Z',
+        },
+      },
+      fsrsReviewLogs: [
+        {
+          key: 'ja:builtin-ja-core-00005:meaning',
+          wordId: 'builtin-ja-core-00005',
+          lang: 'ja',
+          dimension: 'meaning',
+          source: 'study',
+          rating: 3,
+          review: '2026-07-24T00:00:00.000Z',
+          due: '2026-07-25T00:00:00.000Z',
+        },
+        {
+          key: 'ja:builtin-ja-core-00005:meaning',
+          wordId: 'builtin-ja-core-00005',
+          lang: 'ja',
+          dimension: 'meaning',
+          source: 'study',
+          rating: 3,
+          review: '2026-07-24T00:00:00.000Z',
+          due: '2026-07-25T00:00:00.000Z',
+        },
+        {
+          key: 'ja:missing-word:meaning',
+          wordId: 'missing-word',
+          lang: 'ja',
+          dimension: 'meaning',
+          source: 'study',
+          rating: 3,
+          review: '2026-07-24T00:00:00.000Z',
+          due: '2026-07-25T00:00:00.000Z',
+        },
+      ],
+      wrongBook: {},
+      aiQuizHistory: [],
+      recycleBin: [],
+    },
+    preferences: { theme: 'dark' },
+  };
+}

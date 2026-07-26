@@ -20,6 +20,38 @@ const WordIdSchema = z
 
 const SourceDigestListSchema = z.array(Sha256Schema).min(1).max(100);
 const SourceRefListSchema = z.array(SourceRefSchema).min(1).max(100);
+const SerializedValueListSchema = z
+  .array(
+    z
+      .string()
+      .min(1)
+      .max(30 * 1024 * 1024),
+  )
+  .min(1)
+  .max(100);
+
+const MigrationMasteryMissingFieldSchema = z.enum([
+  'spelling',
+  'reading',
+  'listening',
+  'meaning',
+  'needsReview',
+]);
+
+const MigrationStudyEventTypeSchema = z.enum(['DAILY_PUNCH', 'GROUP_COMPLETED', 'UNKNOWN']);
+const MigrationStudyQualityFlagSchema = z.enum(['DATE_MISSING', 'DATE_INVALID', 'UNKNOWN_TYPE']);
+
+const MigrationReviewDimensionSchema = z.enum(['spelling', 'reading', 'listening', 'meaning']);
+const MigrationFsrsQualityFlagSchema = z.enum([
+  'ELAPSED_DAYS_DEFAULTED',
+  'SCHEDULED_DAYS_DEFAULTED',
+  'REPS_DEFAULTED',
+  'LAPSES_DEFAULTED',
+  'LEARNING_STEPS_DEFAULTED',
+  'STATE_DEFAULTED',
+  'LAST_REVIEW_MISSING',
+  'RAW_KEY_REBUILT',
+]);
 
 export const MigrationIsolatedWordSchema = z
   .object({
@@ -69,6 +101,90 @@ export const MigrationIsolatedFavoriteSchema = z
   })
   .strict();
 
+export const MigrationIsolatedMasterySchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    targetWordId: WordIdSchema,
+    language: LanguageSchema,
+    sourceRefs: SourceRefListSchema,
+    sourceRecordDigestsSha256: SourceDigestListSchema,
+    dimensions: z
+      .object({
+        spelling: z.boolean(),
+        reading: z.boolean(),
+        listening: z.boolean(),
+        meaning: z.boolean(),
+      })
+      .strict(),
+    needsReview: z.boolean(),
+    missingFields: z.array(MigrationMasteryMissingFieldSchema).max(5),
+    serializedValues: SerializedValueListSchema,
+  })
+  .strict();
+
+export const MigrationIsolatedStudyRecordSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    eventId: IdentifierSchema,
+    eventType: MigrationStudyEventTypeSchema,
+    dateOnly: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .nullable(),
+    rawDate: z.string().max(200).nullable(),
+    groupLabel: z.string().max(200).nullable(),
+    sourceRefs: SourceRefListSchema,
+    sourceRecordDigestsSha256: SourceDigestListSchema,
+    qualityFlags: z.array(MigrationStudyQualityFlagSchema).max(3),
+    serializedValues: SerializedValueListSchema,
+  })
+  .strict();
+
+export const MigrationIsolatedFsrsCardSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    reviewCardId: IdentifierSchema,
+    targetWordId: WordIdSchema,
+    language: LanguageSchema,
+    dimension: MigrationReviewDimensionSchema,
+    rawKey: SourceRefSchema,
+    due: z.string().datetime({ offset: true }),
+    stability: z.number().finite().nonnegative(),
+    difficulty: z.number().finite(),
+    elapsedDays: z.number().finite().nonnegative(),
+    scheduledDays: z.number().finite().nonnegative(),
+    reps: z.number().int().nonnegative(),
+    lapses: z.number().int().nonnegative(),
+    learningSteps: z.number().int().nonnegative(),
+    state: z.number().int().nonnegative(),
+    lastReviewedAt: z.string().datetime({ offset: true }).nullable(),
+    algorithm: z.literal('ts-fsrs@v1-adapter'),
+    sourceRefs: SourceRefListSchema,
+    sourceRecordDigestsSha256: SourceDigestListSchema,
+    qualityFlags: z.array(MigrationFsrsQualityFlagSchema).max(8),
+    serializedValues: SerializedValueListSchema,
+  })
+  .strict();
+
+export const MigrationIsolatedFsrsLogSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    reviewLogId: IdentifierSchema,
+    reviewCardId: IdentifierSchema,
+    targetWordId: WordIdSchema,
+    language: LanguageSchema,
+    dimension: MigrationReviewDimensionSchema,
+    rawKey: SourceRefSchema,
+    source: z.string().max(100),
+    rating: z.number().int().min(1).max(4),
+    reviewedAt: z.string().datetime({ offset: true }),
+    dueAfter: z.string().datetime({ offset: true }).nullable(),
+    sourceRefs: SourceRefListSchema,
+    sourceRecordDigestsSha256: SourceDigestListSchema,
+    serializedValues: SerializedValueListSchema,
+  })
+  .strict();
+
 export const MigrationIsolatedPayloadSchema = z
   .object({
     schemaVersion: ContractVersionSchema,
@@ -83,6 +199,10 @@ export const MigrationIsolatedPayloadSchema = z
     overrides: z.array(MigrationIsolatedOverrideSchema).max(100_000),
     folders: z.array(MigrationIsolatedFolderSchema).max(100_000),
     favorites: z.array(MigrationIsolatedFavoriteSchema).max(100_000),
+    mastery: z.array(MigrationIsolatedMasterySchema).max(100_000).default([]),
+    studyRecords: z.array(MigrationIsolatedStudyRecordSchema).max(100_000).default([]),
+    fsrsCards: z.array(MigrationIsolatedFsrsCardSchema).max(100_000).default([]),
+    fsrsLogs: z.array(MigrationIsolatedFsrsLogSchema).max(100_000).default([]),
     writesPerformed: z.literal(false),
     activePointerUpdated: z.literal(false),
     payloadDigestSha256: Sha256Schema,
@@ -119,6 +239,54 @@ export const MigrationIsolatedPayloadSchema = z
         });
       }
       folderIds.add(folder.folderId);
+    }
+
+    const masteryWordIds = new Set<string>();
+    for (const [index, mastery] of payload.mastery.entries()) {
+      if (masteryWordIds.has(mastery.targetWordId)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['mastery', index, 'targetWordId'],
+          message: 'Isolated mastery payloads must contain one merged target per word ID',
+        });
+      }
+      masteryWordIds.add(mastery.targetWordId);
+    }
+
+    const reviewCardIds = new Set<string>();
+    for (const [index, card] of payload.fsrsCards.entries()) {
+      if (reviewCardIds.has(card.reviewCardId)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['fsrsCards', index, 'reviewCardId'],
+          message: 'Isolated FSRS card payloads must contain one target per card ID',
+        });
+      }
+      reviewCardIds.add(card.reviewCardId);
+    }
+
+    const studyEventIds = new Set<string>();
+    for (const [index, event] of payload.studyRecords.entries()) {
+      if (studyEventIds.has(event.eventId)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['studyRecords', index, 'eventId'],
+          message: 'Isolated study event payloads must contain one target per event ID',
+        });
+      }
+      studyEventIds.add(event.eventId);
+    }
+
+    const reviewLogIds = new Set<string>();
+    for (const [index, log] of payload.fsrsLogs.entries()) {
+      if (reviewLogIds.has(log.reviewLogId)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['fsrsLogs', index, 'reviewLogId'],
+          message: 'Isolated FSRS log payloads must contain one target per log ID',
+        });
+      }
+      reviewLogIds.add(log.reviewLogId);
     }
   });
 
@@ -205,5 +373,9 @@ export type MigrationIsolatedWord = z.infer<typeof MigrationIsolatedWordSchema>;
 export type MigrationIsolatedOverride = z.infer<typeof MigrationIsolatedOverrideSchema>;
 export type MigrationIsolatedFolder = z.infer<typeof MigrationIsolatedFolderSchema>;
 export type MigrationIsolatedFavorite = z.infer<typeof MigrationIsolatedFavoriteSchema>;
+export type MigrationIsolatedMastery = z.infer<typeof MigrationIsolatedMasterySchema>;
+export type MigrationIsolatedStudyRecord = z.infer<typeof MigrationIsolatedStudyRecordSchema>;
+export type MigrationIsolatedFsrsCard = z.infer<typeof MigrationIsolatedFsrsCardSchema>;
+export type MigrationIsolatedFsrsLog = z.infer<typeof MigrationIsolatedFsrsLogSchema>;
 export type MigrationIsolatedPayload = z.infer<typeof MigrationIsolatedPayloadSchema>;
 export type MigrationDomainSliceResult = z.infer<typeof MigrationDomainSliceResultSchema>;

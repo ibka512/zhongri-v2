@@ -68,6 +68,13 @@ IndexedDB 优先/localStorage 回退语义，输出 `sourceOrigin`、设备 sour
 UI 新增独立的当前设备暂存入口，仍只执行 stage。实现决策见
 [ADR-021](../decisions/ADR-021-device-source-reader-wiring.md)。
 
+第十一小步新增 Mastery、StudyRecord、FSRS 卡和 FSRS 日志的 isolated transformer：关系只复用
+冻结的 identity map；掌握状态 OR 合并并保留缺失标记，学习记录按日期粒度映射，FSRS 卡保存
+`ts-fsrs@v1-adapter` 历史状态，日志必须关联有效隔离卡。重复/坏关系进入统一 disposition，payload
+仍不写 active dataset、不重算 FSRS、不伪造 LearningEvent。实现决策见
+[ADR-022](../decisions/ADR-022-mastery-study-fsrs-isolated-transformer.md)，契约说明见
+[v1 核心域纵向转换契约](../content/MIGRATION_DOMAIN_SLICE.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
@@ -75,9 +82,9 @@ UI 新增独立的当前设备暂存入口，仍只执行 stage。实现决策�
 1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的
    synthetic 方案；当前设备 snapshot → LegacyReader 的入口和优先级已接通，但仍需真实 fixture
    复核字段覆盖。
-2. 将第十小步 orchestration 接入真实设备来源和 UI/CLI 调用，再在真实/批准的 fixture 上扩展
-   Mastery/StudyRecord/FSRS 等逐域转换。
-3. 将处置报告接入 rawArchive/quarantine payload 的实际隔离存储。
+2. 用真实/批准的 fixture 复核第十、十一小步的设备来源、字段覆盖和分歧报告。
+3. 将处置报告接入 rawArchive/quarantine payload 的实际隔离存储，并继续实现 groupProgress、
+   wrongBook、AI、recycleBin 和 preferences 等剩余域。
 4. V01–V25 自动化验证、固定 sourceFingerprint 幂等复跑和 active pointer 原子提交/回滚。
 
 ## 前置条件
