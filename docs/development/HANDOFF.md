@@ -7,7 +7,7 @@
 - 稳定基线：`main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27 和交接 PR #28）
 - 当前交接分支：`codex/task-015-source-snapshot`
 - 稳定基线提交：`c6f46c6`（PR #28 合并后的 main；完整资产实现提交为 `98781ca`）
-- 当前实现提交：待本分支提交（基于 `c6f46c6`）
+- 当前实现提交：`60e3c5a`（脱敏 v1 source snapshot contract）
 - 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层
 - 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过；本分支新增脱敏 source snapshot contract 与字段形状 fixture；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，浏览器 source adapter、真实脱敏 fixture 与逐域迁移仍待完成
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
