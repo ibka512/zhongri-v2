@@ -151,29 +151,26 @@ domain slice，`verifyStagedV1Migration`、`activateStagedV1Migration` 与
 不代表真实用户字段覆盖或生产迁移完成。实现决策见
 [ADR-036](../decisions/ADR-036-approved-synthetic-migration-acceptance.md)。
 
+第二十六步完成负责人真实数据手工验收：负责人在 GitHub Pages 预览站使用真实 v1 数据执行预检、
+安全暂存和实际迁移测试，并反馈没有发现问题。原始备份、私人学习内容和任何 API Key 不进入仓库；
+本步骤作为产品使用验收记录，真实 report digest 如需审计由负责人本地保留。实现决策见
+[ADR-037](../decisions/ADR-037-real-v1-manual-acceptance.md)。Task 015 迁移阻塞关闭。
+
 ## 后续范围
 
-在真实 v1 backup fixture 到位后，继续实现：
+Task 015 迁移验收已关闭，后续转入 Phase 1 产品功能收尾：
 
-1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的
-   synthetic 方案；当前设备 snapshot → LegacyReader 的入口和优先级已接通，但仍需真实 fixture
-   复核字段覆盖。
-2. 用真实/批准的 fixture 复核第十、十一小步的设备来源、字段覆盖和分歧报告。
-3. 在真实 fixture 上继续复核字段覆盖，使用固定抽样与失败注入入口补齐 V02/V23/V25 的真实证据；
-   独立 archive 记录只读、不自动清理，直到保留周期与用户确认策略明确。
-4. 已完成 activation gate 的代码接线；在真实 fixture 上产生 V01–V25 报告后，使用该 gate 完成
-   active pointer 原子提交/回滚验收。
-5. 用真实 fixture 运行持久化 staged 重建验证入口，记录 report digest、payload digest、V23/V25
-   证据摘要和激活/回滚结果；未满足门禁时只保留 staging，不更新 active pointer。
+1. 定义并授权首次设置/数据页、五十音/TTS、英语/IPA 等产品切片。
+2. 完成 Phase 1 双语核心闭环验收；AI Gateway（Issue #20）仍需等 Phase 1 完整验收后再开始。
 
 ## 前置条件
 
 - 已固定的 9,828 canonical asset source、来源 manifest 和 SHA-256 清单已进入仓库。
 - canonical idMap 和 Word/Override/Folder/Favorite isolated payload 应用层契约及确定性算法已进入
   仓库，但尚未接入真实 backup fixture 或活跃迁移写入。
-- 脱敏但字段形状真实的现代 v5+/v10 与 legacy v4 backup fixture，或负责人明确批准的
-  synthetic fixture 方案；当前仓库的 synthetic fixture 只用于 snapshot 算法测试。
-- 真实输入到位前，不得把 20 条 N5 日语词条描述为完整 corpus，不得激活迁移业务域。
+- synthetic fixture、完整 canonical corpus 和负责人真实数据手工验收记录已进入交接；原始真实备份不
+  进入仓库。
+- 真实数据手工验收已通过，但后续任何真实数据操作仍必须遵守脱敏、不入库和不自动同步边界。
 
 ## 明确不包含
 

@@ -100,15 +100,15 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **Task 015：v1 迁移逐域转换与 canonical 身份层**（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）；完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，Task 013 已完成代码实现与本地浏览器断网复测，GOV-001 已合并。
+当前任务是 **Task 015：v1 迁移逐域转换与 canonical 身份层**（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）；完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，Task 013 已完成代码实现与本地浏览器断网复测，GOV-001 已合并，负责人已使用真实 v1 数据在 GitHub Pages 完成手工验收并反馈无问题。
 
-当前 Task 已完成 canonical corpus Schema、固定 9,828/5,906/3,922 目标、真实资产导入、fail-closed 完整性验证、脱敏 source snapshot contract、只读浏览器 source adapter、source-aware staging、确定性 canonical idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、Word/Override/Folder/Favorite/Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/ReminderSetting/FSRS isolated 纵向转换、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23 固定抽样证据入口、V25 失败注入演练入口和负责人批准 synthetic fixture 的端到端 activation/rollback 验收；下一步仍是取得可审计真实 backup fixture 复核字段覆盖并用真实报告决定激活/回滚，不把 synthetic 结果描述为生产迁移，不修改 FSRS 参数或接入 AI。
+当前 Task 已完成 canonical corpus Schema、固定 9,828/5,906/3,922 目标、真实资产导入、fail-closed 完整性验证、脱敏 source snapshot contract、只读浏览器 source adapter、source-aware staging、确定性 canonical idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、Word/Override/Folder/Favorite/Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/ReminderSetting/FSRS isolated 纵向转换、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23 固定抽样证据入口、V25 失败注入演练入口、负责人批准 synthetic fixture 的端到端 activation/rollback 验收和负责人真实 v1 数据手工验收；真实备份不入库，下一步转入 Phase 1 产品功能收尾，不修改 FSRS 参数或接入 AI。
 
 Task 013 的实现与决策见 [ADR-011](./decisions/ADR-011-replayable-profile-fsrs.md)，其验收证据见 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
 
 ## 下一步路线
 
-1. 用真实脱敏 fixture 复核设备来源与 Mastery/StudyRecord/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/ReminderSetting/FSRS 字段覆盖，运行持久化 staged 重建验证入口，用固定抽样与失败注入入口补齐真实 V02/V23/V25 证据，再通过已接入的 V01–V25 activation gate 决定真实激活/回滚；synthetic acceptance 已完成但不替代真实验收。
+1. 将负责人真实 v1 数据手工验收作为不入库的产品验收记录，保留真实备份和必要报告在负责人本地。
 2. 为首次设置/数据页、五十音/TTS 和英语/IPA 切片分别定义并授权 Task。
 3. 完成 Phase 1 的双语核心闭环验收，之后再接入 AI Gateway（Issue #20）。
 

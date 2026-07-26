@@ -8,8 +8,8 @@
 - 当前交接分支：`main`
 - 稳定基线提交：`df268bb`（已推送到远端 main）
 - 当前实现提交：`df268bb`（包含负责人批准 synthetic fixture 后的完整 V01–V25、activation commit、rollback 回归及本交接记录；已推送到远端 main）
-- 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层
-- 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排、source-aware staging、确定性 canonical/user idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、Word/Override/Folder/Favorite/Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/ReminderSetting/FSRS isolated transformer、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23 固定抽样证据入口、V25 失败注入演练入口和负责人批准 synthetic fixture 的端到端 activation/rollback 验收已完成；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，真实脱敏 fixture 字段覆盖复核、真实 V02/V23/V25 证据和真实报告驱动的激活/回滚仍待完成
+- 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层（负责人真实数据验收已通过，准备转入 Phase 1 产品收尾）
+- 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排、source-aware staging、确定性 canonical/user idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、Word/Override/Folder/Favorite/Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/ReminderSetting/FSRS isolated transformer、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23 固定抽样证据入口、V25 失败注入演练入口、负责人批准 synthetic fixture 的端到端 activation/rollback 验收和负责人真实 v1 数据手工验收已完成；真实备份不入库，下一步转入 Phase 1 产品功能收尾
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
 - 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；`df268bb` 已通过 `git push origin main` 推送到远端 main。当前 Codex 工作区的 `gh auth status` 仍显示 token invalid，但 Git credential helper 已完成本次推送；后续创建 PR 或执行 gh API 前仍需重新确认 CLI 凭据。
 
@@ -103,8 +103,8 @@
 ## 仍未完成
 
 - Phase 1 双语、迁移和产品页面仍未完成。
-- 真实 backup fixture、设备来源与本轮学习事实字段覆盖复核、V02/V23/V25 真实证据、真实报告驱动的激活/回滚
-  验收仍未完成；activation gate 与证据生成代码已经完成，但尚未授权生产数据激活。
+- 负责人已使用真实 v1 数据完成手工测试并反馈无问题；原始备份和真实内容不入库，真实 report digest
+  如需审计由负责人本地保留。仓库仍不把该手工结果伪装成可公开复现的真实 fixture。
 - 首次设置、内容中心、设置与数据安全页。
 - 日语五十音/TTS、英语/IPA 双语纵向切片。
 - Phase 1 综合验收。
@@ -132,12 +132,9 @@ npm run verify
 
 ## 下一项工作
 
-1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture；负责人批准的 synthetic 回归已经完成，不再作为真实迁移替代品。
-2. 用 `verifyStagedV1Migration` 从持久化数据集重建真实 V01–V25 报告；获取真实 fixture 后，使用 `MigrationFixedSamplingUseCase` 生成 V23 固定抽样证据，使用
-   `MigrationRollbackDrillUseCase` 生成 V25 三阶段失败注入证据，并复核 V02 双语 corpus。
-3. 用真实报告调用 `MigrationActivationUseCase`，完成 active pointer 原子提交/回滚验收；archive 仍只读、
-   隔离，不自动清理。
-4. 迁移 Task 通过后再继续首次设置、内容和双语基础切片；Phase 1 验收完成后才进入 AI Gateway（Issue #20）。
+1. 负责人保留真实迁移报告或必要审计记录在本地，仓库不接收原始备份。
+2. 定义并授权首次设置/数据页、五十音/TTS、英语/IPA 等 Phase 1 产品切片。
+3. 完成 Phase 1 双语核心闭环验收后，再进入 AI Gateway（Issue #20）。
 
 ## 交接规则
 
