@@ -39,12 +39,20 @@ candidate、跨语言冲突和关系/override quarantine；输出按 `sourceRef`
 [ADR-017](../decisions/ADR-017-migration-disposition-and-quarantine-report.md)，契约说明见
 [迁移处置与隔离报告契约](../content/MIGRATION_DISPOSITION_REPORT.md)。
 
+第七小步新增 `MigrationLegacySourceSchema` 与 `MigrationLegacySourceReaderUseCase`：读取 staging
+中的脱敏现代 v5+/v10 或 legacy v4 JSON，按固定 sourceRef 枚举规范化但未关联的 legacy records，
+保存 `wordStorageVersion` 元数据、未知字段、逐条 digest 和 reader digest；类型错误进入可解释
+记录，明文 API Key、坏 JSON、过深嵌套和摘要失败 fail-closed。该 reader 仍是只读应用层输出，不
+读取浏览器 API、不写 active dataset。实现决策见
+[ADR-018](../decisions/ADR-018-legacy-source-reader-contract.md)，契约说明见
+[v1 Legacy Source Reader 契约](../content/MIGRATION_LEGACY_SOURCE_READER.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
 
 1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的
-   synthetic 方案。
+   synthetic 方案，并把设备 snapshot 记录接入 LegacyReader。
 2. 将已冻结 canonical idMap 接入 Word/Override/Folder/Favorite/Mastery/StudyRecord/FSRS 等逐域转换。
 3. 将处置报告接入真实逐域 transformer，并实现 rawArchive/quarantine payload 的隔离存储。
 4. V01–V25 自动化验证、固定 sourceFingerprint 幂等复跑和 active pointer 原子提交/回滚。

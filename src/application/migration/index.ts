@@ -34,3 +34,8 @@ export {
   MigrationDispositionReportUseCase,
   type MigrationDispositionReportDependencies,
 } from './MigrationDispositionReportUseCase';
+export {
+  MigrationLegacySourceReaderInputError,
+  MigrationLegacySourceReaderUseCase,
+  type MigrationLegacySourceReaderDependencies,
+} from './MigrationLegacySourceReaderUseCase';

@@ -21,6 +21,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-015：以只读浏览器读取器把 v1 来源快照接入 staging](./ADR-015-browser-v1-source-adapter-and-staging.md)
 - [ADR-016：以确定性 idMap 固化 canonical 与用户词身份](./ADR-016-deterministic-canonical-id-map.md)
 - [ADR-017：以统一处置报告固化迁移质量守恒与隔离边界](./ADR-017-migration-disposition-and-quarantine-report.md)
+- [ADR-018：以只读 Legacy Source Reader 固定规范化来源记录边界](./ADR-018-legacy-source-reader-contract.md)
 
 ## 未来
 
