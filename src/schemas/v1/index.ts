@@ -118,6 +118,23 @@ export {
 } from './MigrationIdentityMapSchema';
 
 export {
+  MigrationDispositionArchiveKindSchema,
+  MigrationDispositionEntrySchema,
+  MigrationDispositionInputRecordSchema,
+  MigrationDispositionInputSchema,
+  MigrationDispositionOutcomeSchema,
+  MigrationDispositionReportSchema,
+  MigrationDispositionSeveritySchema,
+  type MigrationDispositionArchiveKind,
+  type MigrationDispositionEntry,
+  type MigrationDispositionInput,
+  type MigrationDispositionInputRecord,
+  type MigrationDispositionOutcome,
+  type MigrationDispositionReport,
+  type MigrationDispositionSeverity,
+} from './MigrationDispositionSchema';
+
+export {
   CanonicalCorpusAcceptanceTargetSchema,
   CanonicalCorpusManifestSchema,
   CanonicalManifestSchema,

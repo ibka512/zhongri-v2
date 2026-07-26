@@ -87,8 +87,8 @@ Dexie 只存在于 Infrastructure。Domain、页面和 UI 组件不得 import De
 7. 学习事件与会话表不参与迁移事务；staging 不代表业务域已完成迁移。
 
 当前仍不实现 Word/Override 的逐域转换、关系域转换、ReviewState 激活、FSRS 调度迁移或 AI；
-canonical corpus、canonical idMap 契约和只读 source-aware staging 已完成，但 idMap 仍只作为
-隔离应用层结果，未写入 active dataset。
+canonical corpus、canonical idMap、disposition/quarantine 报告契约和只读 source-aware staging
+已完成，但这些结果仍只作为隔离应用层输出，未写入 active dataset。
 
 ## Task011 canonical 内容身份
 
@@ -112,6 +112,15 @@ canonical corpus、canonical idMap 契约和只读 source-aware staging 已完�
    按 headword 推导身份。
 4. 当前不写入 Word/UserWord/Override、active pointer 或 ReviewState；真实 fixture 到位后再
    接入 transformer 和 V01–V25。
+
+## Task015 disposition / quarantine report
+
+1. `MigrationDispositionReportUseCase` 绑定 `identityMapDigestSha256`，逐条记录 migrated、deduped
+   或 quarantined 的去向、目标、原因和 sourceRecordDigest。
+2. 报告强制 `source = migrated + deduped + quarantined`，并为 rawArchive/quarantine 生成不含
+   原始 payload 的稳定引用。
+3. 报告仍不执行存储写入；真实 transformer 只能先生成报告，再把通过质量守恒的目标写入
+   migrationId 对应的 isolated staging。
 
 ## Task012 正式每日课程
 

@@ -29,3 +29,8 @@ export {
   MigrationIdentityMapUseCase,
   type MigrationIdentityMapDependencies,
 } from './MigrationIdentityMapUseCase';
+export {
+  MigrationDispositionInputError,
+  MigrationDispositionReportUseCase,
+  type MigrationDispositionReportDependencies,
+} from './MigrationDispositionReportUseCase';

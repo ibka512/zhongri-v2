@@ -33,6 +33,12 @@ candidate、跨语言冲突和关系/override quarantine；输出按 `sourceRef`
 [ADR-016](../decisions/ADR-016-deterministic-canonical-id-map.md)，契约说明见
 [v1 身份映射契约](../content/MIGRATION_IDENTITY_MAP.md)。
 
+第六小步新增 `MigrationDispositionReportSchema` 与 `MigrationDispositionReportUseCase`：统一
+`migrated / deduped / quarantined` 三类处置、rawArchive/quarantine 确定性引用、V21 数量守恒、
+输入顺序幂等和 identity-map digest 绑定；仍只输出隔离报告，不写 active dataset。实现决策见
+[ADR-017](../decisions/ADR-017-migration-disposition-and-quarantine-report.md)，契约说明见
+[迁移处置与隔离报告契约](../content/MIGRATION_DISPOSITION_REPORT.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
@@ -40,7 +46,7 @@ candidate、跨语言冲突和关系/override quarantine；输出按 `sourceRef`
 1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的
    synthetic 方案。
 2. 将已冻结 canonical idMap 接入 Word/Override/Folder/Favorite/Mastery/StudyRecord/FSRS 等逐域转换。
-3. 不可关联、损坏和重复记录的 quarantine/rawArchive 与可解释报告。
+3. 将处置报告接入真实逐域 transformer，并实现 rawArchive/quarantine payload 的隔离存储。
 4. V01–V25 自动化验证、固定 sourceFingerprint 幂等复跑和 active pointer 原子提交/回滚。
 
 ## 前置条件
