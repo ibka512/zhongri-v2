@@ -122,6 +122,17 @@ canonical corpus、canonical idMap、disposition/quarantine 报告契约和只�
 3. 报告仍不执行存储写入；真实 transformer 只能先生成报告，再把通过质量守恒的目标写入
    migrationId 对应的 isolated staging。
 
+## Task015 Legacy Source Reader
+
+1. `MigrationLegacySourceReaderUseCase` 只接收 staging 中的脱敏选定备份和既定
+   `migrationId/sourceFingerprint`，识别 modern v5+ 或 legacy v4，输出规范化但未关联的 source records。
+2. 数组/对象域按固定 `sourceRef` 枚举并生成逐条摘要；未知字段作为 `unknown` 记录，坏类型保留为
+   单条记录，避免 transformer 将损坏域误当空域；`wordStorageVersion` 只进入来源元数据。
+3. JSON key 递归稳定排序、数组顺序保留；reader digest 排除空白和 key 顺序噪声，明文
+   `deepseekApiKey`、坏 JSON、过深嵌套和 digest 失败均 fail-closed。
+4. reader 只产生隔离应用层结果，不读取浏览器 API、不写 Word/ReviewState/active pointer；设备
+   IndexedDB/localStorage 优先级仍由 ADR-015 的 source adapter 负责，接线和真实 fixture 待后续切片。
+
 ## Task012 正式每日课程
 
 1. `TodayPlan v1` 固定本地日期、canonical 内容版本和五个课程引用；同一输入生成相同计划。

@@ -135,6 +135,26 @@ export {
 } from './MigrationDispositionSchema';
 
 export {
+  MAX_MIGRATION_LEGACY_SOURCE_RECORDS,
+  MAX_MIGRATION_LEGACY_SOURCE_TEXT_LENGTH,
+  MigrationLegacySourceCountsSchema,
+  MigrationLegacySourceDomainCountSchema,
+  MigrationLegacySourceFormatSchema,
+  MigrationLegacySourceReaderInputSchema,
+  MigrationLegacySourceRecordSchema,
+  MigrationLegacySourceSchema,
+  MigrationLegacySourceValueTypeSchema,
+  migrationLegacySourceDomainOrder,
+  type MigrationLegacySource,
+  type MigrationLegacySourceCounts,
+  type MigrationLegacySourceDomainCount,
+  type MigrationLegacySourceFormat,
+  type MigrationLegacySourceReaderInput,
+  type MigrationLegacySourceRecord,
+  type MigrationLegacySourceValueType,
+} from './MigrationLegacySourceSchema';
+
+export {
   CanonicalCorpusAcceptanceTargetSchema,
   CanonicalCorpusManifestSchema,
   CanonicalManifestSchema,
