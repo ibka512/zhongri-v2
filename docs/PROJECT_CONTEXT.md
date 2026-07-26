@@ -102,13 +102,13 @@ Infrastructure Adapters
 
 当前任务是 **Task 015：v1 迁移逐域转换与 canonical 身份层**（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）；完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，Task 013 已完成代码实现与本地浏览器断网复测，GOV-001 已合并。
 
-当前 Task 已完成 canonical corpus Schema、固定 9,828/5,906/3,922 目标、真实资产导入和 fail-closed 完整性验证；下一步是 source snapshot 与逐域迁移，不伪造用户事实，不修改 FSRS 参数或接入 AI。
+当前 Task 已完成 canonical corpus Schema、固定 9,828/5,906/3,922 目标、真实资产导入、fail-closed 完整性验证和脱敏 source snapshot contract；下一步是只读 source adapter 与逐域迁移，不伪造用户事实，不修改 FSRS 参数或接入 AI。
 
 Task 013 的实现与决策见 [ADR-011](./decisions/ADR-011-replayable-profile-fsrs.md)，其验收证据见 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
 
 ## 下一步路线
 
-1. 完成 Task 015 的 source snapshot、逐域转换、V01–V25 验证和激活/回滚验收。
+1. 完成 Task 015 的 source adapter、逐域转换、V01–V25 验证和激活/回滚验收。
 2. 为首次设置/数据页、五十音/TTS 和英语/IPA 切片分别定义并授权 Task。
 3. 完成 Phase 1 的双语核心闭环验收，之后再接入 AI Gateway（Issue #20）。
 

@@ -4,14 +4,14 @@
 
 ## 当前快照
 
-- 稳定基线：`main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26 和完整资产 PR #27）
-- 当前交接分支：`main`
-- 稳定基线提交：`98781ca`（完整 jp-study canonical corpus 导入合并提交）
-- 当前实现提交：`98781ca`（PR #27；完整 jp-study canonical corpus 导入）
+- 稳定基线：`main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27 和交接 PR #28）
+- 当前交接分支：`codex/task-015-source-snapshot`
+- 稳定基线提交：`c6f46c6`（PR #28 合并后的 main；完整资产实现提交为 `98781ca`）
+- 当前实现提交：`60e3c5a`（脱敏 v1 source snapshot contract）
 - 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层
-- 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，真实脱敏 fixture 与逐域迁移仍待完成
+- 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过；本分支新增脱敏 source snapshot contract 与字段形状 fixture；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，浏览器 source adapter、真实脱敏 fixture 与逐域迁移仍待完成
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
-- 发布状态：PR #27 已通过 CI 并合并；下次发布前仍按固定启动步骤复查认证状态。
+- 发布状态：PR #27、PR #28 均已通过 CI 并合并；本轮 source snapshot 分支尚未发布，下次发布前仍按固定启动步骤复查认证状态。
 
 ## 本轮已完成
 
@@ -20,12 +20,13 @@
 - Task 015 第二小步导入 `jp-study@36c8129dfc364453198790b64687ff9105a3ecae` 的 9,828 条资产，新增动态双语 corpus Repository。
 - Task 015 新增 `CanonicalCorpusManifestSchema`、固定 9,828/5,906/3,922 验收目标和 `verify:canonical` 来源门禁。
 - `verifyCanonicalCorpusIntegrity` 覆盖双语数量、重复身份、来源摘要和 fail-closed 目标门禁。
-- 新增 ADR-012、ADR-013、Task 015 合同和状态文档；CI/本地 `npm run verify` 全部通过。
+- Task 015 第三小步新增 `MigrationSourceSnapshotSchema`、`MigrationSourceSnapshotUseCase`、ADR-014 和字段形状 synthetic fixture；敏感键只保存存在性并脱敏，稳定 sourceFingerprint 不受捕获时间或 secret 值影响。
+- 新增 ADR-012、ADR-013、ADR-014、Task 015 合同和状态文档；定向测试已通过，完整 `npm run verify` 待本轮提交前运行。
 
 ## 仍未完成
 
 - Phase 1 双语、迁移和产品页面仍未完成。
-- v1 逐域迁移、source snapshot、quarantine、V01–V25 和激活/回滚；真实 backup fixture 仍未进入仓库。
+- v1 浏览器 source adapter、快照 staging 接线、真实 backup fixture、逐域迁移、quarantine、V01–V25 和激活/回滚仍未完成。
 - 首次设置、内容中心、设置与数据安全页。
 - 日语五十音/TTS、英语/IPA 双语纵向切片。
 - Phase 1 综合验收。
@@ -53,10 +54,10 @@ npm run verify
 
 ## 下一项工作
 
-1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或明确批准 synthetic fixture 方案。
-2. 在 Task 015 内实现 source snapshot、逐域 transformer、quarantine、V01–V25 验证和激活/回滚。
-3. 迁移 Task 通过后再继续首次设置、内容和双语基础切片。
-4. Phase 1 验收完成后才进入 AI Gateway（Issue #20）。
+1. 在 Infrastructure 中实现只读浏览器 IndexedDB/localStorage source adapter，并将快照接入现有 staging。
+2. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或明确批准 synthetic fixture 方案。
+3. 在 Task 015 内实现逐域 transformer、quarantine、V01–V25 验证和激活/回滚。
+4. 迁移 Task 通过后再继续首次设置、内容和双语基础切片；Phase 1 验收完成后才进入 AI Gateway（Issue #20）。
 
 ## 交接规则
 

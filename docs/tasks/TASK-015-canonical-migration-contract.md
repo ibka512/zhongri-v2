@@ -17,11 +17,18 @@ canonical corpus：日语 5,906 条、英语 3,922 条。资产映射、许可�
 [canonical corpus 导入记录](../content/CANONICAL_CORPUS_IMPORT.md)，实现决策见
 [ADR-013](../decisions/ADR-013-full-canonical-corpus-import.md)。
 
+第三小步已建立 `MigrationSourceSnapshotSchema` 与 `MigrationSourceSnapshotUseCase`：覆盖
+18 个 v1 业务 IndexedDB 键、27 个 localStorage 键、选定备份、版本元数据和 canonical
+manifest digest；所有键值稳定排序，敏感键只保留存在性并替换为 `[REDACTED]`。合成但字段形状
+真实的 fixture 和测试见 [v1 来源快照契约](../content/MIGRATION_SOURCE_SNAPSHOT.md) 与
+[ADR-014](../decisions/ADR-014-v1-source-snapshot-contract.md)。本小步尚未接入浏览器读取器或
+staging 持久化。
+
 ## 后续范围
 
-在真实 v1 backup fixture 到位后，继续实现：
+在 source adapter 与真实 v1 backup fixture 到位后，继续实现：
 
-1. v1 IndexedDB/localStorage 语义的只读 source snapshot 与敏感字段存在性摘要。
+1. 浏览器 IndexedDB/localStorage 语义的只读 source adapter，并把 snapshot 接入 staging。
 2. canonical idMap、Word/Override/Folder/Favorite/Mastery/StudyRecord/FSRS 等逐域转换。
 3. 不可关联、损坏和重复记录的 quarantine/rawArchive 与可解释报告。
 4. V01–V25 自动化验证、固定 sourceFingerprint 幂等复跑和 active pointer 原子提交/回滚。
@@ -30,7 +37,7 @@ canonical corpus：日语 5,906 条、英语 3,922 条。资产映射、许可�
 
 - 已固定的 9,828 canonical asset source、来源 manifest 和 SHA-256 清单已进入仓库。
 - 脱敏但字段形状真实的现代 v5+/v10 与 legacy v4 backup fixture，或负责人明确批准的
-  synthetic fixture 方案。
+  synthetic fixture 方案；当前仓库的 synthetic fixture 只用于 snapshot 算法测试。
 - 真实输入到位前，不得把 20 条 N5 日语词条描述为完整 corpus，不得激活迁移业务域。
 
 ## 明确不包含

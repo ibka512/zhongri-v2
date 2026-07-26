@@ -22,7 +22,7 @@
 
 ## 当前
 
-- **Task 015：v1 迁移逐域转换与 canonical 身份层** 正在进行（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）。canonical corpus 已固定并导入 9,828 条；接下来实现 source snapshot、逐域转换和激活回滚，真实 backup fixture 到位前不宣称迁移完成。
+- **Task 015：v1 迁移逐域转换与 canonical 身份层** 正在进行（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）。canonical corpus 已固定并导入 9,828 条，source snapshot contract 与 synthetic fixture harness 已完成；接下来接入只读 source adapter、真实 backup fixture、逐域转换和激活回滚，真实输入到位前不宣称迁移完成。
 - GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并，仓库交接记录已进入 `main`。
 - Task 013 已通过 PR #19 合并；本地浏览器断网启动/恢复复测已完成，验收证据已同步到项目状态。
 - 当前切片从 LearningEvent 重放 LearnerProfile v1 与 ReviewState v1，并让 Today Plan
@@ -32,10 +32,10 @@
 
 ## 待完成
 
-| Task              | 状态   | 说明                                                                                      |
-| ----------------- | ------ | ----------------------------------------------------------------------------------------- |
-| Task 015 迁移转换 | 进行中 | canonical corpus 已完成；继续 source snapshot、逐域转换、quarantine、V01–V25 和激活回滚。 |
-| Phase 1 后续 Task | 未排期 | Task 015 通过后再定义首次设置、内容/音频与双语切片，最后考虑 Phase 2 AI。                 |
+| Task              | 状态   | 说明                                                                                                                        |
+| ----------------- | ------ | --------------------------------------------------------------------------------------------------------------------------- |
+| Task 015 迁移转换 | 进行中 | canonical corpus 与 snapshot contract 已完成；继续 source adapter、真实 fixture、逐域转换、quarantine、V01–V25 和激活回滚。 |
+| Phase 1 后续 Task | 未排期 | Task 015 通过后再定义首次设置、内容/音频与双语切片，最后考虑 Phase 2 AI。                                                   |
 
 远端 Issue #20 当前名为 Task 014（AI Gateway），但它必须等 Phase 1 验收完成后才可授权实施；治理工作不占用产品 Task 编号。
 
