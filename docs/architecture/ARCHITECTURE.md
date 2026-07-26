@@ -147,6 +147,8 @@ canonical corpus、canonical idMap、disposition/quarantine 报告契约和只�
    `writesPerformed:false`、`activePointerUpdated:false`。纵向用例不直接调用 persistence；现有
    staging dataset 通过可选 `isolatedDomainSlice` 字段保存该 payload，但该切片尚未实现
    rawArchive/quarantine 实际存储、其他迁移域、V01–V25 或 active pointer 提交。
+5. `MigrationDomainSliceStagingUseCase` 复用统一 source preparation，串联 reader、domain slice 和
+   staging；它只调用 stage，不调用 commit，重复输入由 payload digest 参与 replay 判定。
 
 ## Task012 正式每日课程
 

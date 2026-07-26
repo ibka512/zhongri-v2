@@ -3,10 +3,8 @@ import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 
 import {
-  MigrationDomainSliceUseCase,
-  MigrationLegacySourceReaderUseCase,
+  MigrationDomainSliceStagingUseCase,
   MigrationPreviewUseCase,
-  MigrationStagingUseCase,
 } from '../../src/application/migration';
 import { jaN5StarterManifest, jaN5StarterWords } from '../../src/content';
 import { StaticCanonicalContentRepository } from '../../src/infrastructure/content';
@@ -30,32 +28,28 @@ describe('MigrationStagingUseCase with a core domain slice', () => {
     });
     expect(preview.status).not.toBe('blocked');
 
-    const migrationId = `v1-v2:${preview.source.fileDigestSha256.slice(0, 24)}:spec-1`;
-    const source = await new MigrationLegacySourceReaderUseCase({ digest }).read({
-      migrationId,
-      sourceFingerprint: preview.source.fileDigestSha256,
-      sourceFileName: fileName,
-      sanitizedSourceText: text,
-    });
-    const isolatedPayload = (
-      await new MigrationDomainSliceUseCase({
-        content: new StaticCanonicalContentRepository({
-          manifest: jaN5StarterManifest,
-          words: jaN5StarterWords,
-          digest,
-        }),
-        digest,
-      }).create({ source })
-    ).isolatedPayload;
     const persistence = new InMemoryMigrationPersistence();
-    const staged = await new MigrationStagingUseCase({ digest, now, persistence }).stage({
+    const orchestrator = new MigrationDomainSliceStagingUseCase({
+      content: new StaticCanonicalContentRepository({
+        manifest: jaN5StarterManifest,
+        words: jaN5StarterWords,
+        digest,
+      }),
+      digest,
+      now,
+      persistence,
+    });
+    const staged = await orchestrator.stage({
       report: preview,
       text,
-      isolatedDomainSlice: isolatedPayload,
     });
+    const replay = await orchestrator.stage({ report: preview, text });
 
-    const stored = await persistence.findMigrationDataset(staged.run.datasetId);
-    expect(stored?.isolatedDomainSlice).toEqual(isolatedPayload);
+    const stored = await persistence.findMigrationDataset(staged.staging.run.datasetId);
+    expect(staged.staging.status).toBe('staged');
+    expect(replay.staging.status).toBe('replayed');
+    expect(stored?.isolatedDomainSlice).toEqual(staged.slice.isolatedPayload);
+    expect(staged.slice.dispositionReport.counts.quarantined).toBe(0);
     expect((await persistence.getActiveMigrationDatasetPointer()).activeDatasetId).toBeNull();
   });
 });
