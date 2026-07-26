@@ -32,6 +32,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-026：以隔离 payload 保存回收站项目](./ADR-026-recycle-bin-isolated-transformer.md)
 - [ADR-027：以隔离 payload 保存 AI 会话历史](./ADR-027-ai-conversation-isolated-transformer.md)
 - [ADR-028：以隔离 payload 保存 AI 小测历史](./ADR-028-ai-quiz-history-isolated-transformer.md)
+- [ADR-029：以隔离 payload 保存安全偏好](./ADR-029-preference-isolated-transformer.md)
 
 ## 未来
 

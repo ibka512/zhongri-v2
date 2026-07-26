@@ -17,6 +17,7 @@ import {
   MigrationIsolatedMasterySchema,
   MigrationIsolatedOverrideSchema,
   MigrationIsolatedPayloadSchema,
+  MigrationIsolatedPreferenceSchema,
   MigrationIsolatedRecycleBinItemSchema,
   MigrationIsolatedStudyRecordSchema,
   MigrationIsolatedWrongAnswerSchema,
@@ -31,6 +32,7 @@ import {
   type MigrationIsolatedAiConversationMessage,
   type MigrationIsolatedAiQuiz,
   type MigrationIsolatedAiQuizAnswer,
+  type MigrationIsolatedPreference,
   type MigrationIsolatedFavorite,
   type MigrationIsolatedFsrsCard,
   type MigrationIsolatedFsrsLog,
@@ -141,6 +143,42 @@ type AiQuizQualityFlag =
   | 'ANSWER_TARGET_UNRESOLVED'
   | 'ANSWER_TRUNCATED'
   | 'HISTORY_TRUNCATED';
+
+type PreferenceQualityFlag = 'VALUE_DEFAULTED' | 'SENSITIVE_REENTRY_REQUIRED';
+
+const MIGRATABLE_PREFERENCE_KEYS = new Set([
+  'theme',
+  'langMode',
+  'autoSpeak',
+  'hapticsEnabled',
+  'showRoots',
+  'darkBtnStyle',
+  'postponeTested',
+  'wordOrderMode',
+  'skipMastered',
+  'useRubyRender',
+  'ttsEngine',
+  'displayMode',
+  'lastCustomGroupTxt',
+  'lastCustomGroupVal',
+  'lastSelectedFolder',
+  'lastTestDisplay',
+  'lastTestRange',
+  'wrongBookEnabled',
+  'aiQuizRecord',
+  'importMode',
+  'nativeStudyReminderSettingsV2',
+  'nativeStudyReminderEnabled',
+  'nativeStudyReminderTime',
+]);
+
+function isMigratablePreferenceKey(key: string): boolean {
+  return MIGRATABLE_PREFERENCE_KEYS.has(key) || /^wordbank_(level|difficulty)_(ja|en)$/.test(key);
+}
+
+function isSensitivePreferenceKey(key: string): boolean {
+  return key.replace(/[^a-z0-9]/gi, '').toLowerCase() === 'deepseekapikey';
+}
 
 interface WrongBookCountProjection {
   value: number;
@@ -632,6 +670,16 @@ function readSourceKey(sourceRef: string, prefix: string): string | null {
   } catch {
     return null;
   }
+}
+
+function readPreferenceSourceKey(sourceRef: string): string | null {
+  for (const prefix of ['preferences', 'device.localStorage']) {
+    const key = readSourceKey(sourceRef, prefix);
+    if (key) {
+      return key;
+    }
+  }
+  return null;
 }
 
 function sourceValueRecords(
@@ -1837,6 +1885,71 @@ export class MigrationDomainSliceUseCase {
       );
     }
 
+    const preferencePayloadByKey = new Map<string, MigrationIsolatedPreference>();
+    for (const { record } of sourceValueRecords(source, 'preferences')) {
+      const preferenceKey = boundedText(readPreferenceSourceKey(record.sourceRef), 200);
+      if (!preferenceKey) {
+        dispositionRecords.push(
+          createQuarantineDisposition(
+            record,
+            'PREFERENCE_KEY_INVALID',
+            'RELATION_UNRESOLVED',
+            'warning',
+          ),
+        );
+        continue;
+      }
+      const isSensitive = isSensitivePreferenceKey(preferenceKey);
+      if (!isSensitive && !isMigratablePreferenceKey(preferenceKey)) {
+        dispositionRecords.push(
+          createQuarantineDisposition(
+            record,
+            'PREFERENCE_NOT_IN_ALLOWLIST',
+            'DOMAIN_NOT_IMPLEMENTED',
+            'warning',
+          ),
+        );
+        continue;
+      }
+      const qualityFlags: PreferenceQualityFlag[] = isSensitive
+        ? ['SENSITIVE_REENTRY_REQUIRED']
+        : [];
+      const payload = MigrationIsolatedPreferenceSchema.parse({
+        schemaVersion: 1,
+        preferenceKey,
+        valueType: record.sourceValueType,
+        serializedValue: record.serializedValue,
+        isSensitive,
+        requiresSecretReentry: isSensitive,
+        sourceRef: record.sourceRef,
+        sourceRecordDigestSha256: record.sourceRecordDigestSha256,
+        qualityFlags,
+      });
+      const existing = preferencePayloadByKey.get(preferenceKey);
+      if (existing) {
+        dispositionRecords.push(
+          createDedupedDisposition(
+            record,
+            'preferences',
+            'DUPLICATE_PREFERENCE',
+            preferenceKey,
+            existing.sourceRef,
+          ),
+        );
+        continue;
+      }
+      preferencePayloadByKey.set(preferenceKey, payload);
+      dispositionRecords.push(
+        createMigratedDisposition(
+          record,
+          'preferences',
+          'PREFERENCE_MAPPED',
+          preferenceKey,
+          isSensitive ? 'warning' : 'info',
+        ),
+      );
+    }
+
     const masteryPayloadByTargetId = new Map<string, MigrationIsolatedMastery>();
     for (const { record, value } of sourceValueRecords(source, 'mastery')) {
       const sourceKey = readSourceKey(record.sourceRef, 'data.mtWordClears');
@@ -2353,6 +2466,9 @@ export class MigrationDomainSliceUseCase {
         compareStrings(left.conversationId, right.conversationId),
       ),
       aiQuizHistory,
+      preferences: [...preferencePayloadByKey.values()].sort((left, right) =>
+        compareStrings(left.preferenceKey, right.preferenceKey),
+      ),
       fsrsCards: [...fsrsCardPayloadByRelation.values()].sort((left, right) =>
         compareStrings(left.reviewCardId, right.reviewCardId),
       ),

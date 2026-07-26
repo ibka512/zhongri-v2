@@ -84,6 +84,11 @@ const MigrationAiQuizQualityFlagSchema = z.enum([
   'HISTORY_TRUNCATED',
 ]);
 
+const MigrationPreferenceQualityFlagSchema = z.enum([
+  'VALUE_DEFAULTED',
+  'SENSITIVE_REENTRY_REQUIRED',
+]);
+
 const MigrationReviewDimensionSchema = z.enum(['spelling', 'reading', 'listening', 'meaning']);
 const MigrationFsrsQualityFlagSchema = z.enum([
   'ELAPSED_DAYS_DEFAULTED',
@@ -354,6 +359,23 @@ export const MigrationIsolatedAiQuizSchema = z
     }
   });
 
+export const MigrationIsolatedPreferenceSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    preferenceKey: z.string().trim().min(1).max(200),
+    valueType: z.enum(['null', 'string', 'boolean', 'number', 'array', 'object']),
+    serializedValue: z
+      .string()
+      .min(1)
+      .max(30 * 1024 * 1024),
+    isSensitive: z.boolean(),
+    requiresSecretReentry: z.boolean(),
+    sourceRef: SourceRefSchema,
+    sourceRecordDigestSha256: Sha256Schema,
+    qualityFlags: z.array(MigrationPreferenceQualityFlagSchema).max(2),
+  })
+  .strict();
+
 export const MigrationIsolatedFsrsCardSchema = z
   .object({
     schemaVersion: ContractVersionSchema,
@@ -435,6 +457,7 @@ export const MigrationIsolatedPayloadSchema = z
     recycleBin: z.array(MigrationIsolatedRecycleBinItemSchema).max(100_000).default([]),
     aiConversations: z.array(MigrationIsolatedAiConversationSchema).max(100_000).default([]),
     aiQuizHistory: z.array(MigrationIsolatedAiQuizSchema).max(100).default([]),
+    preferences: z.array(MigrationIsolatedPreferenceSchema).max(100_000).default([]),
     fsrsCards: z.array(MigrationIsolatedFsrsCardSchema).max(100_000).default([]),
     fsrsLogs: z.array(MigrationIsolatedFsrsLogSchema).max(100_000).default([]),
     archives: z.array(MigrationIsolatedArchiveSchema).max(200_000).default([]),
@@ -558,6 +581,18 @@ export const MigrationIsolatedPayloadSchema = z
         });
       }
       quizIds.add(quiz.quizId);
+    }
+
+    const preferenceKeys = new Set<string>();
+    for (const [index, preference] of payload.preferences.entries()) {
+      if (preferenceKeys.has(preference.preferenceKey)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['preferences', index, 'preferenceKey'],
+          message: 'Isolated preference payloads must contain one target per preference key',
+        });
+      }
+      preferenceKeys.add(preference.preferenceKey);
     }
 
     const studyEventIds = new Set<string>();
@@ -692,6 +727,7 @@ export type MigrationIsolatedAiConversationMessage = z.infer<
 export type MigrationIsolatedAiConversation = z.infer<typeof MigrationIsolatedAiConversationSchema>;
 export type MigrationIsolatedAiQuizAnswer = z.infer<typeof MigrationIsolatedAiQuizAnswerSchema>;
 export type MigrationIsolatedAiQuiz = z.infer<typeof MigrationIsolatedAiQuizSchema>;
+export type MigrationIsolatedPreference = z.infer<typeof MigrationIsolatedPreferenceSchema>;
 export type MigrationIsolatedFsrsCard = z.infer<typeof MigrationIsolatedFsrsCardSchema>;
 export type MigrationIsolatedFsrsLog = z.infer<typeof MigrationIsolatedFsrsLogSchema>;
 export type MigrationIsolatedArchive = z.infer<typeof MigrationIsolatedArchiveSchema>;

@@ -56,11 +56,11 @@ describe('MigrationDomainSliceUseCase', () => {
       user: 1,
     });
     expect(result.dispositionReport.counts).toEqual({
-      source: 8,
-      migrated: 7,
+      source: 9,
+      migrated: 8,
       deduped: 0,
       quarantined: 1,
-      rawArchived: 7,
+      rawArchived: 8,
     });
     expect(
       result.dispositionReport.entries.find((entry) => entry.outcome === 'quarantined'),
@@ -80,6 +80,15 @@ describe('MigrationDomainSliceUseCase', () => {
     expect(result.isolatedPayload.overrides).toHaveLength(1);
     expect(result.isolatedPayload.folders).toHaveLength(1);
     expect(result.isolatedPayload.favorites).toHaveLength(2);
+    expect(result.isolatedPayload.preferences).toEqual([
+      expect.objectContaining({
+        preferenceKey: 'theme',
+        valueType: 'string',
+        serializedValue: '"dark"',
+        isSensitive: false,
+        requiresSecretReentry: false,
+      }),
+    ]);
     expect(result.isolatedPayload).toMatchObject({
       datasetId: `dataset:${migrationId}`,
       writesPerformed: false,
@@ -87,6 +96,58 @@ describe('MigrationDomainSliceUseCase', () => {
       identityMapDigestSha256: result.identityMap.mapDigestSha256,
       dispositionReportDigestSha256: result.dispositionReport.reportDigestSha256,
     });
+  });
+
+  it('keeps sensitive preferences redacted and quarantines unknown keys', async () => {
+    const backup = createCoreDomainSliceV1Backup(false);
+    backup.preferences = {
+      deepseekApiKey: '[REDACTED]',
+      theme: 'dark',
+      unknownSetting: { enabled: true },
+    };
+    const reader = new MigrationLegacySourceReaderUseCase({ digest });
+    const source = await reader.read({
+      migrationId,
+      sourceFingerprint,
+      sourceFileName: 'synthetic-preference-domain-v1.json',
+      sanitizedSourceText: JSON.stringify(backup),
+    });
+    const result = await new MigrationDomainSliceUseCase({
+      content: createContentRepository(),
+      digest,
+    }).create({ source });
+
+    expect(result.isolatedPayload.preferences).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          preferenceKey: 'deepseekApiKey',
+          serializedValue: '"[REDACTED]"',
+          isSensitive: true,
+          requiresSecretReentry: true,
+          qualityFlags: ['SENSITIVE_REENTRY_REQUIRED'],
+        }),
+        expect.objectContaining({ preferenceKey: 'theme', serializedValue: '"dark"' }),
+      ]),
+    );
+    expect(result.dispositionReport.entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceRef: 'preferences["unknownSetting"]',
+          outcome: 'quarantined',
+          reasonCode: 'PREFERENCE_NOT_IN_ALLOWLIST',
+          quarantineCode: 'DOMAIN_NOT_IMPLEMENTED',
+        }),
+      ]),
+    );
+    expect(result.isolatedPayload.archives).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceRef: 'preferences["deepseekApiKey"]',
+          serializedValue: '"[REDACTED]"',
+        }),
+      ]),
+    );
+    expect(JSON.stringify(result)).not.toContain('sk-');
   });
 
   it('is deterministic across repeated runs and never calls a persistence port', async () => {
@@ -107,6 +168,7 @@ describe('MigrationDomainSliceUseCase', () => {
       'data.userWords[0]',
       'data.wordOverrides["builtin-ja-core-00005"]',
       'data.wordOverrides["missing-word-001"]',
+      'preferences["theme"]',
     ]);
   });
 
@@ -217,6 +279,9 @@ describe('MigrationDomainSliceUseCase', () => {
           }),
         ],
       }),
+    ]);
+    expect(result.isolatedPayload.preferences).toEqual([
+      expect.objectContaining({ preferenceKey: 'theme', serializedValue: '"dark"' }),
     ]);
     expect(result.isolatedPayload.fsrsCards).toHaveLength(1);
     expect(result.isolatedPayload.fsrsCards[0]).toMatchObject({
