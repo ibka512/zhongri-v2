@@ -37,8 +37,10 @@ Task 015 第三小步新增了纯 TypeScript 的 `MigrationSourceSnapshotSchema`
 `MigrationStagingDataset.sourceSnapshot` 默认为 `null`，所以既有“备份预检 → 备份 staging”
 入口保持不变。带快照的 staging 必须同时提供同一份选定备份：快照的
 `selectedBackup.rawDigestSha256` 要等于预检报告文件摘要，脱敏文本摘要也必须一致；通过后以
-快照 `sourceFingerprint` 派生 `migrationId`，并持久化完整脱敏快照。两种入口都只写隔离
-staging，不代表业务域已经迁移或可以切换 active pointer。
+快照 `sourceFingerprint` 派生 `migrationId`，并持久化完整脱敏快照。Legacy Source Reader
+只有在调用方显式选择 `sourceSelection=device` 时才把 snapshot 中的设备记录作为业务来源；
+默认仍是 `sourceSelection=backup`。两种入口都只写隔离 staging，不代表业务域已经迁移或可以
+切换 active pointer。
 
 ## 两个摘要
 

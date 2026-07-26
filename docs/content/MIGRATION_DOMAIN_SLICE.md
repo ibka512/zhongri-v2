@@ -70,6 +70,7 @@ staging 存储入口，仍不提交 active pointer，也不改变 Word、ReviewS
 
 `prepareV1MigrationSource → Legacy Source Reader → Domain Slice → MigrationStagingUseCase`
 
-它复用 staging 的来源一致性和脱敏逻辑，返回 source、slice 和 staging 三份可审计结果；重复调用
-相同输入会复用 staging dataset，payload digest 不同则不会静默复用旧结果。该入口只执行隔离
-`stage`，不执行 commit。
+它复用 staging 的来源一致性和脱敏逻辑，返回 source、slice 和 staging 三份可审计结果；调用方
+必须显式选择 `sourceSelection=backup|device`，后者把同一 source snapshot 的设备记录交给
+Legacy Source Reader，并报告 IDB/localStorage 分歧。重复调用相同输入会复用 staging dataset，
+payload digest 不同则不会静默复用旧结果。该入口只执行隔离 `stage`，不执行 commit。

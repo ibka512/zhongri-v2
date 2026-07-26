@@ -4,10 +4,12 @@ import { describe, expect, it } from 'vitest';
 
 import {
   MigrationLegacySourceReaderInputError,
+  MigrationSourceSnapshotUseCase,
   MigrationLegacySourceReaderUseCase,
 } from '../../src/application/migration';
 import { MigrationLegacySourceSchema } from '../../src/schemas/v1';
 import { createLegacyV4Backup, createModernV1Backup } from '../fixtures/v1-backups';
+import { createV1SourceSnapshotInput } from '../fixtures/v1-source-snapshot';
 
 const digest = {
   sha256: async (text: string) => createHash('sha256').update(text).digest('hex'),
@@ -118,6 +120,57 @@ describe('MigrationLegacySourceReaderUseCase', () => {
       domain: 'fsrsCards',
       count: 0,
     });
+  });
+
+  it('reads an explicit device source from the snapshot with IndexedDB priority', async () => {
+    const snapshotInput = createV1SourceSnapshotInput();
+    snapshotInput.indexedDb = snapshotInput.indexedDb.map((entry) =>
+      entry.key === 'userWords_v1'
+        ? {
+            ...entry,
+            value: [{ _id: 'device-user-1', lang: 'ja', word: '猫', kana: 'ねこ' }],
+          }
+        : entry,
+    );
+    snapshotInput.localStorage = [
+      ...snapshotInput.localStorage,
+      { key: 'starredWords', value: JSON.stringify(['different-local-copy']) },
+    ];
+    const snapshot = await new MigrationSourceSnapshotUseCase({
+      digest,
+      now: () => new Date('2026-07-24T05:00:00.000Z'),
+    }).capture(snapshotInput);
+    const source = await createReader().read({
+      migrationId,
+      sourceFingerprint: snapshot.sourceFingerprint,
+      sourceFileName: snapshot.selectedBackup?.fileName ?? 'device-source.json',
+      sanitizedSourceText: snapshot.selectedBackup?.sanitizedText ?? '{}',
+      sourceSelection: 'device',
+      sourceSnapshot: snapshot,
+    });
+
+    expect(MigrationLegacySourceSchema.safeParse(source).success).toBe(true);
+    expect(source.sourceOrigin).toBe('device');
+    expect(source.records.map((record) => record.sourceRef)).toContain(
+      'device.indexedDb["userWords_v1"][0]',
+    );
+    expect(source.records.map((record) => record.sourceRef)).toContain(
+      'device.localStorage["theme"]',
+    );
+    expect(source.records.map((record) => record.sourceRef)).toContain(
+      'device.indexedDb["myWordDB_v3"]',
+    );
+    expect(source.storageDivergences).toEqual([
+      expect.objectContaining({
+        key: 'starredWords',
+        selectedSource: 'indexedDb',
+        indexedDbSourceRef: 'device.indexedDb["starredWords"]',
+        localStorageSourceRef: 'device.localStorage["starredWords"]',
+      }),
+    ]);
+    expect(source.records).not.toContainEqual(
+      expect.objectContaining({ sourceRef: 'data.userWords[0]' }),
+    );
   });
 
   it('keeps semantic reader and record digests stable across JSON key order changes', async () => {

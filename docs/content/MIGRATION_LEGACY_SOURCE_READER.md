@@ -8,17 +8,19 @@ Task 015 第七小步新增 `MigrationLegacySourceSchema` 与
 transformer 的只读输入边界，不写入 Word、UserWord、Override、ReviewState、active pointer 或
 其他活跃业务域。
 
-当前 reader 处理的是选定的脱敏备份文本。浏览器 IndexedDB/localStorage 的只读枚举、优先级和
-快照摘要仍由既有 `BrowserV1SourceStorage`、`CaptureV1SourceSnapshotUseCase` 和
-`MigrationSourceSnapshotSchema` 负责；把这些设备来源记录合并进 LegacyReader 是后续接线，不在
-本轮宣称已完成。
+reader 现在支持两种显式来源选择：默认的 `backup` 只处理选定的脱敏备份文本；
+`device` 必须绑定同一 `sourceFingerprint` 的 `MigrationSourceSnapshot`，将只读设备快照投影为
+规范化来源后再进入 LegacyReader。浏览器 IndexedDB/localStorage 的枚举仍由既有
+`BrowserV1SourceStorage`、`CaptureV1SourceSnapshotUseCase` 和
+`MigrationSourceSnapshotSchema` 负责，LegacyReader 不直接调用浏览器 API。
 
 ## 输入与输出
 
 输入 `MigrationLegacySourceReaderInputSchema` 固定保存：
 
 - `migrationId`、`sourceFingerprint` 和来源文件名；
-- staging 中的 `sanitizedSourceText`，上限 30 MB。
+- staging 中的 `sanitizedSourceText`，上限 30 MB；
+- `sourceSelection=backup|device`；选择 `device` 时必须同时提供匹配的 `sourceSnapshot`。
 
 输出 `MigrationLegacySourceSchema` 固定保存：
 
@@ -27,6 +29,8 @@ transformer 的只读输入边界，不写入 Word、UserWord、Override、Revie
 - 每条来源记录的 `sourceRef`、迁移域、稳定 `serializedValue`、值类型和
   `sourceRecordDigestSha256`；
 - 原始脱敏文本摘要、按键排序后的规范化来源摘要、未知字段引用、各域计数和 reader 摘要。
+- `sourceOrigin` 和 `storageDivergences`：设备来源记录固定复制 v1 的 IndexedDB 优先语义，
+  同键两份规范化值不同则保留两侧 sourceRef 与摘要，并明确 `selectedSource=indexedDb`。
 
 `sourceRecordDigestSha256` 的输入包含 schema version、sourceRef、domain 和规范化记录值，因此
 相同值出现在不同来源位置时仍然拥有不同的可审计摘要。输出不携带原始文件之外的活跃目标 ID。
@@ -42,6 +46,12 @@ transformer 的只读输入边界，不写入 Word、UserWord、Override、Revie
 元数据，非法值保留为 `unknown` 记录。对象/数组域类型错误也保留为单条记录，交给后续
 transformer 处置，避免错误类型被静默当成空域。
 
+设备来源使用迁移规格中的固定键映射：`userWords_v1`、`wordOverrides_v1`、`myFolders_v3`、
+`myFolderLangs`、`starredWords`、`studyRecords`、掌握/FSRS/错题/AI/回收站键进入相应
+`data.*` 域；localStorage 专用键进入 `preferences`；`migrationSafetySnapshot_v1`、
+`preImportRestorePoint_v1` 和分离存储下的 `myWordDB_v3` 只生成 `unknown` archive-only 记录。
+同一设备同时存在分离词存储时，不把旧 `myWordDB_v3` 再作为 `words` 导入。
+
 ## 确定性与安全边界
 
 - JSON 对象递归按键排序，数组顺序保持不变；因此空白和 key 顺序变化不会改变规范化来源摘要、
@@ -55,10 +65,11 @@ transformer 处置，避免错误类型被静默当成空域。
 ## 当前不包含
 
 - 不从浏览器 API 直接读取 IndexedDB/localStorage；不绕过 source snapshot Port。
+- 不把 `backup` 与 `device` 两套业务来源自动合并；来源选择必须由调用方显式指定。
 - 不生成 canonical/user idMap，不重写关系，不执行逐域转换。
 - 不激活迁移 staging，不切换 active pointer，不重算 FSRS，也不从汇总数据伪造
   LearningEvent。
 
-测试使用仓库内字段形状 synthetic modern v10/legacy v4 fixture，覆盖域枚举、未知字段、坏类型、
-脱敏检查、key 顺序稳定性和 digest fail-closed；不代表真实用户历史，真实脱敏 fixture 到位前不
-宣称 V01–V25 已通过。
+测试使用仓库内字段形状 synthetic modern v10/legacy v4 fixture 和 synthetic source snapshot，
+覆盖域枚举、未知字段、坏类型、脱敏检查、key 顺序稳定性、设备 sourceRef、IDB/localStorage
+分歧和 digest fail-closed；不代表真实用户历史，真实脱敏 fixture 到位前不宣称 V01–V25 已通过。

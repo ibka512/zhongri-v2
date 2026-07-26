@@ -19,6 +19,7 @@ export interface MigrationPreviewPageProps {
   previewBackup: (input: PreviewV1BackupInput) => Promise<MigrationPreviewReport>;
   serializeReport: (report: MigrationPreviewReport) => string;
   stageBackup: (input: StageV1BackupInput) => Promise<StageMigrationResult>;
+  stageDeviceBackup?: (input: StageV1BackupInput) => Promise<StageMigrationResult>;
 }
 
 const DOMAIN_LABELS: Record<MigrationPreviewDomain, string> = {
@@ -87,6 +88,7 @@ export function MigrationPreviewPage({
   previewBackup,
   serializeReport,
   stageBackup,
+  stageDeviceBackup,
 }: MigrationPreviewPageProps) {
   const [report, setReport] = useState<MigrationPreviewReport | null>(null);
   const [selectedSourceText, setSelectedSourceText] = useState<string | null>(null);
@@ -94,8 +96,10 @@ export function MigrationPreviewPage({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
   const [isStaging, setIsStaging] = useState(false);
+  const [isDeviceStaging, setIsDeviceStaging] = useState(false);
   const [stagingError, setStagingError] = useState<string | null>(null);
   const [stagingResult, setStagingResult] = useState<StageMigrationResult | null>(null);
+  const [stagingSource, setStagingSource] = useState<'backup' | 'device' | null>(null);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0];
@@ -111,6 +115,7 @@ export function MigrationPreviewPage({
     setInputError(null);
     setStagingError(null);
     setStagingResult(null);
+    setStagingSource(null);
 
     if (file.size > MAX_V1_BACKUP_FILE_SIZE_BYTES) {
       setInputError('备份文件超过 25 MB。请确认选择的是钟日 JSON 备份。');
@@ -148,7 +153,10 @@ export function MigrationPreviewPage({
     setIsStaging(true);
     setStagingError(null);
     void stageBackup({ report, text: selectedSourceText })
-      .then(setStagingResult)
+      .then((result) => {
+        setStagingResult(result);
+        setStagingSource('backup');
+      })
       .catch((error: unknown) => {
         setStagingError(
           error instanceof Error ? error.message : '无法创建迁移暂存，当前数据没有被修改。',
@@ -156,6 +164,28 @@ export function MigrationPreviewPage({
       })
       .finally(() => {
         setIsStaging(false);
+      });
+  };
+
+  const createDeviceStaging = () => {
+    if (!stageDeviceBackup || !report || !selectedSourceText || report.status === 'blocked') {
+      return;
+    }
+
+    setIsDeviceStaging(true);
+    setStagingError(null);
+    void stageDeviceBackup({ report, text: selectedSourceText })
+      .then((result) => {
+        setStagingResult(result);
+        setStagingSource('device');
+      })
+      .catch((error: unknown) => {
+        setStagingError(
+          error instanceof Error ? error.message : '无法读取当前设备数据，当前数据没有被修改。',
+        );
+      })
+      .finally(() => {
+        setIsDeviceStaging(false);
       });
   };
 
@@ -230,11 +260,31 @@ export function MigrationPreviewPage({
               <div className="migration-preview__result-actions">
                 {report.status !== 'blocked' && (
                   <Button
+                    disabled={isDeviceStaging}
                     loadingLabel="正在创建安全暂存"
                     onClick={createSafeStaging}
-                    state={isStaging ? 'loading' : stagingResult ? 'success' : 'default'}
+                    state={
+                      isStaging ? 'loading' : stagingSource === 'backup' ? 'success' : 'default'
+                    }
                   >
-                    {stagingResult ? '安全暂存已创建' : '创建安全暂存'}
+                    {stagingSource === 'backup' ? '安全暂存已创建' : '创建安全暂存'}
+                  </Button>
+                )}
+                {report.status !== 'blocked' && stageDeviceBackup && (
+                  <Button
+                    disabled={isStaging}
+                    loadingLabel="正在读取当前设备"
+                    onClick={createDeviceStaging}
+                    state={
+                      isDeviceStaging
+                        ? 'loading'
+                        : stagingSource === 'device'
+                          ? 'success'
+                          : 'default'
+                    }
+                    variant="secondary"
+                  >
+                    {stagingSource === 'device' ? '设备来源暂存已创建' : '读取当前设备并创建暂存'}
                   </Button>
                 )}
                 <Button onClick={downloadReport} variant="secondary">
@@ -299,11 +349,17 @@ export function MigrationPreviewPage({
           {stagingResult && (
             <Card aria-live="polite" className="migration-preview__staging" role="status">
               <p className="migration-preview__status-label">已安全暂存</p>
-              <h2>原始备份和预检报告已进入隔离数据集</h2>
+              <h2>
+                {stagingSource === 'device'
+                  ? '当前设备来源和预检报告已进入隔离数据集'
+                  : '原始备份和预检报告已进入隔离数据集'}
+              </h2>
               <p>
                 {stagingResult.status === 'replayed'
                   ? '检测到相同备份，已复用原有暂存，没有写入重复数据。'
-                  : '已创建可验证、可恢复的 staging；当前学习会话和活跃业务数据没有改变。'}
+                  : stagingSource === 'device'
+                    ? '已按 IndexedDB 优先、localStorage 回退规则读取当前设备，并创建可验证、可恢复的 staging；活跃业务数据没有改变。'
+                    : '已创建可验证、可恢复的 staging；当前学习会话和活跃业务数据没有改变。'}
               </p>
               <dl>
                 <div>
@@ -323,7 +379,10 @@ export function MigrationPreviewPage({
                   </dd>
                 </div>
               </dl>
-              <p>这不代表词条、FSRS 或学习历史已经迁移；Task 010 不提供业务数据激活操作。</p>
+              <p>
+                这不代表词条、FSRS 或学习历史已经迁移；当前结果仍是隔离
+                staging，未提供业务数据激活操作。
+              </p>
             </Card>
           )}
 

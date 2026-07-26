@@ -111,6 +111,32 @@ describe('MigrationPreviewPage', () => {
     expect(screen.getByText(/不代表词条、FSRS 或学习历史已经迁移/)).toBeInTheDocument();
   });
 
+  it('keeps the current-device staging action explicit and separate from backup staging', async () => {
+    const harness = createHarness();
+    const stageDeviceBackup = vi.fn(harness.stageBackup);
+    render(
+      <MemoryRouter>
+        <ThemeProvider initialTheme="light">
+          <MigrationPreviewPage {...harness} stageDeviceBackup={stageDeviceBackup} />
+        </ThemeProvider>
+      </MemoryRouter>,
+    );
+
+    fireEvent.change(screen.getByLabelText('选择 v1 备份文件'), {
+      target: { files: [createBackupFile(createModernV1Backup())] },
+    });
+    await screen.findByRole('heading', { name: '备份结构通过预检' });
+    fireEvent.click(screen.getByRole('button', { name: '读取当前设备并创建暂存' }));
+
+    expect(stageDeviceBackup).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByRole('heading', {
+        name: '当前设备来源和预检报告已进入隔离数据集',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '创建安全暂存' })).toBeInTheDocument();
+  });
+
   it('rejects an oversized backup before reading its content', async () => {
     const harness = createHarness();
     const file = createBackupFile(createModernV1Backup());

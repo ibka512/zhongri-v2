@@ -9,6 +9,7 @@ import type {
   MigrationLegacySource,
   MigrationPreviewReport,
   MigrationSourceSnapshot,
+  MigrationSourceSelection,
 } from '../../schemas/v1';
 import { MigrationDomainSliceUseCase } from './MigrationDomainSliceUseCase';
 import { MigrationLegacySourceReaderUseCase } from './MigrationLegacySourceReaderUseCase';
@@ -25,6 +26,7 @@ export interface StageMigrationDomainSliceInput {
   report: MigrationPreviewReport;
   text: string;
   sourceSnapshot?: MigrationSourceSnapshot | null;
+  sourceSelection?: MigrationSourceSelection;
 }
 
 export interface StageMigrationDomainSliceResult {
@@ -50,6 +52,8 @@ export class MigrationDomainSliceStagingUseCase {
       sourceFingerprint: prepared.sourceFingerprint,
       sourceFileName: input.report.source.fileName,
       sanitizedSourceText: prepared.sanitizedSourceText,
+      sourceSelection: input.sourceSelection ?? 'backup',
+      sourceSnapshot: prepared.sourceSnapshot,
     });
     const slice = await new MigrationDomainSliceUseCase({
       content: this.dependencies.content,

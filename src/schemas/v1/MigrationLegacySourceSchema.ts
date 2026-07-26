@@ -4,6 +4,7 @@ import {
   MigrationPreviewDomainSchema,
   type MigrationPreviewDomain,
 } from './MigrationPreviewReportSchema';
+import { MigrationSourceSnapshotSchema } from './MigrationSourceSnapshotSchema';
 import { ContractVersionSchema, NonBlankStringSchema } from './shared';
 
 export const MAX_MIGRATION_LEGACY_SOURCE_TEXT_LENGTH = 30 * 1024 * 1024;
@@ -13,6 +14,19 @@ const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/);
 const MigrationIdSchema = z.string().regex(/^v1-v2:[a-f0-9]{24}:spec-1$/);
 
 export const MigrationLegacySourceFormatSchema = z.enum(['modern', 'legacy-v4']);
+export const MigrationLegacySourceOriginSchema = z.enum(['backup', 'device']);
+export const MigrationSourceSelectionSchema = z.enum(['backup', 'device']);
+
+export const MigrationStorageDivergenceSchema = z
+  .object({
+    key: NonBlankStringSchema.max(255),
+    indexedDbSourceRef: NonBlankStringSchema.max(500),
+    localStorageSourceRef: NonBlankStringSchema.max(500),
+    indexedDbValueDigestSha256: z.string().regex(/^[a-f0-9]{64}$/),
+    localStorageValueDigestSha256: z.string().regex(/^[a-f0-9]{64}$/),
+    selectedSource: z.enum(['indexedDb', 'localStorage']),
+  })
+  .strict();
 
 export const MigrationLegacySourceValueTypeSchema = z.enum([
   'null',
@@ -29,8 +43,30 @@ export const MigrationLegacySourceReaderInputSchema = z
     sourceFingerprint: Sha256Schema,
     sourceFileName: NonBlankStringSchema.max(255),
     sanitizedSourceText: z.string().min(1).max(MAX_MIGRATION_LEGACY_SOURCE_TEXT_LENGTH),
+    sourceSelection: MigrationSourceSelectionSchema.default('backup'),
+    sourceSnapshot: MigrationSourceSnapshotSchema.nullable().default(null),
   })
-  .strict();
+  .strict()
+  .superRefine((input, context) => {
+    if (input.sourceSelection === 'device' && !input.sourceSnapshot) {
+      context.addIssue({
+        code: 'custom',
+        path: ['sourceSnapshot'],
+        message: '设备来源读取必须绑定只读 source snapshot',
+      });
+    }
+
+    if (
+      input.sourceSnapshot &&
+      input.sourceSnapshot.sourceFingerprint !== input.sourceFingerprint
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['sourceSnapshot', 'sourceFingerprint'],
+        message: 'source snapshot fingerprint 必须与 reader 输入一致',
+      });
+    }
+  });
 
 export const MigrationLegacySourceRecordSchema = z
   .object({
@@ -104,6 +140,7 @@ export const MigrationLegacySourceSchema = z
     migrationId: MigrationIdSchema,
     sourceFingerprint: Sha256Schema,
     sourceFileName: NonBlankStringSchema.max(255),
+    sourceOrigin: MigrationLegacySourceOriginSchema.default('backup'),
     sourceFormat: MigrationLegacySourceFormatSchema,
     backupVersion: z.number().int().nonnegative(),
     dataSchemaVersion: z.number().int().nonnegative(),
@@ -113,6 +150,7 @@ export const MigrationLegacySourceSchema = z
     exportDate: z.string().datetime({ offset: true }).nullable(),
     sourceTextDigestSha256: Sha256Schema,
     canonicalSourceDigestSha256: Sha256Schema,
+    storageDivergences: z.array(MigrationStorageDivergenceSchema).max(500).default([]),
     records: z.array(MigrationLegacySourceRecordSchema).max(MAX_MIGRATION_LEGACY_SOURCE_RECORDS),
     unknownSourceRefs: z
       .array(NonBlankStringSchema.max(500))
@@ -201,6 +239,9 @@ export type MigrationLegacySourceReaderInput = z.infer<
   typeof MigrationLegacySourceReaderInputSchema
 >;
 export type MigrationLegacySourceFormat = z.infer<typeof MigrationLegacySourceFormatSchema>;
+export type MigrationLegacySourceOrigin = z.infer<typeof MigrationLegacySourceOriginSchema>;
+export type MigrationSourceSelection = z.infer<typeof MigrationSourceSelectionSchema>;
+export type MigrationStorageDivergence = z.infer<typeof MigrationStorageDivergenceSchema>;
 export type MigrationLegacySourceValueType = z.infer<typeof MigrationLegacySourceValueTypeSchema>;
 export type MigrationLegacySourceRecord = z.infer<typeof MigrationLegacySourceRecordSchema>;
 export type MigrationLegacySourceDomainCount = z.infer<

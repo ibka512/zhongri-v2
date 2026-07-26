@@ -8,12 +8,19 @@ import {
   type MigrationLegacySource,
   type MigrationLegacySourceReaderInput,
   type MigrationLegacySourceRecord,
+  type MigrationStorageDivergence,
 } from '../../schemas/v1';
-import type { MigrationPreviewDomain } from '../../schemas/v1';
+import type {
+  MigrationPreviewDomain,
+  MigrationSourceSnapshot,
+  MigrationSourceSnapshotEntry,
+} from '../../schemas/v1';
 
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 const MAX_SOURCE_DEPTH = 100;
 const MAX_SOURCE_REF_LENGTH = 500;
+const DEVICE_BACKUP_VERSION = 10;
+const DEVICE_DATA_SCHEMA_VERSION = 8;
 
 const MODERN_TOP_LEVEL_KEYS = new Set([
   'format',
@@ -69,6 +76,29 @@ const LEGACY_DATA_KEYS = new Set([
   'aiConversations',
 ]);
 
+const DEVICE_DATA_KEY_MAP = new Map<string, string>([
+  ['userWords_v1', 'userWords'],
+  ['wordOverrides_v1', 'wordOverrides'],
+  ['myWordDB_v3', 'db'],
+  ['myFolders_v3', 'folders'],
+  ['myFolderLangs', 'folderLangs'],
+  ['starredWords', 'stars'],
+  ['studyRecords', 'records'],
+  ['mtGroupClears_v3', 'mtGroupClears'],
+  ['mtWordClears_v3', 'mtWordClears'],
+  ['fsrsCards_v1', 'fsrsCards'],
+  ['fsrsReviewLogs_v1', 'fsrsReviewLogs'],
+  ['aiConversations', 'aiConversations'],
+  ['wrongBook_v1', 'wrongBook'],
+  ['aiQuizHistory_v1', 'aiQuizHistory'],
+  ['recycleBin_v1', 'recycleBin'],
+  ['wordStorageVersion', 'wordStorageVersion'],
+]);
+
+const DEVICE_METADATA_KEYS = new Set(['dataSchemaVersion', 'wordStorageVersion']);
+const DEVICE_PROBE_KEYS = new Set(['zhongri_storage_probe']);
+const DEVICE_ARCHIVE_KEYS = new Set(['migrationSafetySnapshot_v1', 'preImportRestorePoint_v1']);
+
 interface NormalizedBackup {
   sourceFormat: 'modern' | 'legacy-v4';
   backupVersion: number;
@@ -81,6 +111,22 @@ interface NormalizedBackup {
   preferences: unknown;
   unknownTopLevelKeys: string[];
   unknownDataKeys: string[];
+  dataSourcePaths: ReadonlyMap<string, string>;
+  preferenceSourcePaths: ReadonlyMap<string, string>;
+  unknownDataSourcePaths: ReadonlyMap<string, string>;
+}
+
+interface PendingStorageDivergence {
+  key: string;
+  indexedDbSourceRef: string;
+  localStorageSourceRef: string;
+  indexedDbSerializedValue: string;
+  localStorageSerializedValue: string;
+}
+
+interface DeviceSourceProjection {
+  backup: NormalizedBackup;
+  divergences: readonly PendingStorageDivergence[];
 }
 
 interface DomainSourceDefinition {
@@ -119,6 +165,7 @@ export class MigrationLegacySourceReaderInputError extends Error {
       | 'FILE_TOO_LARGE'
       | 'INVALID_JSON'
       | 'UNKNOWN_FORMAT'
+      | 'INVALID_DEVICE_SOURCE'
       | 'SENSITIVE_VALUE_PRESENT'
       | 'SOURCE_TOO_DEEPLY_NESTED'
       | 'SOURCE_REF_TOO_LONG'
@@ -306,6 +353,9 @@ function normalizeBackup(raw: Record<string, unknown>): NormalizedBackup {
             (key === 'wordStorageVersion' && toOptionalNonnegativeInteger(data[key]) === null),
         )
         .sort(compareStrings),
+      dataSourcePaths: new Map(),
+      preferenceSourcePaths: new Map(),
+      unknownDataSourcePaths: new Map(),
     };
   }
 
@@ -331,6 +381,9 @@ function normalizeBackup(raw: Record<string, unknown>): NormalizedBackup {
         .filter((key) => !LEGACY_TOP_LEVEL_KEYS.has(key))
         .sort(compareStrings),
       unknownDataKeys: [],
+      dataSourcePaths: new Map(),
+      preferenceSourcePaths: new Map(),
+      unknownDataSourcePaths: new Map(),
     };
   }
 
@@ -338,6 +391,154 @@ function normalizeBackup(raw: Record<string, unknown>): NormalizedBackup {
     'UNKNOWN_FORMAT',
     '无法识别来源格式；当前只支持 zhongri-backup v5+ 和 legacy v4。',
   );
+}
+
+interface DecodedDeviceEntry {
+  key: string;
+  value: unknown;
+  sourceRef: string;
+  serializedValue: string;
+}
+
+function decodeDeviceEntry(
+  entry: MigrationSourceSnapshotEntry,
+  scope: 'indexedDb' | 'localStorage',
+): DecodedDeviceEntry {
+  let value: unknown;
+  try {
+    value = JSON.parse(entry.serializedValue) as unknown;
+    if (scope === 'localStorage' && typeof value === 'string') {
+      try {
+        value = JSON.parse(value) as unknown;
+      } catch {
+        // Plain localStorage strings are valid values; only JSON-looking values
+        // receive the second decode pass.
+      }
+    }
+  } catch {
+    throw new MigrationLegacySourceReaderInputError(
+      'INVALID_DEVICE_SOURCE',
+      '设备 source snapshot 包含无法解析的来源值。',
+    );
+  }
+
+  const canonicalValue = canonicalizeValue(value);
+  return {
+    key: entry.key,
+    value: canonicalValue,
+    sourceRef: mapSourceRef(`device.${scope}`, entry.key),
+    serializedValue: serializeCanonicalValue(canonicalValue),
+  };
+}
+
+function createDeviceSourceProjection(snapshot: MigrationSourceSnapshot): DeviceSourceProjection {
+  const indexedDb = new Map(
+    snapshot.indexedDb.map((entry) => [entry.key, decodeDeviceEntry(entry, 'indexedDb')]),
+  );
+  const localStorage = new Map(
+    snapshot.localStorage.map((entry) => [entry.key, decodeDeviceEntry(entry, 'localStorage')]),
+  );
+  const data = Object.create(null) as Record<string, unknown>;
+  const preferences = Object.create(null) as Record<string, unknown>;
+  const dataSourcePaths = new Map<string, string>();
+  const preferenceSourcePaths = new Map<string, string>();
+  const unknownDataSourcePaths = new Map<string, string>();
+  const unknownDataKeys: string[] = [];
+  const divergences: PendingStorageDivergence[] = [];
+
+  const allKeys = [...new Set([...indexedDb.keys(), ...localStorage.keys()])].sort(compareStrings);
+  for (const key of allKeys) {
+    const indexed = indexedDb.get(key);
+    const local = localStorage.get(key);
+    if (indexed && local && indexed.serializedValue !== local.serializedValue) {
+      divergences.push({
+        key,
+        indexedDbSourceRef: indexed.sourceRef,
+        localStorageSourceRef: local.sourceRef,
+        indexedDbSerializedValue: indexed.serializedValue,
+        localStorageSerializedValue: local.serializedValue,
+      });
+    }
+  }
+
+  const choose = (key: string): DecodedDeviceEntry | null =>
+    indexedDb.get(key) ?? localStorage.get(key) ?? null;
+  const separatedStoragePresent =
+    indexedDb.has('userWords_v1') ||
+    indexedDb.has('wordOverrides_v1') ||
+    localStorage.has('userWords_v1') ||
+    localStorage.has('wordOverrides_v1');
+
+  for (const [sourceKey, targetKey] of DEVICE_DATA_KEY_MAP) {
+    const chosen = choose(sourceKey);
+    if (!chosen) {
+      continue;
+    }
+
+    if (sourceKey === 'myWordDB_v3' && separatedStoragePresent) {
+      data[sourceKey] = chosen.value;
+      unknownDataKeys.push(sourceKey);
+      unknownDataSourcePaths.set(sourceKey, chosen.sourceRef);
+      continue;
+    }
+
+    data[targetKey] = chosen.value;
+    dataSourcePaths.set(targetKey, chosen.sourceRef);
+  }
+
+  for (const [key, entry] of indexedDb.entries()) {
+    if (
+      DEVICE_PROBE_KEYS.has(key) ||
+      DEVICE_METADATA_KEYS.has(key) ||
+      DEVICE_DATA_KEY_MAP.has(key)
+    ) {
+      continue;
+    }
+    data[key] = entry.value;
+    unknownDataKeys.push(key);
+    unknownDataSourcePaths.set(key, entry.sourceRef);
+  }
+
+  for (const [key, entry] of localStorage.entries()) {
+    if (
+      DEVICE_PROBE_KEYS.has(key) ||
+      DEVICE_METADATA_KEYS.has(key) ||
+      DEVICE_DATA_KEY_MAP.has(key)
+    ) {
+      continue;
+    }
+    if (indexedDb.has(key)) {
+      continue;
+    }
+    if (DEVICE_ARCHIVE_KEYS.has(key)) {
+      data[key] = entry.value;
+      unknownDataKeys.push(key);
+      unknownDataSourcePaths.set(key, entry.sourceRef);
+      continue;
+    }
+    preferences[key] = entry.value;
+    preferenceSourcePaths.set(key, 'device.localStorage');
+  }
+
+  const uniqueUnknownDataKeys = [...new Set(unknownDataKeys)].sort(compareStrings);
+  const backup: NormalizedBackup = {
+    sourceFormat: 'modern',
+    backupVersion: DEVICE_BACKUP_VERSION,
+    dataSchemaVersion: snapshot.dataSchemaVersion ?? DEVICE_DATA_SCHEMA_VERSION,
+    wordStorageVersion: snapshot.wordStorageVersion,
+    appName: '钟日',
+    kind: 'device',
+    exportDate: null,
+    data,
+    preferences,
+    unknownTopLevelKeys: [],
+    unknownDataKeys: uniqueUnknownDataKeys,
+    dataSourcePaths,
+    preferenceSourcePaths,
+    unknownDataSourcePaths,
+  };
+
+  return { backup, divergences };
 }
 
 async function digestText(digest: TextDigestPort, text: string, label: string): Promise<string> {
@@ -405,15 +606,31 @@ export class MigrationLegacySourceReaderUseCase {
       );
     }
 
-    const canonicalRoot = canonicalizeValue(parsedJson);
-    if (!isRecord(canonicalRoot)) {
+    const parsedRoot = canonicalizeValue(parsedJson);
+    if (!isRecord(parsedRoot)) {
       throw new MigrationLegacySourceReaderInputError(
         'UNKNOWN_FORMAT',
         '来源 JSON 根节点必须是对象。',
       );
     }
 
-    const backup = normalizeBackup(canonicalRoot);
+    const deviceProjection =
+      parsedInput.sourceSelection === 'device'
+        ? createDeviceSourceProjection(parsedInput.sourceSnapshot as MigrationSourceSnapshot)
+        : null;
+    const backup = deviceProjection?.backup ?? normalizeBackup(parsedRoot);
+    const canonicalRoot = deviceProjection
+      ? {
+          format: 'zhongri-backup',
+          backupVersion: backup.backupVersion,
+          schemaVersion: backup.dataSchemaVersion,
+          appName: backup.appName,
+          kind: backup.kind,
+          exportDate: backup.exportDate,
+          data: backup.data,
+          preferences: backup.preferences,
+        }
+      : parsedRoot;
     const canonicalSourceText = serializeCanonicalValue(canonicalRoot);
     const sourceTextDigestSha256 = await digestText(
       this.dependencies.digest,
@@ -425,6 +642,30 @@ export class MigrationLegacySourceReaderUseCase {
       canonicalSourceText,
       '规范化来源',
     );
+    const storageDivergences: MigrationStorageDivergence[] = [];
+    for (const divergence of deviceProjection?.divergences ?? []) {
+      const [indexedDbValueDigestSha256, localStorageValueDigestSha256] = await Promise.all([
+        digestText(
+          this.dependencies.digest,
+          divergence.indexedDbSerializedValue,
+          `设备 IndexedDB 来源 ${divergence.key}`,
+        ),
+        digestText(
+          this.dependencies.digest,
+          divergence.localStorageSerializedValue,
+          `设备 localStorage 来源 ${divergence.key}`,
+        ),
+      ]);
+      storageDivergences.push({
+        key: divergence.key,
+        indexedDbSourceRef: divergence.indexedDbSourceRef,
+        localStorageSourceRef: divergence.localStorageSourceRef,
+        indexedDbValueDigestSha256,
+        localStorageValueDigestSha256,
+        selectedSource: 'indexedDb',
+      });
+    }
+    storageDivergences.sort((left, right) => compareStrings(left.key, right.key));
 
     const records: MigrationLegacySourceRecord[] = [];
     const addRecord = async (
@@ -469,29 +710,29 @@ export class MigrationLegacySourceReaderUseCase {
       const value = backup.data[definition.key];
       if (definition.kind === 'array' && Array.isArray(value)) {
         for (const [index, item] of value.entries()) {
-          await addRecord(`data.${definition.key}[${index}]`, definition.domain, item);
+          const sourcePath = backup.dataSourcePaths.get(definition.key) ?? `data.${definition.key}`;
+          await addRecord(`${sourcePath}[${index}]`, definition.domain, item);
         }
         continue;
       }
 
       if (definition.kind === 'object' && isRecord(value)) {
+        const sourcePath = backup.dataSourcePaths.get(definition.key) ?? `data.${definition.key}`;
         for (const key of Object.keys(value).sort(compareStrings)) {
-          await addRecord(
-            mapSourceRef(`data.${definition.key}`, key),
-            definition.domain,
-            value[key],
-          );
+          await addRecord(mapSourceRef(sourcePath, key), definition.domain, value[key]);
         }
         continue;
       }
 
-      await addRecord(`data.${definition.key}`, definition.domain, value);
+      const sourcePath = backup.dataSourcePaths.get(definition.key) ?? `data.${definition.key}`;
+      await addRecord(sourcePath, definition.domain, value);
     }
 
     if (backup.preferences !== undefined) {
       if (isRecord(backup.preferences)) {
         for (const key of Object.keys(backup.preferences).sort(compareStrings)) {
-          await addRecord(mapSourceRef('preferences', key), 'preferences', backup.preferences[key]);
+          const sourcePath = backup.preferenceSourcePaths.get(key) ?? 'preferences';
+          await addRecord(mapSourceRef(sourcePath, key), 'preferences', backup.preferences[key]);
         }
       } else {
         await addRecord('preferences', 'preferences', backup.preferences);
@@ -502,7 +743,12 @@ export class MigrationLegacySourceReaderUseCase {
       await addRecord(mapSourceRef('topLevel', key), 'unknown', canonicalRoot[key]);
     }
     for (const key of backup.unknownDataKeys) {
-      await addRecord(mapSourceRef('data', key), 'unknown', backup.data[key]);
+      const sourcePath = backup.unknownDataSourcePaths.get(key) ?? 'data';
+      await addRecord(
+        sourcePath === 'data' ? mapSourceRef(sourcePath, key) : sourcePath,
+        'unknown',
+        backup.data[key],
+      );
     }
 
     records.sort((left, right) => compareStrings(left.sourceRef, right.sourceRef));
@@ -519,6 +765,7 @@ export class MigrationLegacySourceReaderUseCase {
         migrationId: parsedInput.migrationId,
         sourceFingerprint: parsedInput.sourceFingerprint,
         sourceFileName: parsedInput.sourceFileName.trim(),
+        sourceOrigin: parsedInput.sourceSelection,
         sourceFormat: backup.sourceFormat,
         backupVersion: backup.backupVersion,
         dataSchemaVersion: backup.dataSchemaVersion,
@@ -527,6 +774,7 @@ export class MigrationLegacySourceReaderUseCase {
         kind: backup.kind,
         exportDate: backup.exportDate,
         canonicalSourceDigestSha256,
+        storageDivergences,
         records,
         unknownSourceRefs,
         counts,
@@ -540,6 +788,7 @@ export class MigrationLegacySourceReaderUseCase {
       migrationId: parsedInput.migrationId,
       sourceFingerprint: parsedInput.sourceFingerprint,
       sourceFileName: parsedInput.sourceFileName.trim(),
+      sourceOrigin: parsedInput.sourceSelection,
       sourceFormat: backup.sourceFormat,
       backupVersion: backup.backupVersion,
       dataSchemaVersion: backup.dataSchemaVersion,
@@ -549,6 +798,7 @@ export class MigrationLegacySourceReaderUseCase {
       exportDate: backup.exportDate,
       sourceTextDigestSha256,
       canonicalSourceDigestSha256,
+      storageDivergences,
       records,
       unknownSourceRefs,
       counts,

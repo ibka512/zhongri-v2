@@ -133,7 +133,19 @@ canonical corpus、canonical idMap、disposition/quarantine 报告契约和只�
 3. JSON key 递归稳定排序、数组顺序保留；reader digest 排除空白和 key 顺序噪声，明文
    `deepseekApiKey`、坏 JSON、过深嵌套和 digest 失败均 fail-closed。
 4. reader 只产生隔离应用层结果，不读取浏览器 API、不写 Word/ReviewState/active pointer；设备
-   IndexedDB/localStorage 优先级仍由 ADR-015 的 source adapter 负责，接线和真实 fixture 待后续切片。
+   IndexedDB/localStorage 优先级由 ADR-015 的 source adapter 提供快照，并由 ADR-021 的显式
+   `sourceSelection=device` 接线到 reader；真实 fixture 覆盖仍待后续切片。
+
+## Task015 设备来源接线
+
+1. `MigrationLegacySourceReaderInput.sourceSelection` 默认是 `backup`；只有显式选择 `device`
+   且提供相同 `sourceFingerprint` 的 `MigrationSourceSnapshot` 时，才读取设备投影。
+2. 设备投影在 Application 层把 `keyval-store/keyval` 和 localStorage 解码为规范化 modern
+   形状；IndexedDB 键存在时优先，localStorage 只作为缺失键回退。
+3. 同一业务键两侧值不同不合并，输出两侧 sourceRef 与 digest 的 `storageDivergences`；
+   分离词存储存在时，`myWordDB_v3` 只保留为 unknown archive-only 记录。
+4. Reader 不直接调用浏览器 API；UI/Infrastructure 只能通过 `V1SourceStoragePort` 和
+   `CaptureV1SourceSnapshotUseCase` 提供设备来源。设备/备份两种 staging 都不自动 commit。
 
 ## Task015 核心域纵向转换
 

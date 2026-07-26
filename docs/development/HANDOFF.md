@@ -36,19 +36,24 @@
 - 本轮继续新增 `MigrationDomainSliceStagingUseCase`、统一 source preparation 和 ADR-020：固定
   `prepare → reader → transformer → staging` 编排，replay 绑定 isolated payload digest；只执行 stage，
   不调用 commit。
+- 本轮新增 ADR-021 和显式 `sourceSelection=backup|device`：设备入口要求绑定同一
+  `sourceFingerprint` 的 source snapshot，在 Application 层把 keyval-store/localStorage 投影为
+  Legacy Source Reader 输入；复制 IndexedDB 优先/localStorage 回退语义并输出
+  `storageDivergences`，分离词存储下的 `myWordDB_v3` 只进入 unknown archive-only。新增当前设备
+  暂存 UI 入口，仍只写隔离 staging，不更新 active pointer。
 
 ## 仍未完成
 
 - Phase 1 双语、迁移和产品页面仍未完成。
-- 真实 backup fixture、设备来源接线、Mastery/StudyRecord/FSRS 等剩余域、rawArchive/quarantine
-  payload 存储、V01–V25 和激活/回滚仍未完成。
+- 真实 backup fixture、设备来源的真实字段覆盖复核、Mastery/StudyRecord/FSRS 等剩余域、
+  rawArchive/quarantine payload 存储、V01–V25 和激活/回滚仍未完成。
 - 首次设置、内容中心、设置与数据安全页。
 - 日语五十音/TTS、英语/IPA 双语纵向切片。
 - Phase 1 综合验收。
 
 ## 已验证命令
 
-以下命令已在本轮核心域纵向切片和治理文件完成后通过（35 个测试文件、148 个测试）：
+以下命令已在本轮设备来源接线和治理文件完成后通过（测试总数以命令输出为准）：
 
 ```bash
 npm run verify
@@ -69,8 +74,8 @@ npm run verify
 
 ## 下一项工作
 
-1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的 synthetic fixture 方案；再将 Browser source snapshot 中的设备来源记录接入 LegacyReader。
-2. 将现有 staging orchestration 接入真实设备来源，再把冻结的 idMap 和 disposition 报告扩展到 Mastery/StudyRecord/FSRS 等逐域 transformer。
+1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的 synthetic fixture 方案；当前设备 snapshot → LegacyReader 的入口已接通，下一步是用真实 fixture 复核字段覆盖和分歧报告。
+2. 将冻结的 idMap 和 disposition 报告扩展到 Mastery/StudyRecord/FSRS 等逐域 transformer，并把当前设备入口接到正式 UI/CLI 流程。
 3. 在真实输入上实现 V01–V25 验证和激活/回滚。
 4. 迁移 Task 通过后再继续首次设置、内容和双语基础切片；Phase 1 验收完成后才进入 AI Gateway（Issue #20）。
 

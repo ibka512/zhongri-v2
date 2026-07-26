@@ -9,7 +9,12 @@ import { UILabPage } from '../pages/UILab';
 import type { MigrationPreviewReport, TodayPlan } from '../schemas/v1';
 import type { StageMigrationResult } from '../ports';
 import { App } from './App';
-import { previewV1Backup, serializeMigrationPreview, stageV1Backup } from './migrationPreview';
+import {
+  previewV1Backup,
+  serializeMigrationPreview,
+  stageV1Backup,
+  stageV1BackupFromCurrentDevice,
+} from './migrationPreview';
 import { createStudyDemoUseCase, restartStudyDemoUseCase } from './studyDemo';
 import { createTodayCourse, restartTodayCourse, type TodayCourseSession } from './todayCourse';
 
@@ -21,6 +26,7 @@ export interface AppRouteDependencies {
   restartTodayCourse: (plan: TodayPlan) => Promise<TodayCourseSession>;
   serializeMigrationPreview: (report: MigrationPreviewReport) => string;
   stageV1Backup: (input: StageV1BackupInput) => Promise<StageMigrationResult>;
+  stageV1BackupFromCurrentDevice: (input: StageV1BackupInput) => Promise<StageMigrationResult>;
 }
 
 const defaultDependencies: AppRouteDependencies = {
@@ -31,6 +37,7 @@ const defaultDependencies: AppRouteDependencies = {
   restartTodayCourse,
   serializeMigrationPreview,
   stageV1Backup,
+  stageV1BackupFromCurrentDevice,
 };
 
 export function createAppRoutes(dependencies: Partial<AppRouteDependencies> = {}): RouteObject[] {
@@ -70,6 +77,7 @@ export function createAppRoutes(dependencies: Partial<AppRouteDependencies> = {}
           previewBackup={resolvedDependencies.previewV1Backup}
           serializeReport={resolvedDependencies.serializeMigrationPreview}
           stageBackup={resolvedDependencies.stageV1Backup}
+          stageDeviceBackup={resolvedDependencies.stageV1BackupFromCurrentDevice}
         />
       ),
     },

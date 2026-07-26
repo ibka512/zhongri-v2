@@ -61,13 +61,21 @@ Word/Override/Folder/Favorite isolated payload，并为每条核心域 sourceRef
 isolated payload digest，仍不执行 commit。实现决策见
 [ADR-020](../decisions/ADR-020-core-domain-staging-orchestration.md)。
 
+第十小步新增显式 `sourceSelection=backup|device`：`device` 必须绑定同一
+`sourceFingerprint` 的 `MigrationSourceSnapshot`，Legacy Source Reader 按迁移规格复制
+IndexedDB 优先/localStorage 回退语义，输出 `sourceOrigin`、设备 sourceRef 和
+`storageDivergences`。分离词存储存在时，`myWordDB_v3` 只作为 unknown archive-only 记录；
+UI 新增独立的当前设备暂存入口，仍只执行 stage。实现决策见
+[ADR-021](../decisions/ADR-021-device-source-reader-wiring.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
 
 1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的
-   synthetic 方案，并把设备 snapshot 记录接入 LegacyReader。
-2. 将第九小步 orchestration 接入真实设备来源和 UI/CLI 调用，再在真实/批准的 fixture 上扩展
+   synthetic 方案；当前设备 snapshot → LegacyReader 的入口和优先级已接通，但仍需真实 fixture
+   复核字段覆盖。
+2. 将第十小步 orchestration 接入真实设备来源和 UI/CLI 调用，再在真实/批准的 fixture 上扩展
    Mastery/StudyRecord/FSRS 等逐域转换。
 3. 将处置报告接入 rawArchive/quarantine payload 的实际隔离存储。
 4. V01–V25 自动化验证、固定 sourceFingerprint 幂等复跑和 active pointer 原子提交/回滚。
