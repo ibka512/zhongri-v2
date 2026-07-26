@@ -172,6 +172,19 @@ describe('MigrationDomainSliceUseCase', () => {
         }),
       ]),
     );
+    expect(result.isolatedPayload.archives).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          archiveKind: 'quarantine',
+          sourceRef: 'data.fsrsReviewLogs[2]',
+          serializedValue: expect.stringContaining('missing-word'),
+        }),
+        expect.objectContaining({
+          archiveKind: 'rawArchive',
+          sourceRef: 'data.mtWordClears["ja:builtin-ja-core-00005"]',
+        }),
+      ]),
+    );
     expect(result.isolatedPayload.writesPerformed).toBe(false);
     expect(result.isolatedPayload.activePointerUpdated).toBe(false);
   });

@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { MigrationDispositionReportSchema } from './MigrationDispositionSchema';
 import { MigrationIdentityMapSchema } from './MigrationIdentityMapSchema';
+import { MigrationPreviewDomainSchema } from './MigrationPreviewReportSchema';
 import {
   ContractVersionSchema,
   IdentifierSchema,
@@ -53,6 +54,8 @@ const MigrationFsrsQualityFlagSchema = z.enum([
   'LAST_REVIEW_MISSING',
   'RAW_KEY_REBUILT',
 ]);
+
+const MigrationIsolatedArchiveKindSchema = z.enum(['rawArchive', 'quarantine']);
 
 export const MigrationIsolatedWordSchema = z
   .object({
@@ -199,6 +202,21 @@ export const MigrationIsolatedFsrsLogSchema = z
   })
   .strict();
 
+export const MigrationIsolatedArchiveSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    archiveRef: IdentifierSchema,
+    archiveKind: MigrationIsolatedArchiveKindSchema,
+    sourceRef: SourceRefSchema,
+    domain: MigrationPreviewDomainSchema,
+    sourceRecordDigestSha256: Sha256Schema,
+    serializedValue: z
+      .string()
+      .min(1)
+      .max(30 * 1024 * 1024),
+  })
+  .strict();
+
 export const MigrationIsolatedPayloadSchema = z
   .object({
     schemaVersion: ContractVersionSchema,
@@ -218,6 +236,7 @@ export const MigrationIsolatedPayloadSchema = z
     groupProgress: z.array(MigrationIsolatedGroupProgressSchema).max(100_000).default([]),
     fsrsCards: z.array(MigrationIsolatedFsrsCardSchema).max(100_000).default([]),
     fsrsLogs: z.array(MigrationIsolatedFsrsLogSchema).max(100_000).default([]),
+    archives: z.array(MigrationIsolatedArchiveSchema).max(200_000).default([]),
     writesPerformed: z.literal(false),
     activePointerUpdated: z.literal(false),
     payloadDigestSha256: Sha256Schema,
@@ -315,6 +334,18 @@ export const MigrationIsolatedPayloadSchema = z
       }
       reviewLogIds.add(log.reviewLogId);
     }
+
+    const archiveRefs = new Set<string>();
+    for (const [index, archive] of payload.archives.entries()) {
+      if (archiveRefs.has(archive.archiveRef)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['archives', index, 'archiveRef'],
+          message: 'Isolated archives must contain one record per archive reference',
+        });
+      }
+      archiveRefs.add(archive.archiveRef);
+    }
   });
 
 export const MigrationDomainSliceResultSchema = z
@@ -405,5 +436,6 @@ export type MigrationIsolatedStudyRecord = z.infer<typeof MigrationIsolatedStudy
 export type MigrationIsolatedGroupProgress = z.infer<typeof MigrationIsolatedGroupProgressSchema>;
 export type MigrationIsolatedFsrsCard = z.infer<typeof MigrationIsolatedFsrsCardSchema>;
 export type MigrationIsolatedFsrsLog = z.infer<typeof MigrationIsolatedFsrsLogSchema>;
+export type MigrationIsolatedArchive = z.infer<typeof MigrationIsolatedArchiveSchema>;
 export type MigrationIsolatedPayload = z.infer<typeof MigrationIsolatedPayloadSchema>;
 export type MigrationDomainSliceResult = z.infer<typeof MigrationDomainSliceResultSchema>;

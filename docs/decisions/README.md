@@ -27,6 +27,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-021：显式设备来源选择并把 source snapshot 接入 Legacy Source Reader](./ADR-021-device-source-reader-wiring.md)
 - [ADR-022：以只读隔离 payload 转换 Mastery、StudyRecord 与 FSRS](./ADR-022-mastery-study-fsrs-isolated-transformer.md)
 - [ADR-023：以确定性隔离 payload 保存 v1 组完成次数](./ADR-023-group-progress-isolated-transformer.md)
+- [ADR-024：在 isolated payload 内绑定 rawArchive 与 quarantine 内容](./ADR-024-isolated-archive-payloads.md)
 
 ## 未来
 

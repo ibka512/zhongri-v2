@@ -79,6 +79,11 @@ UI 新增独立的当前设备暂存入口，仍只执行 stage。实现决策�
 取整/质量标记和重复组键去重均输出到隔离 payload，不拆解历史成员、不生成 StudySession。实现
 决策见 [ADR-023](../decisions/ADR-023-group-progress-isolated-transformer.md)。
 
+第十三小步新增 `isolatedPayload.archives`：把 disposition report 的 rawArchive/quarantine 引用
+与同一份 Legacy Source Reader 脱敏 serializedValue 绑定，保证 staged 结果可以离线复核且不重新
+读取 v1。独立归档表、压缩/加密与保留周期仍待存储治理任务。实现决策见
+[ADR-024](../decisions/ADR-024-isolated-archive-payloads.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
@@ -87,8 +92,8 @@ UI 新增独立的当前设备暂存入口，仍只执行 stage。实现决策�
    synthetic 方案；当前设备 snapshot → LegacyReader 的入口和优先级已接通，但仍需真实 fixture
    复核字段覆盖。
 2. 用真实/批准的 fixture 复核第十、十一小步的设备来源、字段覆盖和分歧报告。
-3. 将处置报告接入 rawArchive/quarantine payload 的实际隔离存储，并继续实现 wrongBook、AI、
-   recycleBin 和 preferences 等剩余域。
+3. 将 `archives` 从 inline isolated payload 接入独立的 rawArchive/quarantine 存储（含保留周期），
+   并继续实现 wrongBook、AI、recycleBin 和 preferences 等剩余域。
 4. V01–V25 自动化验证、固定 sourceFingerprint 幂等复跑和 active pointer 原子提交/回滚。
 
 ## 前置条件

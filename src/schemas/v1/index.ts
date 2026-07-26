@@ -135,6 +135,7 @@ export {
 } from './MigrationDispositionSchema';
 
 export {
+  MigrationIsolatedArchiveSchema,
   MigrationDomainSliceResultSchema,
   MigrationIsolatedFavoriteSchema,
   MigrationIsolatedFsrsCardSchema,
@@ -147,6 +148,7 @@ export {
   MigrationIsolatedStudyRecordSchema,
   MigrationIsolatedWordSchema,
   type MigrationDomainSliceResult,
+  type MigrationIsolatedArchive,
   type MigrationIsolatedFavorite,
   type MigrationIsolatedFsrsCard,
   type MigrationIsolatedFsrsLog,

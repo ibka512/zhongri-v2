@@ -4,6 +4,7 @@ import { MigrationIdentityMapUseCase } from './MigrationIdentityMapUseCase';
 import {
   MigrationDomainSliceResultSchema,
   MigrationLegacySourceSchema,
+  MigrationIsolatedArchiveSchema,
   MigrationIsolatedFavoriteSchema,
   MigrationIsolatedFsrsCardSchema,
   MigrationIsolatedFsrsLogSchema,
@@ -18,6 +19,7 @@ import {
   type MigrationDomainSliceResult,
   type MigrationIdentityMapEntry,
   type MigrationIdentityMapRecordInput,
+  type MigrationIsolatedArchive,
   type MigrationIsolatedFavorite,
   type MigrationIsolatedFsrsCard,
   type MigrationIsolatedFsrsLog,
@@ -1322,6 +1324,33 @@ export class MigrationDomainSliceUseCase {
       records: dispositionRecords,
     });
 
+    const sourceRecordByRef = new Map(source.records.map((record) => [record.sourceRef, record]));
+    const archives: MigrationIsolatedArchive[] = [];
+    for (const entry of dispositionReport.entries) {
+      if (!entry.archiveKind || !entry.archiveRef) {
+        continue;
+      }
+      const sourceRecord = sourceRecordByRef.get(entry.sourceRef);
+      if (!sourceRecord) {
+        throw new MigrationDomainSliceInputError(
+          'INVALID_SOURCE_RECORD',
+          `处置报告引用了不存在的来源记录：${entry.sourceRef}。`,
+        );
+      }
+      archives.push(
+        MigrationIsolatedArchiveSchema.parse({
+          schemaVersion: 1,
+          archiveRef: entry.archiveRef,
+          archiveKind: entry.archiveKind,
+          sourceRef: entry.sourceRef,
+          domain: entry.domain,
+          sourceRecordDigestSha256: sourceRecord.sourceRecordDigestSha256,
+          serializedValue: sourceRecord.serializedValue,
+        }),
+      );
+    }
+    archives.sort((left, right) => compareStrings(left.archiveRef, right.archiveRef));
+
     const payloadFields = {
       schemaVersion: 1 as const,
       stagingKind: 'migration-isolated-domain-slice' as const,
@@ -1358,6 +1387,7 @@ export class MigrationDomainSliceUseCase {
       fsrsLogs: [...fsrsLogPayloadByFingerprint.values()].sort((left, right) =>
         compareStrings(left.reviewLogId, right.reviewLogId),
       ),
+      archives,
       writesPerformed: false as const,
       activePointerUpdated: false as const,
     };

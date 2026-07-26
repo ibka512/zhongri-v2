@@ -56,8 +56,9 @@ staging 存储入口，仍不提交 active pointer，也不改变 Word、ReviewS
 
 - Override payload 只保留 Legacy Reader 已脱敏的 `serializedValue`；明文 API Key 在更早的
   reader 边界已经 fail-closed。
-- disposition report 只生成 rawArchive/quarantine 引用；实际原始 payload 存储仍待后续
-  `MigrationMetadata`/staging 切片。
+- disposition report 生成 rawArchive/quarantine 引用后，当前 transformer 会把已脱敏的对应
+  `serializedValue` 绑定到 isolated payload 的 `archives`；独立 Dexie archive 表、压缩/加密和保留
+  周期仍待后续 `MigrationMetadata`/存储切片。
 - 该切片不代表真实 Mastery、StudyRecord、FSRS 字段覆盖、AI、V01–V25 或 active pointer 已完成；
   staging 字段接线仍需真实来源和后续验证。
 - 下一步是在真实脱敏 fixture（或负责人批准的字段形状 synthetic fixture）上扩展剩余域，并把

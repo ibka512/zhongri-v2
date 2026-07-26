@@ -160,8 +160,8 @@ Mastery/StudyRecord/GroupProgress/FSRS 核心域现在可以从 Legacy Source Re
    `writesPerformed:false`、`activePointerUpdated:false`。纵向用例不直接调用 persistence；现有
    staging dataset 通过可选 `isolatedDomainSlice` 字段保存该 payload。Mastery 只按 identity map
    关联并 OR 合并，StudyRecord 只保留日期粒度，GroupProgress 只保留规范化组键与完成次数，FSRS
-   卡/日志只保存 v1 adapter 历史状态；该切片尚未实现 rawArchive/quarantine 实际存储、其他迁移域、
-   V01–V25 或 active pointer 提交。
+   卡/日志只保存 v1 adapter 历史状态；disposition 对应的脱敏 serializedValue 已绑定到 inline
+   `archives`，独立 rawArchive/quarantine 存储、其他迁移域、V01–V25 或 active pointer 提交仍未实现。
 5. `MigrationDomainSliceStagingUseCase` 复用统一 source preparation，串联 reader、domain slice 和
    staging；它只调用 stage，不调用 commit，重复输入由 payload digest 参与 replay 判定。
 
