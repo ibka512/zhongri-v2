@@ -4,14 +4,14 @@
 
 ## 当前快照
 
-- 稳定基线：`origin/main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36、核心域纵向切片 PR #37、staging orchestration PR #39/#40）
+- 稳定基线：`origin/main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36、核心域纵向切片 PR #37、staging orchestration PR #39/#40，以及本地 Task 015 后续提交至 `df268bb`）
 - 当前交接分支：`main`
-- 稳定基线提交：`bac661a`（远端 main 当前最新合并提交）
-- 当前实现提交：`bd69eeb`（负责人批准 synthetic fixture 后完成完整 V01–V25、activation commit、rollback 回归；本地提交，尚未推送；前一功能提交为 `dc8efd5`，状态文案修正为 `5fa9ef9`）
+- 稳定基线提交：`df268bb`（已推送到远端 main）
+- 当前实现提交：`df268bb`（包含负责人批准 synthetic fixture 后的完整 V01–V25、activation commit、rollback 回归及本交接记录；已推送到远端 main）
 - 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层
 - 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排、source-aware staging、确定性 canonical/user idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、Word/Override/Folder/Favorite/Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/ReminderSetting/FSRS isolated transformer、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23 固定抽样证据入口、V25 失败注入演练入口和负责人批准 synthetic fixture 的端到端 activation/rollback 验收已完成；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，真实脱敏 fixture 字段覆盖复核、真实 V02/V23/V25 证据和真实报告驱动的激活/回滚仍待完成
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
-- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；`bd69eeb` 及前置本地提交尚未推送。用户已表示 GitHub 授权完成，但当前工作区执行 `gh auth status -h github.com` 仍显示 default token invalid，推送前需重新确认 CLI 凭据。
+- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；`df268bb` 已通过 `git push origin main` 推送到远端 main。当前 Codex 工作区的 `gh auth status` 仍显示 token invalid，但 Git credential helper 已完成本次推送；后续创建 PR 或执行 gh API 前仍需重新确认 CLI 凭据。
 
 ## 本轮已完成
 
