@@ -111,3 +111,10 @@ active pointer，也不改变 Word、ReviewState 或 FSRS。
 必须显式选择 `sourceSelection=backup|device`，后者把同一 source snapshot 的设备记录交给
 Legacy Source Reader，并报告 IDB/localStorage 分歧。重复调用相同输入会复用 staging dataset，
 payload digest 不同则不会静默复用旧结果。该入口只执行隔离 `stage`，不执行 commit。
+
+浏览器正式 staging 入口 `stageV1Backup` 和 `stageV1BackupFromCurrentDevice` 均使用该编排，因而
+新数据集会保存 isolated payload。`MigrationStagedVerificationUseCase` 随后从持久化的 run/dataset
+重读脱敏来源，重跑 reader 和 domain slice 两次，并要求两次 payload digest 都等于 staged digest；
+不一致或旧 staging 缺少 isolated payload 时不会生成激活报告。`verifyStagedV1Migration` 只生成
+只读 V01–V25 报告，V23/V25 证据必须由固定抽样/失败注入入口显式提供，激活和回滚仍需分别调用
+`activateStagedV1Migration` / `rollbackStagedV1Migration`。

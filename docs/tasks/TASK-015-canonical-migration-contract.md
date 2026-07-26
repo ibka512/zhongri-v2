@@ -137,6 +137,14 @@ stage/commit/rollback 三阶段注入失败并校验 active pointer、MigrationR
 可选输入接回验证报告，缺少证据仍保持 `unverified`。实现决策见
 [ADR-034](../decisions/ADR-034-migration-verification-evidence.md)。
 
+第二十四步新增 `MigrationStagedVerificationUseCase` 与浏览器 Application 入口：从持久化
+`MigrationRun/MigrationStagingDataset` 重读脱敏来源，重跑 Legacy Source Reader 和 domain slice，
+要求重建 payload digest 与 staged payload 一致后才生成 V01–V25 报告；V23/V25 证据仍必须显式传入，
+没有 isolated payload 的旧 staging 只能得到可解释拒绝。正常 `stageV1Backup` 现在统一保存 isolated
+domain slice，`verifyStagedV1Migration`、`activateStagedV1Migration` 与
+`rollbackStagedV1Migration` 形成显式的只读验证、激活、回滚边界。实现决策见
+[ADR-035](../decisions/ADR-035-staged-verification-orchestration.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
@@ -149,6 +157,8 @@ stage/commit/rollback 三阶段注入失败并校验 active pointer、MigrationR
    独立 archive 记录只读、不自动清理，直到保留周期与用户确认策略明确。
 4. 已完成 activation gate 的代码接线；在真实 fixture 上产生 V01–V25 报告后，使用该 gate 完成
    active pointer 原子提交/回滚验收。
+5. 用真实 fixture 运行持久化 staged 重建验证入口，记录 report digest、payload digest、V23/V25
+   证据摘要和激活/回滚结果；未满足门禁时只保留 staging，不更新 active pointer。
 
 ## 前置条件
 

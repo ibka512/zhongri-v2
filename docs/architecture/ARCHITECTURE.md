@@ -174,6 +174,11 @@ staging 可以在同一事务中保存该 payload 及独立 archive 记录，但
 8. `MigrationFixedSamplingUseCase` 和 `MigrationRollbackDrillUseCase` 分别生成 V23/V25 的可审计证据；
    前者固定 sourceFingerprint 种子并检查 payload/archive 绑定，后者只在验收能力上注入每个阶段的失败。
    没有显式证据输入时，验证报告保持 `unverified`。
+9. `MigrationStagedVerificationUseCase` 从持久化 `MigrationRun/MigrationStagingDataset` 重建
+   Legacy Source Reader 和 domain slice 两次，要求两次 isolated payload digest 与 staged digest 一致，
+   再生成只读 V01–V25 报告。浏览器 `stageV1Backup` 统一保存 isolated payload；
+   `verifyStagedV1Migration`、`activateStagedV1Migration` 和 `rollbackStagedV1Migration` 分别承担
+   重建验证、显式激活和显式回滚，不把报告生成误当作 active 写入。
 
 ## Task012 正式每日课程
 

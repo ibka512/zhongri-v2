@@ -1,18 +1,27 @@
 import {
   CaptureV1SourceSnapshotUseCase,
   MigrationDomainSliceStagingUseCase,
+  MigrationActivationUseCase,
   MigrationPreviewUseCase,
   MigrationSourceSnapshotUseCase,
+  MigrationStagedVerificationUseCase,
   MigrationStagingUseCase,
+  type ActivateMigrationInput,
   type PreviewV1BackupInput,
   type StageV1BackupInput,
   type CaptureV1SourceSnapshotInput,
+  type VerifyStagedMigrationInput,
+  type VerifyStagedMigrationResult,
 } from '../application/migration';
 import { jpStudyCanonicalCorpusManifest } from '../content';
 import { createCanonicalContentRepository } from './content';
 import { BrowserV1SourceStorage } from '../infrastructure/migration';
 import { webClock, webTextDigest } from '../infrastructure/system';
-import type { StageMigrationResult } from '../ports';
+import type {
+  CommitMigrationResult,
+  RollbackMigrationResult,
+  StageMigrationResult,
+} from '../ports';
 import type { MigrationPreviewReport, MigrationSourceSnapshot } from '../schemas/v1';
 import { appPersistence } from './persistence';
 
@@ -32,6 +41,10 @@ const migrationSourceSnapshotUseCase = new CaptureV1SourceSnapshotUseCase({
     now: webClock.now,
   }),
 });
+const migrationActivationUseCase = new MigrationActivationUseCase({
+  persistence: appPersistence,
+  now: webClock.now,
+});
 
 export function previewV1Backup(input: PreviewV1BackupInput): Promise<MigrationPreviewReport> {
   return migrationPreviewUseCase.preview(input);
@@ -41,8 +54,16 @@ export function serializeMigrationPreview(report: MigrationPreviewReport): strin
   return migrationPreviewUseCase.serialize(report);
 }
 
-export function stageV1Backup(input: StageV1BackupInput): Promise<StageMigrationResult> {
-  return migrationStagingUseCase.stage(input);
+export async function stageV1Backup(input: StageV1BackupInput): Promise<StageMigrationResult> {
+  const content = await createCanonicalContentRepository();
+  const staged = await new MigrationDomainSliceStagingUseCase({
+    content,
+    digest: webTextDigest,
+    now: webClock.now,
+    persistence: appPersistence,
+  }).stage(input);
+
+  return staged.staging;
 }
 
 /**
@@ -75,6 +96,32 @@ export async function stageV1BackupFromCurrentDevice(
   });
 
   return staged.staging;
+}
+
+/**
+ * Rebuilds the isolated payload from the persisted staging source and produces
+ * the V01–V25 report. Evidence for acceptance-only checks must be supplied by
+ * the caller; this entry never fabricates sampling or rollback evidence.
+ */
+export async function verifyStagedV1Migration(
+  input: VerifyStagedMigrationInput,
+): Promise<VerifyStagedMigrationResult> {
+  const content = await createCanonicalContentRepository();
+  return new MigrationStagedVerificationUseCase({
+    content,
+    digest: webTextDigest,
+    persistence: appPersistence,
+  }).verify(input);
+}
+
+export function activateStagedV1Migration(
+  input: ActivateMigrationInput,
+): Promise<CommitMigrationResult> {
+  return migrationActivationUseCase.activate(input);
+}
+
+export function rollbackStagedV1Migration(migrationId: string): Promise<RollbackMigrationResult> {
+  return migrationStagingUseCase.rollback(migrationId);
 }
 
 export function captureV1SourceSnapshot(

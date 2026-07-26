@@ -78,3 +78,10 @@ export {
   type CreateMigrationRollbackDrillInput,
   type MigrationRollbackDrillDependencies,
 } from './MigrationRollbackDrillUseCase';
+export {
+  MigrationStagedVerificationError,
+  MigrationStagedVerificationUseCase,
+  type MigrationStagedVerificationDependencies,
+  type VerifyStagedMigrationInput,
+  type VerifyStagedMigrationResult,
+} from './MigrationStagedVerificationUseCase';
