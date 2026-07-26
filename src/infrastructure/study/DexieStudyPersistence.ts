@@ -14,10 +14,12 @@ import {
   type StageMigrationInput,
   type StageMigrationResult,
   type StudyPersistencePort,
+  type UserSettingsRepositoryPort,
 } from '../../ports';
 import {
   ActiveMigrationDatasetPointerSchema,
   LearnerProfileSchema,
+  LearnerSettingsSchema,
   LearningEventSchema,
   MigrationArchiveRecordSchema,
   LearningProjectionSchema,
@@ -29,6 +31,7 @@ import {
   type ActiveMigrationDatasetPointer,
   type Language,
   type LearnerProfile,
+  type LearnerSettings,
   type LearningEvent,
   type LearningProjection,
   type MigrationArchiveRecord,
@@ -59,10 +62,15 @@ function createEmptyMigrationPointer(): ActiveMigrationDatasetPointer {
 
 export class DexieStudyPersistence
   extends Dexie
-  implements StudyPersistencePort, MigrationPersistencePort, MigrationFailureInjectionPort
+  implements
+    StudyPersistencePort,
+    MigrationPersistencePort,
+    MigrationFailureInjectionPort,
+    UserSettingsRepositoryPort
 {
   readonly learningEvents!: Table<LearningEvent, string>;
   readonly learnerProfiles!: Table<LearnerProfile, [string, Language]>;
+  readonly userSettings!: Table<LearnerSettings, string>;
   readonly reviewStates!: Table<ReviewState, string>;
   readonly sessionCheckpoints!: Table<StudySessionCheckpoint, string>;
   readonly studySessions!: Table<StudySessionState, string>;
@@ -119,6 +127,20 @@ export class DexieStudyPersistence
       migrationPointers: '&id',
       learnerProfiles: '&[userId+language], userId, language',
       reviewStates: '&id, userId, itemId, due',
+    });
+    this.version(6).stores({
+      learningEvents: '&id, sessionId, userId, itemId, timestamp',
+      sessionCheckpoints: '&sessionId, updatedAt',
+      studySessions: '&sessionId, updatedAt',
+      idempotencyRecords: '&key',
+      migrationRuns: '&migrationId, sourceFingerprint, status, updatedAt',
+      migrationDatasets: '&datasetId, migrationId, sourceFingerprint',
+      migrationArchives:
+        '&archiveRef, migrationId, datasetId, archiveKind, retentionPolicy, retentionUntil',
+      migrationPointers: '&id',
+      learnerProfiles: '&[userId+language], userId, language',
+      reviewStates: '&id, userId, itemId, due',
+      userSettings: '&userId',
     });
   }
 
@@ -214,6 +236,21 @@ export class DexieStudyPersistence
   async findLearnerProfile(userId: string, language: Language): Promise<LearnerProfile | null> {
     const profile = await this.learnerProfiles.get([userId, language]);
     return profile ? LearnerProfileSchema.parse(profile) : null;
+  }
+
+  async findUserSettings(userId: string): Promise<LearnerSettings | null> {
+    const settings = await this.userSettings.get(userId);
+    return settings ? LearnerSettingsSchema.parse(settings) : null;
+  }
+
+  async saveUserSettings(settings: LearnerSettings): Promise<LearnerSettings> {
+    const parsed = LearnerSettingsSchema.parse(settings);
+    await this.userSettings.put(parsed);
+    return parsed;
+  }
+
+  async clearUserSettings(userId: string): Promise<void> {
+    await this.userSettings.delete(userId);
   }
 
   async listReviewStates(userId: string): Promise<readonly ReviewState[]> {

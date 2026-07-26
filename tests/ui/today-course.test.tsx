@@ -10,7 +10,7 @@ import { jaN5StarterManifest, jaN5StarterWords } from '../../src/content';
 import { InMemoryStudyPersistence } from '../../src/infrastructure/study';
 import type { CanonicalContentRepositoryPort } from '../../src/ports';
 import { TodayCoursePage } from '../../src/pages/TodayCourse';
-import { LearnerProfileSchema, QuestionType } from '../../src/schemas/v1';
+import { LearnerProfileSchema, LearnerSettingsSchema, QuestionType } from '../../src/schemas/v1';
 import { ThemeProvider } from '../../src/ui/theme';
 
 const repository: CanonicalContentRepositoryPort = {
@@ -88,6 +88,18 @@ describe('TodayCoursePage', () => {
     const router = createMemoryRouter(
       createAppRoutes({
         createTodayCourse: createCourse,
+        loadUserSettings: async () =>
+          LearnerSettingsSchema.parse({
+            schemaVersion: 1,
+            settingsVersion: 1,
+            userId: 'today-ui-user',
+            language: 'ja',
+            dailyMinutes: 5,
+            focus: 'balanced',
+            audioEnabled: true,
+            setupCompleted: true,
+            updatedAt: '2026-07-24T01:00:00.000Z',
+          }),
         restartTodayCourse: restartCourse,
       }),
       { initialEntries: ['/'] },
@@ -146,7 +158,7 @@ describe('TodayCoursePage', () => {
     }
 
     expect(
-      await screen.findByRole('heading', { name: '今天的 5 个词，完成了' }),
+      await screen.findByRole('heading', { name: '今天的 5 个日语词，完成了' }),
     ).toBeInTheDocument();
     expect(screen.getByText('5', { selector: 'strong' })).toBeInTheDocument();
     expect(screen.getAllByRole('listitem')).toHaveLength(5);

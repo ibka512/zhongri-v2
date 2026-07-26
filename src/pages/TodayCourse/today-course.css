@@ -147,6 +147,13 @@
   text-underline-offset: 0.2em;
 }
 
+.today-course__secondary-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--zr-space-3);
+}
+
 .today-course--lesson {
   align-content: start;
   gap: var(--zr-space-5);

@@ -15,6 +15,14 @@ export interface TodayCoursePageProps {
 
 type CourseView = 'plan' | 'lesson';
 
+function languageLabel(language: TodayPlan['language']): string {
+  return language === 'ja' ? '日语' : '英语';
+}
+
+function pronunciationLabel(word: TodayCourseSession['words'][number]): string {
+  return word.reading ?? word.phonetic ?? '暂无音标';
+}
+
 function hasStarted(snapshot: StudySessionSnapshot): boolean {
   return snapshot.status !== 'answering' || snapshot.currentIndex > 0 || snapshot.events.length > 0;
 }
@@ -155,6 +163,8 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
     setView('plan');
   };
 
+  const courseLanguageLabel = languageLabel(course.plan.language);
+
   if (view === 'plan') {
     const isContinuing = hasStarted(snapshot);
     const completedQuestions = snapshot.currentIndex + (snapshot.status === 'feedback' ? 1 : 0);
@@ -163,7 +173,9 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
       <main className="today-course">
         <section aria-labelledby="today-plan-title" className="today-course__plan">
           <p className="today-course__eyebrow">钟日 · {course.plan.localDate}</p>
-          <h1 id="today-plan-title">今天，稳稳学 5 个日语词</h1>
+          <h1 id="today-plan-title">
+            今天，稳稳学 {course.plan.items.length} 个{courseLanguageLabel}词
+          </h1>
           <p className="today-course__lead">
             一次短练习，完成认义与主动回忆。课程内容已保存在应用中，离线也能继续。
           </p>
@@ -209,11 +221,15 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
               <p>
                 {course.insights.profile.answeredCount > 0
                   ? '计划依据今天开始前的真实答题记录生成，当天保持稳定。'
-                  : '还没有历史答题证据，今天先从 N5 基础词开始。'}
+                  : course.plan.language === 'ja'
+                    ? '还没有历史答题证据，今天先从 N5 基础词开始。'
+                    : '还没有历史答题证据，今天先从英语基础词开始。'}
               </p>
             </section>
             <ul className="today-course__facts">
-              <li>5 个真实 N5 基础词</li>
+              <li>
+                {course.plan.items.length} 个真实{courseLanguageLabel}基础词
+              </li>
               <li>3 道选择 · 2 道输入</li>
               <li>答题后立即查看读音与释义</li>
             </ul>
@@ -221,9 +237,14 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
               {isContinuing ? '继续今日课程' : '开始今日课程'}
             </Button>
           </Card>
-          <Link className="today-course__secondary-link" to="/migration-preview">
-            检查旧版备份
-          </Link>
+          <div className="today-course__secondary-links">
+            <Link className="today-course__secondary-link" to="/onboarding">
+              调整学习目标
+            </Link>
+            <Link className="today-course__secondary-link" to="/migration-preview">
+              检查旧版备份
+            </Link>
+          </div>
         </section>
       </main>
     );
@@ -238,7 +259,9 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
       <main className="today-course">
         <Card className="today-course__result">
           <p className="today-course__eyebrow">今日课程已保存在本地</p>
-          <h1>今天的 5 个词，完成了</h1>
+          <h1>
+            今天的 {course.plan.items.length} 个{courseLanguageLabel}词，完成了
+          </h1>
           <p className="today-course__score">
             <strong>{correctCount}</strong>
             <span> / {snapshot.total} 答对</span>
@@ -255,8 +278,8 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
             <ul>
               {course.words.map((word) => (
                 <li key={word.id}>
-                  <span lang="ja">{word.headword}</span>
-                  <small lang="ja">{word.reading}</small>
+                  <span lang={course.plan.language}>{word.headword}</span>
+                  <small lang={course.plan.language}>{pronunciationLabel(word)}</small>
                   <span>{word.meaning}</span>
                 </li>
               ))}
@@ -317,7 +340,7 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
         label="你的答案"
         onChange={setTextAnswer}
         onSubmit={() => submitAnswer(textAnswer)}
-        placeholder="输入日语词或读音"
+        placeholder={`输入${courseLanguageLabel}词或读音`}
         status={isBlocked ? 'disabled' : 'idle'}
         submitLabel={isSubmitting ? '正在保存' : '提交答案'}
         value={isAnswered ? (selectedAnswer ?? textAnswer) : textAnswer}
@@ -328,7 +351,7 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
     <main className="today-course today-course--lesson">
       <header className="today-course__lesson-header">
         <div>
-          <p className="today-course__eyebrow">今日 N5 日语</p>
+          <p className="today-course__eyebrow">今日{courseLanguageLabel}</p>
           <h1>专注这一题</h1>
         </div>
         <RestartControl blocked={isSubmitting} onRestart={handleRestart} />
@@ -386,14 +409,18 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
                   ? 'today-course__japanese-word'
                   : 'today-course__meaning'
               }
-              lang={currentQuestion.type === QuestionType.Choice ? 'ja' : undefined}
+              lang={currentQuestion.type === QuestionType.Choice ? course.plan.language : undefined}
             >
               {currentQuestion.prompt.content}
             </p>
           </div>
         }
         total={snapshot.total}
-        typeLabel={currentQuestion.type === QuestionType.Choice ? '词义选择' : '日语主动回忆'}
+        typeLabel={
+          currentQuestion.type === QuestionType.Choice
+            ? '词义选择'
+            : `${courseLanguageLabel}主动回忆`
+        }
       />
     </main>
   );

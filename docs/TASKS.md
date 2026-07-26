@@ -19,10 +19,12 @@
 | Task 012   | 正式每日课程纵向切片                              | 已完成             | `3c21f73`  |
 | Task 013   | 学习者画像与 FSRS 复习调度                        | 实现与断网验收通过 | `7826c4b`  |
 | GOV-001    | 仓库交接与基线治理                                | 已合并（PR #22）   | `b01814a`  |
+| Task 016   | Phase 1 首次设置与本地学习者目标                  | 实现完成，待验收   | —          |
 
 ## 当前
 
 - **Task 015：v1 迁移逐域转换与 canonical 身份层** 已完成负责人验收（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）。canonical corpus、source snapshot、只读 source adapter、逐域 isolated transformer、staging、V01–V25 验证、activation gate、V23/V25 证据入口和 synthetic 端到端验收均已完成；负责人已在 GitHub Pages 使用真实 v1 数据手工测试并反馈无问题，原始备份不入库。后续转入 Phase 1 产品功能收尾，真实报告如需审计由负责人本地保留。
+- **Task 016：Phase 1 首次设置与本地学习者目标** 已实现，待负责人在 GitHub Pages 验收（见 [ADR-038](./decisions/ADR-038-phase1-onboarding-settings.md)）。本切片只建立版本化本地设置、首次打开入口和 v1 来源只读检测，不提前实现迁移激活、TTS、五十音、IPA 或 AI。
 - GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并，仓库交接记录已进入 `main`。
 - Task 013 已通过 PR #19 合并；本地浏览器断网启动/恢复复测已完成，验收证据已同步到项目状态。
 - 当前切片从 LearningEvent 重放 LearnerProfile v1 与 ReviewState v1，并让 Today Plan
@@ -35,7 +37,8 @@
 | Task              | 状态                 | 说明                                                                                                                                                                                                                                                                                                                                                                                            |
 | ----------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Task 015 迁移转换 | 已验收（负责人实测） | canonical corpus、snapshot contract、只读 source adapter、source-aware staging、确定性 idMap、disposition/quarantine 报告、Legacy Source Reader、显式设备来源接线与分歧报告、全域 isolated payload、inline archives、独立 migrationArchives 存储、V01–V25 报告、staging 重建验证、activation gate、V23/V25 证据入口、synthetic 端到端验收和负责人真实 v1 数据手工验收均已完成；真实备份不入库。 |
-| Phase 1 后续 Task | 未排期               | Task 015 通过后再定义首次设置、内容/音频与双语切片，最后考虑 Phase 2 AI。                                                                                                                                                                                                                                                                                                                       |
+| Task 016 首次设置 | 实现完成，待验收     | 版本化本地学习者设置、首次打开路由、语言/时长/重点/声音向导和 v1 来源只读检测；完成后再定义设置与数据页、五十音/TTS 和英语/IPA 切片。                                                                                                                                                                                                                                                           |
+| Phase 1 后续 Task | 未排期               | Task 016 完成后再定义设置与数据页、内容/音频与双语切片，最后考虑 Phase 2 AI。                                                                                                                                                                                                                                                                                                                   |
 
 远端 Issue #20 当前名为 Task 014（AI Gateway），但它必须等 Phase 1 验收完成后才可授权实施；治理工作不占用产品 Task 编号。
 

@@ -1,0 +1,351 @@
+.onboarding {
+  display: grid;
+  min-height: 100vh;
+  padding: max(var(--zr-space-8), env(safe-area-inset-top))
+    max(var(--zr-page-gutter), env(safe-area-inset-right))
+    max(var(--zr-space-8), env(safe-area-inset-bottom))
+    max(var(--zr-page-gutter), env(safe-area-inset-left));
+}
+
+.onboarding--loading {
+  place-items: center;
+  color: var(--zr-text-secondary);
+}
+
+.onboarding__content {
+  width: min(100%, 35rem);
+  margin: auto;
+}
+
+.onboarding__header {
+  display: grid;
+  gap: var(--zr-space-3);
+  margin-block-end: var(--zr-space-6);
+}
+
+.onboarding__eyebrow {
+  margin: 0 0 var(--zr-space-2);
+  color: var(--zr-brand-primary);
+  font-size: var(--zr-font-size-body-sm);
+  font-weight: var(--zr-font-weight-semibold);
+  letter-spacing: var(--zr-letter-spacing-label);
+}
+
+.onboarding h1,
+.onboarding p {
+  margin-block-start: 0;
+}
+
+.onboarding h1 {
+  margin-block-end: var(--zr-space-3);
+  font-size: var(--zr-font-size-display);
+  line-height: var(--zr-line-height-display);
+  letter-spacing: var(--zr-letter-spacing-display);
+}
+
+.onboarding__lead,
+.onboarding__helper {
+  color: var(--zr-text-secondary);
+}
+
+.onboarding__lead {
+  max-width: 38rem;
+  margin-block-end: 0;
+}
+
+.onboarding__back-link {
+  min-height: var(--zr-size-touch);
+  align-self: start;
+  color: var(--zr-brand-primary);
+  font-weight: var(--zr-font-weight-medium);
+  text-underline-offset: 0.2em;
+}
+
+.onboarding__progress {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--zr-space-2);
+  margin: 0 0 var(--zr-space-5);
+  padding: 0;
+  list-style: none;
+}
+
+.onboarding__progress li {
+  display: flex;
+  min-height: var(--zr-size-touch-min);
+  align-items: center;
+  gap: var(--zr-space-2);
+  padding: var(--zr-space-2) var(--zr-space-3);
+  border-block-end: var(--zr-size-border-strong) solid var(--zr-border-subtle);
+  color: var(--zr-text-tertiary);
+  font-size: var(--zr-font-size-body-sm);
+}
+
+.onboarding__progress li[aria-current='step'] {
+  border-color: var(--zr-brand-primary);
+  color: var(--zr-brand-strong);
+  font-weight: var(--zr-font-weight-semibold);
+}
+
+.onboarding__progress li > span:first-child {
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: none;
+  place-items: center;
+  border: var(--zr-size-border) solid currentColor;
+  border-radius: var(--zr-radius-full);
+  font-size: var(--zr-font-size-label);
+  font-weight: var(--zr-font-weight-semibold);
+}
+
+.onboarding__form {
+  display: grid;
+  gap: var(--zr-space-4);
+}
+
+.onboarding__card {
+  display: grid;
+  gap: var(--zr-space-5);
+  padding: var(--zr-space-5);
+}
+
+.onboarding fieldset {
+  display: grid;
+  min-width: 0;
+  gap: var(--zr-space-3);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.onboarding legend {
+  padding: 0;
+  font-size: var(--zr-font-size-title-2);
+  font-weight: var(--zr-font-weight-semibold);
+  line-height: var(--zr-line-height-title-2);
+}
+
+.onboarding__helper {
+  margin: 0;
+  font-size: var(--zr-font-size-body-sm);
+}
+
+.onboarding__choice-grid {
+  display: grid;
+  gap: var(--zr-space-3);
+}
+
+.onboarding__choice-grid--languages {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.onboarding__choice-grid--durations {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.onboarding__choice,
+.onboarding__focus-choice,
+.onboarding__audio-toggle {
+  cursor: pointer;
+}
+
+.onboarding__choice {
+  display: block;
+  min-height: var(--zr-size-touch);
+}
+
+.onboarding__choice input,
+.onboarding__focus-choice input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.onboarding__choice-body {
+  display: grid;
+  min-height: 7.5rem;
+  gap: var(--zr-space-1);
+  align-content: center;
+  padding: var(--zr-space-4);
+  border: var(--zr-size-border) solid var(--zr-border-subtle);
+  border-radius: var(--zr-radius-md);
+  background: var(--zr-surface-paper);
+  transition:
+    border-color var(--zr-motion-fast) var(--zr-ease-out),
+    background-color var(--zr-motion-fast) var(--zr-ease-out),
+    transform var(--zr-motion-fast) var(--zr-ease-out);
+}
+
+.onboarding__choice-body strong {
+  color: var(--zr-text-primary);
+  font-size: var(--zr-font-size-title-2);
+}
+
+.onboarding__choice-body span,
+.onboarding__choice-body small,
+.onboarding__focus-choice small,
+.onboarding__audio-toggle small {
+  color: var(--zr-text-secondary);
+}
+
+.onboarding__choice-body small,
+.onboarding__focus-choice small,
+.onboarding__audio-toggle small {
+  font-size: var(--zr-font-size-body-sm);
+}
+
+.onboarding__choice input:checked + .onboarding__choice-body {
+  border: var(--zr-size-border-strong) solid var(--zr-brand-primary);
+  background: var(--zr-brand-container);
+}
+
+.onboarding__choice input:focus-visible + .onboarding__choice-body,
+.onboarding__focus-choice input:focus-visible + span {
+  outline: var(--zr-size-focus) solid var(--zr-focus);
+  outline-offset: var(--zr-size-focus-gap);
+}
+
+.onboarding__choice:active .onboarding__choice-body,
+.onboarding__focus-choice:active span {
+  transform: scale(var(--zr-press-scale));
+}
+
+.onboarding__choice--compact .onboarding__choice-body {
+  min-height: 5.25rem;
+  padding: var(--zr-space-3);
+}
+
+.onboarding__choice--compact .onboarding__choice-body strong {
+  font-size: var(--zr-font-size-title-3);
+}
+
+.onboarding__focus-list {
+  display: grid;
+  gap: var(--zr-space-2);
+}
+
+.onboarding__focus-choice {
+  display: block;
+}
+
+.onboarding__focus-choice > span {
+  display: grid;
+  min-height: var(--zr-size-touch);
+  gap: var(--zr-space-1);
+  align-content: center;
+  padding: var(--zr-space-3);
+  border: var(--zr-size-border) solid var(--zr-border-subtle);
+  border-radius: var(--zr-radius-sm);
+  transition:
+    border-color var(--zr-motion-fast) var(--zr-ease-out),
+    background-color var(--zr-motion-fast) var(--zr-ease-out),
+    transform var(--zr-motion-fast) var(--zr-ease-out);
+}
+
+.onboarding__focus-choice input:checked + span {
+  border-color: var(--zr-brand-primary);
+  background: var(--zr-brand-container);
+}
+
+.onboarding__audio-toggle {
+  display: flex;
+  min-height: var(--zr-size-touch);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--zr-space-4);
+  padding-block-start: var(--zr-space-4);
+  border-block-start: var(--zr-size-border) solid var(--zr-border-subtle);
+}
+
+.onboarding__audio-toggle > span {
+  display: grid;
+  gap: var(--zr-space-1);
+}
+
+.onboarding__audio-toggle input {
+  width: 2.75rem;
+  height: 1.5rem;
+  flex: none;
+  accent-color: var(--zr-brand-primary);
+  cursor: pointer;
+}
+
+.onboarding__notice {
+  margin: 0;
+  padding: var(--zr-space-4);
+  border: var(--zr-size-border) solid var(--zr-border-subtle);
+  border-radius: var(--zr-radius-md);
+  background: var(--zr-surface-subtle);
+}
+
+.onboarding__notice strong,
+.onboarding__notice p {
+  display: block;
+  margin: 0;
+}
+
+.onboarding__notice p {
+  margin-block-start: var(--zr-space-2);
+  color: var(--zr-text-secondary);
+}
+
+.onboarding__notice--migration {
+  border-color: var(--zr-brand-primary);
+  background: var(--zr-brand-container);
+}
+
+.onboarding__notice--info {
+  color: var(--zr-text-primary);
+}
+
+.onboarding__error {
+  margin: 0;
+  color: var(--zr-error);
+  font-weight: var(--zr-font-weight-medium);
+}
+
+.onboarding__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--zr-space-3);
+}
+
+.onboarding__primary-action {
+  min-width: 12rem;
+}
+
+@media (max-width: 37.499rem) {
+  .onboarding {
+    padding-block: var(--zr-space-6);
+  }
+
+  .onboarding__choice-grid--languages,
+  .onboarding__choice-grid--durations {
+    grid-template-columns: 1fr;
+  }
+
+  .onboarding__choice-body,
+  .onboarding__choice--compact .onboarding__choice-body {
+    min-height: var(--zr-size-touch);
+  }
+
+  .onboarding__actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .onboarding__actions .zr-button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding__choice:active .onboarding__choice-body,
+  .onboarding__focus-choice:active span {
+    transform: none;
+  }
+}

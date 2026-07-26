@@ -5,6 +5,8 @@ import {
   QuestionType,
   TodayPlanSchema,
   type CanonicalWord,
+  type Language,
+  type LearnerSettingsDailyMinutes,
   type Question,
   type TodayPlan,
 } from '../../schemas/v1';
@@ -17,6 +19,11 @@ export type DailyCoursePriorityReason = 'due-review' | 'recent-incorrect';
 export interface DailyCoursePriority {
   reason: DailyCoursePriorityReason;
   wordId: string;
+}
+
+export interface DailyCourseOptions {
+  estimatedMinutes?: LearnerSettingsDailyMinutes;
+  language?: Language;
 }
 
 export interface DailyCourse {
@@ -96,7 +103,8 @@ function selectionFingerprint(words: readonly CanonicalWord[]): string {
 }
 
 function createExplanation(word: CanonicalWord): string {
-  return `${word.headword}（${word.reading}）：${word.meaning}｜${word.partOfSpeech}`;
+  const pronunciation = word.reading ?? word.phonetic ?? '无音标';
+  return `${word.headword}（${pronunciation}）：${word.meaning}｜${word.partOfSpeech}`;
 }
 
 function createChoiceQuestion(
@@ -105,6 +113,7 @@ function createChoiceQuestion(
   questionIndex: number,
   questionId: string,
   localDate: string,
+  language: Language,
 ): Question {
   const distractors = selectedWords
     .filter((candidate) => candidate.id !== word.id)
@@ -116,7 +125,7 @@ function createChoiceQuestion(
   return QuestionSchema.parse({
     schemaVersion: 1,
     id: questionId,
-    language: 'ja',
+    language,
     type: QuestionType.Choice,
     skill: 'vocabulary-meaning',
     prompt: {
@@ -141,17 +150,19 @@ function createChoiceQuestion(
   });
 }
 
-function createTextQuestion(word: CanonicalWord, questionId: string): Question {
-  const acceptedAnswers = [...new Set([word.headword, word.reading].filter(Boolean))];
+function createTextQuestion(word: CanonicalWord, questionId: string, language: Language): Question {
+  const pronunciation = language === 'ja' ? word.reading : word.phonetic;
+  const acceptedAnswers = [...new Set([word.headword, pronunciation].filter(Boolean))];
 
   return QuestionSchema.parse({
     schemaVersion: 1,
     id: questionId,
-    language: 'ja',
+    language,
     type: QuestionType.TextInput,
     skill: 'vocabulary-recall',
     prompt: {
-      instruction: '根据中文释义输入日语词或读音',
+      instruction:
+        language === 'ja' ? '根据中文释义输入日语词或读音' : '根据中文释义输入英语单词或音标',
       content: word.meaning,
     },
     options: [],
@@ -175,26 +186,29 @@ export function createDailyCourse(
   repository: CanonicalContentRepositoryPort,
   localDate: string,
   priorities: readonly DailyCoursePriority[] = [],
+  options: DailyCourseOptions = {},
 ): DailyCourse {
   const manifest = repository.getManifest();
-  const selection = selectDailyWords(repository.listByLanguage('ja'), localDate, priorities);
+  const language = options.language ?? 'ja';
+  const estimatedMinutes = options.estimatedMinutes ?? 5;
+  const selection = selectDailyWords(repository.listByLanguage(language), localDate, priorities);
   const words = selection.words;
-  const planId = `today-ja-${localDate}-${manifest.id}-c${manifest.contentVersion}-p2-${selectionFingerprint(words)}`;
+  const planId = `today-${language}-${localDate}-${manifest.id}-c${manifest.contentVersion}-p2-${selectionFingerprint(words)}`;
   const questions = words.map((word, questionIndex) => {
     const questionId = `${planId}-q${questionIndex + 1}`;
     return questionIndex % 2 === 0
-      ? createChoiceQuestion(word, words, questionIndex, questionId, localDate)
-      : createTextQuestion(word, questionId);
+      ? createChoiceQuestion(word, words, questionIndex, questionId, localDate, language)
+      : createTextQuestion(word, questionId, language);
   });
   const plan = TodayPlanSchema.parse({
     schemaVersion: 1,
     id: planId,
     localDate,
-    language: 'ja',
+    language,
     sourceManifestId: manifest.id,
     sourceContentVersion: manifest.contentVersion,
-    estimatedMinutes: 5,
-    title: '今日 N5 日语',
+    estimatedMinutes,
+    title: language === 'ja' ? '今日 N5 日语' : '今日英语',
     items: words.map((word, index) => ({
       itemId: word.id,
       wordId: word.id,

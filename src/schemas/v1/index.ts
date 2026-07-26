@@ -7,6 +7,15 @@ export {
   QuestionType,
   QuestionTypeSchema,
 } from './QuestionSchema';
+
+export {
+  LearnerSettingsDailyMinutesSchema,
+  LearnerSettingsFocusSchema,
+  LearnerSettingsSchema,
+  type LearnerSettings,
+  type LearnerSettingsDailyMinutes,
+  type LearnerSettingsFocus,
+} from './LearnerSettingsSchema';
 export type {
   Question,
   QuestionAudio,

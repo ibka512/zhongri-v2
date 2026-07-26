@@ -1,0 +1,41 @@
+.launch {
+  display: grid;
+  min-height: 100vh;
+  align-content: center;
+  padding: max(var(--zr-space-6), env(safe-area-inset-top))
+    max(var(--zr-page-gutter), env(safe-area-inset-right))
+    max(var(--zr-space-6), env(safe-area-inset-bottom))
+    max(var(--zr-page-gutter), env(safe-area-inset-left));
+  place-items: center;
+}
+
+.launch__card {
+  display: grid;
+  width: min(100%, 34rem);
+  gap: var(--zr-space-4);
+}
+
+.launch__eyebrow {
+  margin: 0;
+  color: var(--zr-brand-primary);
+  font-size: var(--zr-font-size-body-sm);
+  font-weight: var(--zr-font-weight-semibold);
+  letter-spacing: var(--zr-letter-spacing-label);
+}
+
+.launch h1,
+.launch p {
+  margin: 0;
+}
+
+.launch__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--zr-space-3);
+}
+
+@media (max-width: 37.499rem) {
+  .launch__actions .zr-button {
+    width: 100%;
+  }
+}

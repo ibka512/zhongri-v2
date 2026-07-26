@@ -11,8 +11,8 @@ import { cryptoIdGenerator, webClock } from '../infrastructure/system';
 import type { CanonicalWord, LearnerProfile, LearningProjection, TodayPlan } from '../schemas/v1';
 import { createCanonicalContentRepository } from './content';
 import { appPersistence } from './persistence';
+import { localUserId } from './user';
 
-const localUserId = 'local-v2-user';
 const reviewScheduler = new FsrsReviewScheduler();
 
 export interface TodayCourseSession extends DailyCourse {
@@ -61,19 +61,25 @@ async function createCourseForDate(
   mode: 'start-or-resume' | 'restart',
 ): Promise<TodayCourseSession> {
   const repository = await createCanonicalContentRepository();
-  const words = repository.listByLanguage('ja');
+  const settings = await appPersistence.findUserSettings(localUserId);
+  const language = settings?.language ?? 'ja';
+  const estimatedMinutes = settings?.dailyMinutes ?? 5;
+  const words = repository.listByLanguage(language);
   const knownItemIds = new Set(words.map((word) => word.id));
   const dayRange = localDayRange(localDate);
   const allEvents = await appPersistence.findByUserId(localUserId);
   const historicalProjection = projectLearningState({
     events: allEvents.filter((event) => new Date(event.timestamp) < dayRange.start),
     knownItemIds,
-    language: 'ja',
+    language,
     scheduler: reviewScheduler,
     userId: localUserId,
   });
   const priorities = createTodayCoursePriorities(historicalProjection, dayRange.end);
-  const course = createDailyCourse(repository, localDate, priorities);
+  const course = createDailyCourse(repository, localDate, priorities, {
+    estimatedMinutes,
+    language,
+  });
   const input = {
     items: course.items,
     sessionId: course.plan.id,
@@ -93,7 +99,7 @@ async function createCourseForDate(
   const currentProjection = projectLearningState({
     events: projectionEvents,
     knownItemIds,
-    language: 'ja',
+    language,
     scheduler: reviewScheduler,
     userId: localUserId,
   });
@@ -102,7 +108,7 @@ async function createCourseForDate(
     (state) => new Date(state.due) < dayRange.end,
   ).length;
   const recentIncorrectWords = historicalProjection.profile.recentIncorrectItemIds
-    .map((wordId) => repository.findById('ja', wordId))
+    .map((wordId) => repository.findById(language, wordId))
     .filter((word): word is CanonicalWord => word !== null);
 
   return {

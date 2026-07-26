@@ -1,8 +1,11 @@
-import { createHashRouter, Navigate, type RouteObject } from 'react-router-dom';
+import { createHashRouter, type RouteObject } from 'react-router-dom';
 
 import type { PreviewV1BackupInput, StageV1BackupInput } from '../application/migration';
+import type { SaveLearnerSettingsInput } from '../application/settings';
 import type { StudyUseCase } from '../application/study';
+import { OnboardingPage } from '../pages/Onboarding';
 import { MigrationPreviewPage } from '../pages/MigrationPreview';
+import { LaunchPage } from '../pages/Launch';
 import { StudyDemoPage } from '../pages/StudyDemo';
 import { TodayCoursePage } from '../pages/TodayCourse';
 import { UILabPage } from '../pages/UILab';
@@ -15,15 +18,19 @@ import {
   stageV1Backup,
   stageV1BackupFromCurrentDevice,
 } from './migrationPreview';
+import { detectLegacyV1Data, loadUserSettings, saveUserSettings } from './settings';
 import { createStudyDemoUseCase, restartStudyDemoUseCase } from './studyDemo';
 import { createTodayCourse, restartTodayCourse, type TodayCourseSession } from './todayCourse';
 
 export interface AppRouteDependencies {
   createTodayCourse: () => Promise<TodayCourseSession>;
   createStudyDemoUseCase: () => Promise<StudyUseCase>;
+  detectLegacyV1Data: typeof detectLegacyV1Data;
+  loadUserSettings: typeof loadUserSettings;
   previewV1Backup: (input: PreviewV1BackupInput) => Promise<MigrationPreviewReport>;
   restartStudyDemoUseCase: () => Promise<StudyUseCase>;
   restartTodayCourse: (plan: TodayPlan) => Promise<TodayCourseSession>;
+  saveUserSettings: (input: SaveLearnerSettingsInput) => ReturnType<typeof saveUserSettings>;
   serializeMigrationPreview: (report: MigrationPreviewReport) => string;
   stageV1Backup: (input: StageV1BackupInput) => Promise<StageMigrationResult>;
   stageV1BackupFromCurrentDevice: (input: StageV1BackupInput) => Promise<StageMigrationResult>;
@@ -32,9 +39,12 @@ export interface AppRouteDependencies {
 const defaultDependencies: AppRouteDependencies = {
   createTodayCourse,
   createStudyDemoUseCase,
+  detectLegacyV1Data,
+  loadUserSettings,
   previewV1Backup,
   restartStudyDemoUseCase,
   restartTodayCourse,
+  saveUserSettings,
   serializeMigrationPreview,
   stageV1Backup,
   stageV1BackupFromCurrentDevice,
@@ -46,7 +56,17 @@ export function createAppRoutes(dependencies: Partial<AppRouteDependencies> = {}
   return [
     {
       path: '/',
-      element: <Navigate replace to="/today" />,
+      element: <LaunchPage loadSettings={resolvedDependencies.loadUserSettings} />,
+    },
+    {
+      path: '/onboarding',
+      element: (
+        <OnboardingPage
+          detectLegacyData={resolvedDependencies.detectLegacyV1Data}
+          loadSettings={resolvedDependencies.loadUserSettings}
+          saveSettings={resolvedDependencies.saveUserSettings}
+        />
+      ),
     },
     {
       path: '/today',

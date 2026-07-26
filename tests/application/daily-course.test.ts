@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createDailyCourse } from '../../src/application/course';
 import { jaN5StarterManifest, jaN5StarterWords } from '../../src/content';
 import type { CanonicalContentRepositoryPort } from '../../src/ports';
-import { QuestionSchema, QuestionType } from '../../src/schemas/v1';
+import { CanonicalWordSchema, QuestionSchema, QuestionType } from '../../src/schemas/v1';
 
 const repository: CanonicalContentRepositoryPort = {
   getManifest: () => jaN5StarterManifest,
@@ -14,6 +14,25 @@ const repository: CanonicalContentRepositoryPort = {
   verifyIntegrity: async () => {
     throw new Error('Integrity verification belongs to the composition root');
   },
+};
+
+const englishWords = jaN5StarterWords.map((word, index) =>
+  CanonicalWordSchema.parse({
+    ...word,
+    id: `en-${String(index + 1).padStart(3, '0')}`,
+    language: 'en',
+    headword: `word-${index + 1}`,
+    reading: word.phonetic,
+    meaning: `meaning ${index + 1}`,
+  }),
+);
+
+const bilingualRepository: CanonicalContentRepositoryPort = {
+  ...repository,
+  listByLanguage: (language) => (language === 'en' ? englishWords : jaN5StarterWords),
+  findById: (language, wordId) =>
+    (language === 'en' ? englishWords : jaN5StarterWords).find((word) => word.id === wordId) ??
+    null,
 };
 
 describe('createDailyCourse', () => {
@@ -42,6 +61,23 @@ describe('createDailyCourse', () => {
     expect(tomorrow.plan.items.map((item) => item.wordId)).not.toEqual(
       today.plan.items.map((item) => item.wordId),
     );
+  });
+
+  it('uses the selected language and target duration in the daily course contract', () => {
+    const course = createDailyCourse(bilingualRepository, '2026-07-24', [], {
+      estimatedMinutes: 10,
+      language: 'en',
+    });
+
+    expect(course.plan.language).toBe('en');
+    expect(course.plan.estimatedMinutes).toBe(10);
+    expect(course.plan.title).toBe('今日英语');
+    expect(course.items.every((item) => item.question.language === 'en')).toBe(true);
+    expect(
+      course.items.some(
+        (item) => item.question.prompt.instruction === '根据中文释义输入英语单词或音标',
+      ),
+    ).toBe(true);
   });
 
   it('keeps choice distractors unique and text answers tied to canonical words', () => {

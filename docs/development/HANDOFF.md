@@ -4,14 +4,14 @@
 
 ## 当前快照
 
-- 稳定基线：`origin/main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36、核心域纵向切片 PR #37、staging orchestration PR #39/#40，以及本地 Task 015 后续提交至 `df268bb`）
+- 稳定基线：`origin/main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36、核心域纵向切片 PR #37、staging orchestration PR #39/#40，以及负责人真实 v1 数据验收记录 `07ef6f9`）
 - 当前交接分支：`main`
-- 稳定基线提交：`df268bb`（已推送到远端 main）
-- 当前实现提交：`df268bb`（包含负责人批准 synthetic fixture 后的完整 V01–V25、activation commit、rollback 回归及本交接记录；已推送到远端 main）
-- 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层（负责人真实数据验收已通过，准备转入 Phase 1 产品收尾）
-- 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排、source-aware staging、确定性 canonical/user idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、Word/Override/Folder/Favorite/Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/ReminderSetting/FSRS isolated transformer、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23 固定抽样证据入口、V25 失败注入演练入口、负责人批准 synthetic fixture 的端到端 activation/rollback 验收和负责人真实 v1 数据手工验收已完成；真实备份不入库，下一步转入 Phase 1 产品功能收尾
+- 稳定基线提交：`07ef6f9`（已推送到远端 main）
+- 当前实现提交：工作区正在实现 Task 016；提交和推送完成后更新本行
+- 当前任务：Task 016 · Phase 1 首次设置与本地学习者目标（ADR-038）
+- 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016 已实现版本化 UserSettings、首次打开路由、语言/时长/重点/声音向导、旧 v1 来源只读检测，并让今日课程读取语言与目标时长事实；真实备份不入库，迁移激活、AI、TTS、五十音和 IPA 仍未实现
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
-- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；`df268bb` 已通过 `git push origin main` 推送到远端 main。当前 Codex 工作区的 `gh auth status` 仍显示 token invalid，但 Git credential helper 已完成本次推送；后续创建 PR 或执行 gh API 前仍需重新确认 CLI 凭据。
+- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；`07ef6f9` 已通过 `git push origin main` 推送到远端 main。当前 Codex 工作区的 `gh auth status` 仍显示 token invalid，但 Git credential helper 已完成本次推送；Task 016 完成后继续使用同一推送方式，并在推送后复核远端提交。
 
 ## 本轮已完成
 
@@ -99,19 +99,25 @@
 - 负责人批准使用 synthetic fixture 后，新增 `createApprovedSyntheticV1Backup()` 和 ADR-036；完整
   corpus 下的端到端测试通过 V01–V25、V23 固定抽样、V25 失败注入、activation commit 和 rollback，
   但明确标注为实现/事务边界验收，不替代真实用户 fixture。
+- Task 016 新增 ADR-038 与版本化 `LearnerSettingsSchema`：本地 UserSettings 通过 Repository
+  Port 持久化，首次打开进入语言/时长/重点/声音向导，已有设置可调整，旧 v1 来源只读检测不会写入
+  迁移数据；今日课程读取语言和目标时长，并保留 `/migration-preview` 作为后续显式迁移入口。
+- Task 016 新增 Launch/Onboarding 页面、Dexie/InMemory 设置适配器及应用层测试；英语选择会进入英语
+  今日课程，保存失败会保留用户选择，页面控件满足键盘/标签/窄屏和 reduced-motion 基本要求。
 
 ## 仍未完成
 
-- Phase 1 双语、迁移和产品页面仍未完成。
+- Phase 1 双语、迁移和产品页面仍未全部完成。
 - 负责人已使用真实 v1 数据完成手工测试并反馈无问题；原始备份和真实内容不入库，真实 report digest
   如需审计由负责人本地保留。仓库仍不把该手工结果伪装成可公开复现的真实 fixture。
-- 首次设置、内容中心、设置与数据安全页。
+- Task 016 代码已完成，待提交推送并由负责人在 GitHub Pages 新浏览器会话完成首次设置验收。
+- 内容中心、设置与数据安全页尚未实现。
 - 日语五十音/TTS、英语/IPA 双语纵向切片。
 - Phase 1 综合验收。
 
 ## 已验证命令
 
-以下命令已在本轮 synthetic end-to-end gate 完成后通过（41 个测试文件、168 个测试）：
+以下命令已在 Task 016 实现后通过（45 个测试文件、177 个测试）：
 
 ```bash
 npm run verify
@@ -132,8 +138,8 @@ npm run verify
 
 ## 下一项工作
 
-1. 负责人保留真实迁移报告或必要审计记录在本地，仓库不接收原始备份。
-2. 定义并授权首次设置/数据页、五十音/TTS、英语/IPA 等 Phase 1 产品切片。
+1. 提交并推送 Task 016，负责人在 GitHub Pages 新浏览器会话完成首次设置、刷新恢复、英语入口和旧版提示验收。
+2. 在负责人确认 Task 016 后，定义并授权设置与数据页、五十音/TTS、英语/IPA 等下一批 Phase 1 产品切片。
 3. 完成 Phase 1 双语核心闭环验收后，再进入 AI Gateway（Issue #20）。
 
 ## 交接规则

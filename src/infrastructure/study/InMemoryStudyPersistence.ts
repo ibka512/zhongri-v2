@@ -3,9 +3,11 @@ import {
   type CommitAnswerInput,
   type CommitAnswerResult,
   type StudyPersistencePort,
+  type UserSettingsRepositoryPort,
 } from '../../ports';
 import {
   LearnerProfileSchema,
+  LearnerSettingsSchema,
   LearningEventSchema,
   LearningProjectionSchema,
   ReviewStateSchema,
@@ -13,6 +15,7 @@ import {
   StudySessionStateSchema,
   type Language,
   type LearnerProfile,
+  type LearnerSettings,
   type LearningEvent,
   type LearningProjection,
   type ReviewState,
@@ -27,9 +30,10 @@ interface IdempotencyRecord {
   sessionState: StudySessionState;
 }
 
-export class InMemoryStudyPersistence implements StudyPersistencePort {
+export class InMemoryStudyPersistence implements StudyPersistencePort, UserSettingsRepositoryPort {
   readonly #events = new Map<string, LearningEvent>();
   readonly #learnerProfiles = new Map<string, LearnerProfile>();
+  readonly #userSettings = new Map<string, LearnerSettings>();
   readonly #reviewStates = new Map<string, ReviewState>();
   readonly #checkpoints = new Map<string, StudySessionCheckpoint>();
   readonly #sessionStates = new Map<string, StudySessionState>();
@@ -144,6 +148,21 @@ export class InMemoryStudyPersistence implements StudyPersistencePort {
   async findLearnerProfile(userId: string, language: Language): Promise<LearnerProfile | null> {
     const profile = this.#learnerProfiles.get(`${userId}:${language}`);
     return profile ? LearnerProfileSchema.parse(profile) : null;
+  }
+
+  async findUserSettings(userId: string): Promise<LearnerSettings | null> {
+    const settings = this.#userSettings.get(userId);
+    return settings ? LearnerSettingsSchema.parse(settings) : null;
+  }
+
+  async saveUserSettings(settings: LearnerSettings): Promise<LearnerSettings> {
+    const parsed = LearnerSettingsSchema.parse(settings);
+    this.#userSettings.set(parsed.userId, parsed);
+    return parsed;
+  }
+
+  async clearUserSettings(userId: string): Promise<void> {
+    this.#userSettings.delete(userId);
   }
 
   async listReviewStates(userId: string): Promise<readonly ReviewState[]> {
