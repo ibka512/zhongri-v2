@@ -211,7 +211,7 @@ export function MigrationPreviewPage({
         <Link className="migration-preview__back" to="/today">
           返回今日课程
         </Link>
-        <p className="migration-preview__eyebrow">Phase 1 · Task010</p>
+        <p className="migration-preview__eyebrow">Phase 1 · Task015</p>
         <h1>旧版数据迁移预检</h1>
         <p>
           选择钟日 v1 JSON
@@ -351,8 +351,8 @@ export function MigrationPreviewPage({
               <p className="migration-preview__status-label">已安全暂存</p>
               <h2>
                 {stagingSource === 'device'
-                  ? '当前设备来源和预检报告已进入隔离数据集'
-                  : '原始备份和预检报告已进入隔离数据集'}
+                  ? '当前设备来源、预检报告和逐域结果已进入隔离数据集'
+                  : '原始备份、预检报告和逐域结果已进入隔离数据集'}
               </h2>
               <p>
                 {stagingResult.status === 'replayed'
@@ -368,7 +368,7 @@ export function MigrationPreviewPage({
                 </div>
                 <div>
                   <dt>当前阶段</dt>
-                  <dd>验证完成，等待后续逐域转换</dd>
+                  <dd>隔离转换完成，等待 V01–V25 验证报告</dd>
                 </div>
                 <div>
                   <dt>敏感字段</dt>

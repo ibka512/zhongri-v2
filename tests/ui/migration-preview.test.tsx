@@ -105,7 +105,7 @@ describe('MigrationPreviewPage', () => {
 
     expect(
       await screen.findByRole('heading', {
-        name: '原始备份和预检报告已进入隔离数据集',
+        name: '原始备份、预检报告和逐域结果已进入隔离数据集',
       }),
     ).toBeInTheDocument();
     expect(screen.getByText(/不代表词条、FSRS 或学习历史已经迁移/)).toBeInTheDocument();
@@ -131,7 +131,7 @@ describe('MigrationPreviewPage', () => {
     expect(stageDeviceBackup).toHaveBeenCalledTimes(1);
     expect(
       await screen.findByRole('heading', {
-        name: '当前设备来源和预检报告已进入隔离数据集',
+        name: '当前设备来源、预检报告和逐域结果已进入隔离数据集',
       }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '创建安全暂存' })).toBeInTheDocument();
