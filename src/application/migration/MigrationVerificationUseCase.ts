@@ -288,6 +288,14 @@ function findDuplicateKeys(slice: MigrationDomainSliceResult): string[] {
   return duplicates;
 }
 
+function isReminderSourceRef(sourceRef: string): boolean {
+  return [
+    'nativeStudyReminderSettingsV2',
+    'nativeStudyReminderEnabled',
+    'nativeStudyReminderTime',
+  ].some((key) => sourceRef.endsWith(`["${key}"]`));
+}
+
 export class MigrationVerificationUseCase {
   constructor(private readonly dependencies: MigrationVerificationDependencies) {}
 
@@ -388,16 +396,36 @@ export class MigrationVerificationUseCase {
       );
     }
 
+    const reminderSourceRefs = source.records
+      .filter((record) => record.domain === 'preferences' && isReminderSourceRef(record.sourceRef))
+      .map((record) => record.sourceRef);
+    const reminderSetting = slice.isolatedPayload.reminderSettings[0] ?? null;
+    const reminderSourcesCovered =
+      reminderSetting !== null &&
+      reminderSourceRefs.length > 0 &&
+      reminderSourceRefs.every((sourceRef) => reminderSetting.sourceRefs.includes(sourceRef));
     checks.set(
       'V18',
       makeCheck(
         'V18',
-        'unverified',
-        'blocking',
-        'REMINDER_TRANSFORMER_PENDING',
-        '提醒设置尚未有独立的 active-safe transformer 和权限重排验证。',
-        'ReminderSetting v2 normalization',
-        null,
+        reminderSourceRefs.length === 0
+          ? 'unverified'
+          : reminderSourcesCovered
+            ? 'passed'
+            : 'failed',
+        reminderSourceRefs.length === 0 || reminderSourcesCovered ? 'warning' : 'blocking',
+        reminderSourceRefs.length === 0
+          ? 'REMINDER_SOURCE_PENDING'
+          : reminderSourcesCovered
+            ? 'REMINDER_SETTINGS_MAPPED'
+            : 'REMINDER_SETTINGS_MISSING',
+        reminderSourceRefs.length === 0
+          ? '需要设备或真实 backup 的提醒来源才能完成 V18。'
+          : reminderSourcesCovered
+            ? '提醒来源已归一化为隔离 ReminderSetting，权限保持 unknown。'
+            : '提醒来源没有完整映射到隔离 ReminderSetting。',
+        'all reminder source refs mapped',
+        { sourceRefs: reminderSourceRefs, payload: reminderSetting?.sourceRefs ?? [] },
       ),
     );
 

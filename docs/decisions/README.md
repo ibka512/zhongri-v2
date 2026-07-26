@@ -35,6 +35,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-029：以隔离 payload 保存安全偏好](./ADR-029-preference-isolated-transformer.md)
 - [ADR-030：将迁移 rawArchive 与 quarantine 写入独立存储](./ADR-030-independent-migration-archives.md)
 - [ADR-031：以只验证的 V01–V25 报告阻断未完成迁移](./ADR-031-migration-verification-report.md)
+- [ADR-032：以隔离 payload 保存提醒设置并保持权限未知](./ADR-032-reminder-setting-isolated-transformer.md)
 
 ## 未来
 

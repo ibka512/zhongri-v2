@@ -5,7 +5,7 @@
 本轮在已完成的 Legacy Source Reader、canonical idMap 和 disposition report 之上，新增
 `MigrationDomainSliceUseCase`。当前 isolated transformer 已贯通核心词域和第一批学习事实域：
 
-`words → overrides → folders → favorites → mastery → studyRecords → groupProgress → wrongBook → recycleBin → aiConversations → aiQuizHistory → preferences → fsrsCards → fsrsLogs`
+`words → overrides → folders → favorites → mastery → studyRecords → groupProgress → wrongBook → recycleBin → aiConversations → aiQuizHistory → preferences → reminderSettings → fsrsCards → fsrsLogs`
 
 本轮的 synthetic fixture 不是任何用户的真实历史。它只验证 `db/userWords`、
 `wordOverrides`、`folders/folderLangs`、`stars`、`mtWordClears`、`studyRecords`、
@@ -16,7 +16,7 @@ backup 到位前，不能把测试结果描述为真实迁移完成。
 
 用例输入是已经由 `MigrationLegacySourceReaderUseCase` 校验的
 `MigrationLegacySourceSchema`。用例选择 `words`、`overrides`、`folders`、`favorites`、
-`mastery`、`studyRecords`、`groupProgress`、`wrongBook`、`recycleBin`、`aiConversations`、`aiQuizHistory`、`preferences`、`fsrsCards` 和 `fsrsLogs` 记录；
+`mastery`、`studyRecords`、`groupProgress`、`wrongBook`、`recycleBin`、`aiConversations`、`aiQuizHistory`、`preferences`、`reminderSettings`、`fsrsCards` 和 `fsrsLogs` 记录；
 unknown 仍保留在 reader 结果中，未被静默标记为已迁移。
 
 输出 `MigrationDomainSliceResultSchema` 同时绑定三个结果：
@@ -25,7 +25,7 @@ unknown 仍保留在 reader 结果中，未被静默标记为已迁移。
 - `dispositionReport`：已接入域的每条 sourceRef 都有 `migrated`、`deduped` 或 `quarantined` 去向，
   成功/去重记录生成 rawArchive 引用，quarantine 不生成活跃目标；
 - `isolatedPayload`：包含 canonical/user Word、Override、Folder、Favorite、Mastery、StudyEvent、GroupProgress、
-  WrongBook、RecycleBin、AIConversation、AIQuizHistory、Preference、legacy ReviewCard 和 ReviewLog 目标，带 reader、idMap、处置报告和自身 payload 摘要。
+  WrongBook、RecycleBin、AIConversation、AIQuizHistory、Preference、ReminderSetting、legacy ReviewCard 和 ReviewLog 目标，带 reader、idMap、处置报告和自身 payload 摘要。
 
 `isolatedPayload.datasetId` 固定派生自 `migrationId`，并明确携带
 `writesPerformed: false` 与 `activePointerUpdated: false`。纵向用例本身不调用
@@ -62,6 +62,8 @@ active pointer，也不改变 Word、ReviewState 或 FSRS。
     quality flag 保留，不反造 LearningEvent、不调用 AI。
 13. Preference 只接受规格白名单键；未知键隔离，`deepseekApiKey` 只保留脱敏存在性并要求重新输入，
     不把偏好、提醒权限或 API Key 直接写入 active 设置。
+14. ReminderSetting 按 V2 对象优先、旧 enabled/time 键回退归一化；权限固定为 `unknown`，不迁移系统排程，
+    只进入 isolated payload，V18 只验证来源覆盖不触发通知。
 
 ## 安全与后续边界
 
@@ -89,6 +91,7 @@ active pointer，也不改变 Word、ReviewState 或 FSRS。
 - `aiConversations` 的 cacheKey/旧 ID 去重、日期/语言质量、消息 role 顺序和 Word 关联；
 - `aiQuizHistory` 的 quiz/answer 数量、统计计数、答案顺序和 Word 关联；
 - `preferences` 的白名单、敏感键重输标记和未知键 quarantine；
+- `reminderSettings` 的 V2/旧键优先级、默认值、星期归一化和权限 unknown；
 - legacy FSRS 卡的完整状态保存、坏卡/孤立日志 quarantine、日志内容指纹去重；
 - 孤立 Override 的 quarantine 与数量守恒；
 - reader → transformer → report → isolated payload 的 digest 绑定；

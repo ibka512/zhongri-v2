@@ -121,6 +121,10 @@ ReminderSetting 或 active pointer。实现决策见 [ADR-029](../decisions/ADR-
 `unverified`，报告不调用 persistence、不授权 active。实现决策见
 [ADR-031](../decisions/ADR-031-migration-verification-report.md)。
 
+第二十一步新增 `reminderSettings` isolated transformer：按 `nativeStudyReminderSettingsV2` 优先、旧
+enabled/time 键回退归一化提醒设置，权限固定 unknown，不迁移系统排程；V18 在来源完整映射时通过。
+实现决策见 [ADR-032](../decisions/ADR-032-reminder-setting-isolated-transformer.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
@@ -129,7 +133,7 @@ ReminderSetting 或 active pointer。实现决策见 [ADR-029](../decisions/ADR-
    synthetic 方案；当前设备 snapshot → LegacyReader 的入口和优先级已接通，但仍需真实 fixture
    复核字段覆盖。
 2. 用真实/批准的 fixture 复核第十、十一小步的设备来源、字段覆盖和分歧报告。
-3. 在真实 fixture 上继续复核字段覆盖，补齐 V02/V18/V23/V25 的真实证据；独立 archive 记录只读、
+3. 在真实 fixture 上继续复核字段覆盖，补齐 V02/V23/V25 的真实证据；独立 archive 记录只读、
    不自动清理，直到保留周期与用户确认策略明确。
 4. 将验证报告接入 activation gate，并完成 active pointer 原子提交/回滚。
 

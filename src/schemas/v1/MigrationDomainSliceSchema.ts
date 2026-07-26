@@ -89,6 +89,15 @@ const MigrationPreferenceQualityFlagSchema = z.enum([
   'SENSITIVE_REENTRY_REQUIRED',
 ]);
 
+const MigrationReminderQualityFlagSchema = z.enum([
+  'VALUE_DEFAULTED',
+  'TIME_DEFAULTED',
+  'WEEKDAYS_DEFAULTED',
+  'WEEKDAYS_NORMALIZED',
+  'SOURCE_FALLBACK',
+  'PERMISSION_UNKNOWN',
+]);
+
 const MigrationReviewDimensionSchema = z.enum(['spelling', 'reading', 'listening', 'meaning']);
 const MigrationFsrsQualityFlagSchema = z.enum([
   'ELAPSED_DAYS_DEFAULTED',
@@ -376,6 +385,29 @@ export const MigrationIsolatedPreferenceSchema = z
   })
   .strict();
 
+export const MigrationIsolatedReminderSettingSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    profileId: z.literal('default'),
+    enabled: z.boolean(),
+    mode: z.enum(['smart', 'fixed']),
+    dueEnabled: z.boolean(),
+    rescueEnabled: z.boolean(),
+    reminderTime: z.string().regex(/^\d{2}:\d{2}$/),
+    rescueTime: z.string().regex(/^\d{2}:\d{2}$/),
+    weekdays: z.array(z.number().int().min(0).max(6)).max(7),
+    quietEnabled: z.boolean(),
+    quietStart: z.string().regex(/^\d{2}:\d{2}$/),
+    quietEnd: z.string().regex(/^\d{2}:\d{2}$/),
+    exactRequested: z.boolean(),
+    permissionState: z.literal('unknown'),
+    sourceRefs: SourceRefListSchema,
+    sourceRecordDigestsSha256: SourceDigestListSchema,
+    qualityFlags: z.array(MigrationReminderQualityFlagSchema).max(6),
+    serializedValues: SerializedValueListSchema,
+  })
+  .strict();
+
 export const MigrationIsolatedFsrsCardSchema = z
   .object({
     schemaVersion: ContractVersionSchema,
@@ -458,6 +490,7 @@ export const MigrationIsolatedPayloadSchema = z
     aiConversations: z.array(MigrationIsolatedAiConversationSchema).max(100_000).default([]),
     aiQuizHistory: z.array(MigrationIsolatedAiQuizSchema).max(100).default([]),
     preferences: z.array(MigrationIsolatedPreferenceSchema).max(100_000).default([]),
+    reminderSettings: z.array(MigrationIsolatedReminderSettingSchema).max(1).default([]),
     fsrsCards: z.array(MigrationIsolatedFsrsCardSchema).max(100_000).default([]),
     fsrsLogs: z.array(MigrationIsolatedFsrsLogSchema).max(100_000).default([]),
     archives: z.array(MigrationIsolatedArchiveSchema).max(200_000).default([]),
@@ -595,6 +628,18 @@ export const MigrationIsolatedPayloadSchema = z
       preferenceKeys.add(preference.preferenceKey);
     }
 
+    const reminderProfileIds = new Set<string>();
+    for (const [index, reminder] of payload.reminderSettings.entries()) {
+      if (reminderProfileIds.has(reminder.profileId)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['reminderSettings', index, 'profileId'],
+          message: 'Isolated reminder settings must contain one default profile',
+        });
+      }
+      reminderProfileIds.add(reminder.profileId);
+    }
+
     const studyEventIds = new Set<string>();
     for (const [index, event] of payload.studyRecords.entries()) {
       if (studyEventIds.has(event.eventId)) {
@@ -728,6 +773,9 @@ export type MigrationIsolatedAiConversation = z.infer<typeof MigrationIsolatedAi
 export type MigrationIsolatedAiQuizAnswer = z.infer<typeof MigrationIsolatedAiQuizAnswerSchema>;
 export type MigrationIsolatedAiQuiz = z.infer<typeof MigrationIsolatedAiQuizSchema>;
 export type MigrationIsolatedPreference = z.infer<typeof MigrationIsolatedPreferenceSchema>;
+export type MigrationIsolatedReminderSetting = z.infer<
+  typeof MigrationIsolatedReminderSettingSchema
+>;
 export type MigrationIsolatedFsrsCard = z.infer<typeof MigrationIsolatedFsrsCardSchema>;
 export type MigrationIsolatedFsrsLog = z.infer<typeof MigrationIsolatedFsrsLogSchema>;
 export type MigrationIsolatedArchive = z.infer<typeof MigrationIsolatedArchiveSchema>;

@@ -18,6 +18,7 @@ import {
   MigrationIsolatedOverrideSchema,
   MigrationIsolatedPayloadSchema,
   MigrationIsolatedPreferenceSchema,
+  MigrationIsolatedReminderSettingSchema,
   MigrationIsolatedRecycleBinItemSchema,
   MigrationIsolatedStudyRecordSchema,
   MigrationIsolatedWrongAnswerSchema,
@@ -33,6 +34,7 @@ import {
   type MigrationIsolatedAiQuiz,
   type MigrationIsolatedAiQuizAnswer,
   type MigrationIsolatedPreference,
+  type MigrationIsolatedReminderSetting,
   type MigrationIsolatedFavorite,
   type MigrationIsolatedFsrsCard,
   type MigrationIsolatedFsrsLog,
@@ -146,6 +148,14 @@ type AiQuizQualityFlag =
 
 type PreferenceQualityFlag = 'VALUE_DEFAULTED' | 'SENSITIVE_REENTRY_REQUIRED';
 
+type ReminderQualityFlag =
+  | 'VALUE_DEFAULTED'
+  | 'TIME_DEFAULTED'
+  | 'WEEKDAYS_DEFAULTED'
+  | 'WEEKDAYS_NORMALIZED'
+  | 'SOURCE_FALLBACK'
+  | 'PERMISSION_UNKNOWN';
+
 const MIGRATABLE_PREFERENCE_KEYS = new Set([
   'theme',
   'langMode',
@@ -167,6 +177,12 @@ const MIGRATABLE_PREFERENCE_KEYS = new Set([
   'wrongBookEnabled',
   'aiQuizRecord',
   'importMode',
+  'nativeStudyReminderSettingsV2',
+  'nativeStudyReminderEnabled',
+  'nativeStudyReminderTime',
+]);
+
+const REMINDER_PREFERENCE_KEYS = new Set([
   'nativeStudyReminderSettingsV2',
   'nativeStudyReminderEnabled',
   'nativeStudyReminderTime',
@@ -658,6 +674,52 @@ function parseSourceValue(record: MigrationLegacySourceRecord): unknown {
       `来源记录 ${record.sourceRef} 的 serializedValue 无法解析。`,
     );
   }
+}
+
+function reminderBoolean(value: unknown): boolean | null {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'true') {
+      return true;
+    }
+    if (normalized === 'false') {
+      return false;
+    }
+  }
+  return null;
+}
+
+function reminderTime(value: unknown): string | null {
+  const candidate = typeof value === 'string' ? value.trim() : null;
+  if (!candidate || !/^\d{2}:\d{2}$/.test(candidate)) {
+    return null;
+  }
+  const [hour, minute] = candidate.split(':').map(Number);
+  return hour <= 23 && minute <= 59 ? candidate : null;
+}
+
+function reminderWeekdays(value: unknown): number[] | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  return value
+    .filter((item): item is number => typeof item === 'number' && Number.isInteger(item))
+    .filter((item) => item >= 0 && item <= 6);
+}
+
+function reminderObjectField(value: unknown, ...keys: readonly string[]): unknown {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(value, key)) {
+      return value[key];
+    }
+  }
+  return undefined;
 }
 
 function readSourceKey(sourceRef: string, prefix: string): string | null {
@@ -1885,8 +1947,9 @@ export class MigrationDomainSliceUseCase {
       );
     }
 
+    const preferenceSourceRecords = sourceValueRecords(source, 'preferences');
     const preferencePayloadByKey = new Map<string, MigrationIsolatedPreference>();
-    for (const { record } of sourceValueRecords(source, 'preferences')) {
+    for (const { record } of preferenceSourceRecords) {
       const preferenceKey = boundedText(readPreferenceSourceKey(record.sourceRef), 200);
       if (!preferenceKey) {
         dispositionRecords.push(
@@ -1947,6 +2010,99 @@ export class MigrationDomainSliceUseCase {
           preferenceKey,
           isSensitive ? 'warning' : 'info',
         ),
+      );
+    }
+
+    const reminderRecords = preferenceSourceRecords.filter(({ record }) => {
+      const key = readPreferenceSourceKey(record.sourceRef);
+      return key !== null && REMINDER_PREFERENCE_KEYS.has(key);
+    });
+    const reminderPayload: MigrationIsolatedReminderSetting[] = [];
+    if (reminderRecords.length > 0) {
+      const recordsByKey = new Map(
+        reminderRecords.map(({ record, value }) => [
+          readPreferenceSourceKey(record.sourceRef) as string,
+          { record, value },
+        ]),
+      );
+      const v2Record = recordsByKey.get('nativeStudyReminderSettingsV2');
+      const v2Value = v2Record?.value;
+      const fallbackUsed = !isRecord(v2Value);
+      const fallbackEnabled = recordsByKey.get('nativeStudyReminderEnabled')?.value;
+      const fallbackTime = recordsByKey.get('nativeStudyReminderTime')?.value;
+      const valueAt = (...keys: readonly string[]): unknown =>
+        reminderObjectField(v2Value, ...keys);
+      const qualityFlags: ReminderQualityFlag[] = ['PERMISSION_UNKNOWN'];
+      if (fallbackUsed) {
+        qualityFlags.push('SOURCE_FALLBACK');
+      }
+
+      const enabledValue =
+        reminderBoolean(valueAt('enabled')) ?? reminderBoolean(fallbackEnabled) ?? false;
+      if (valueAt('enabled') === undefined && fallbackEnabled === undefined) {
+        qualityFlags.push('VALUE_DEFAULTED');
+      }
+      const modeValue = valueAt('mode');
+      const mode = modeValue === 'fixed' ? 'fixed' : 'smart';
+      if (modeValue !== 'fixed' && modeValue !== 'smart') {
+        qualityFlags.push('VALUE_DEFAULTED');
+      }
+      const dueValue = reminderBoolean(valueAt('dueEnabled'));
+      const rescueValue = reminderBoolean(valueAt('rescueEnabled'));
+      if (dueValue === null || rescueValue === null) {
+        qualityFlags.push('VALUE_DEFAULTED');
+      }
+      const reminderTimeValue = reminderTime(valueAt('reminderTime', 'time'));
+      const rescueTimeValue = reminderTime(valueAt('rescueTime'));
+      const fallbackTimeValue = reminderTime(fallbackTime);
+      const normalizedReminderTime = reminderTimeValue ?? fallbackTimeValue ?? '20:00';
+      const normalizedRescueTime = rescueTimeValue ?? '21:30';
+      if (!reminderTimeValue || !rescueTimeValue) {
+        qualityFlags.push('TIME_DEFAULTED');
+      }
+      const rawWeekdays = reminderWeekdays(valueAt('weekdays'));
+      const normalizedWeekdays = rawWeekdays
+        ? [...new Set(rawWeekdays)].sort((left, right) => left - right)
+        : [1, 2, 3, 4, 5, 6, 0];
+      if (!rawWeekdays) {
+        qualityFlags.push('WEEKDAYS_DEFAULTED');
+      } else if (normalizedWeekdays.length !== rawWeekdays.length) {
+        qualityFlags.push('WEEKDAYS_NORMALIZED');
+      }
+      const quietEnabledValue = reminderBoolean(valueAt('quietEnabled'));
+      const quietStartValue = reminderTime(valueAt('quietStart'));
+      const quietEndValue = reminderTime(valueAt('quietEnd'));
+      const exactValue = reminderBoolean(valueAt('exact', 'exactRequested'));
+      if (quietEnabledValue === null || !quietStartValue || !quietEndValue || exactValue === null) {
+        qualityFlags.push('VALUE_DEFAULTED');
+      }
+      const sourceRefs = reminderRecords.map(({ record }) => record.sourceRef);
+      const sourceRecordDigestsSha256 = reminderRecords.map(
+        ({ record }) => record.sourceRecordDigestSha256,
+      );
+      const serializedValues = reminderRecords.map(({ record }) => record.serializedValue);
+      const uniqueQualityFlags = [...new Set(qualityFlags)].slice(0, 6);
+      reminderPayload.push(
+        MigrationIsolatedReminderSettingSchema.parse({
+          schemaVersion: 1,
+          profileId: 'default',
+          enabled: enabledValue,
+          mode,
+          dueEnabled: dueValue ?? true,
+          rescueEnabled: rescueValue ?? true,
+          reminderTime: normalizedReminderTime,
+          rescueTime: normalizedRescueTime,
+          weekdays: normalizedWeekdays,
+          quietEnabled: quietEnabledValue ?? true,
+          quietStart: quietStartValue ?? '22:30',
+          quietEnd: quietEndValue ?? '07:30',
+          exactRequested: exactValue ?? false,
+          permissionState: 'unknown',
+          sourceRefs,
+          sourceRecordDigestsSha256,
+          qualityFlags: uniqueQualityFlags,
+          serializedValues,
+        }),
       );
     }
 
@@ -2469,6 +2625,7 @@ export class MigrationDomainSliceUseCase {
       preferences: [...preferencePayloadByKey.values()].sort((left, right) =>
         compareStrings(left.preferenceKey, right.preferenceKey),
       ),
+      reminderSettings: reminderPayload,
       fsrsCards: [...fsrsCardPayloadByRelation.values()].sort((left, right) =>
         compareStrings(left.reviewCardId, right.reviewCardId),
       ),

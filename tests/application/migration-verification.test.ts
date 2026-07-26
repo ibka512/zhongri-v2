@@ -110,4 +110,48 @@ describe('MigrationVerificationUseCase', () => {
       reasonCode: 'UNKNOWN_SOURCE_RECORDS_PENDING',
     });
   });
+
+  it('normalizes reminder settings without claiming notification permission', async () => {
+    const backup = createCoreDomainSliceV1Backup(false);
+    backup.preferences = {
+      theme: 'dark',
+      nativeStudyReminderSettingsV2: {
+        enabled: true,
+        mode: 'fixed',
+        dueEnabled: false,
+        rescueEnabled: true,
+        reminderTime: '20:15',
+        rescueTime: '21:45',
+        weekdays: [1, 1, 3],
+        quietEnabled: false,
+        quietStart: '22:30',
+        quietEnd: '07:30',
+        exact: true,
+      },
+      nativeStudyReminderEnabled: 'false',
+      nativeStudyReminderTime: '19:00',
+    };
+    const source = await createSource(backup);
+    const slice = await createSlice(source);
+    const report = await new MigrationVerificationUseCase({
+      content: createContentRepository(),
+      digest,
+    }).create({ source, slice });
+
+    expect(slice.isolatedPayload.reminderSettings).toEqual([
+      expect.objectContaining({
+        enabled: true,
+        mode: 'fixed',
+        dueEnabled: false,
+        reminderTime: '20:15',
+        rescueTime: '21:45',
+        weekdays: [1, 3],
+        permissionState: 'unknown',
+      }),
+    ]);
+    expect(report.checks.find((check) => check.checkId === 'V18')).toMatchObject({
+      status: 'passed',
+      reasonCode: 'REMINDER_SETTINGS_MAPPED',
+    });
+  });
 });
