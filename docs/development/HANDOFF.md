@@ -7,7 +7,7 @@
 - 稳定基线：`main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28 和 source snapshot PR #29）
 - 当前交接分支：`codex/task-015-source-adapter-staging`
 - 稳定基线提交：`40339ce`（PR #29 合并后的 main；source snapshot 实现已进入稳定基线）
-- 当前实现提交：`40339ce`（PR #29；脱敏 v1 source snapshot contract；本分支在其上继续 source adapter/staging）
+- 当前实现提交：`b289902`（只读 v1 source adapter、Port → snapshot 编排和 source-aware staging；待推送并创建 PR）
 - 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层
 - 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排和 source-aware staging 接线已完成；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，真实脱敏 fixture 与逐域迁移仍待完成
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
@@ -23,6 +23,7 @@
 - Task 015 第三小步新增 `MigrationSourceSnapshotSchema`、`MigrationSourceSnapshotUseCase`、ADR-014 和字段形状 synthetic fixture；敏感键只保存存在性并脱敏，稳定 sourceFingerprint 不受捕获时间或 secret 值影响，已通过 PR #29 合并。
 - `BrowserV1SourceStorage` 只读枚举既有 `keyval-store/keyval` 和 localStorage，过滤 `zhongri_storage_probe`；`CaptureV1SourceSnapshotUseCase` 编排读取与脱敏快照。
 - `MigrationStagingDataset.sourceSnapshot` 默认为 `null` 兼容旧备份 staging；带快照时以快照 fingerprint 派生 migrationId，并校验选定备份与预检报告一致。
+- `b289902` 已在本地通过 `npm run verify`：canonical 9,828、文档 52、30 个测试文件/120 个测试、默认构建和 Pages 构建均通过。
 - 新增 ADR-012、ADR-013、ADR-014、ADR-015、Task 015 合同和状态文档；CI/本地 `npm run verify` 全部通过。
 
 ## 仍未完成
