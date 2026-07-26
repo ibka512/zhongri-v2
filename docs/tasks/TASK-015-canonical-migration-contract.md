@@ -2,7 +2,7 @@
 
 关联：[GitHub Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)
 
-## 当前切片
+## 已完成切片
 
 本分支先完成迁移的输入契约和 fail-closed 完整性门禁：
 
@@ -12,9 +12,14 @@
   进入激活阶段。
 - 只使用合成 fixture 测试算法，不提交或伪造真实用户数据及完整词库。
 
+第二小步已从固定的 `ibka512/jp-study@36c8129dfc364453198790b64687ff9105a3ecae` 导入真实
+canonical corpus：日语 5,906 条、英语 3,922 条。资产映射、许可、字段覆盖和摘要见
+[canonical corpus 导入记录](../content/CANONICAL_CORPUS_IMPORT.md)，实现决策见
+[ADR-013](../decisions/ADR-013-full-canonical-corpus-import.md)。
+
 ## 后续范围
 
-在输入资产到位后，继续实现：
+在真实 v1 backup fixture 到位后，继续实现：
 
 1. v1 IndexedDB/localStorage 语义的只读 source snapshot 与敏感字段存在性摘要。
 2. canonical idMap、Word/Override/Folder/Favorite/Mastery/StudyRecord/FSRS 等逐域转换。
@@ -23,7 +28,7 @@
 
 ## 前置条件
 
-- 完整 9,828 canonical asset source、来源 manifest 和 SHA-256 清单。
+- 已固定的 9,828 canonical asset source、来源 manifest 和 SHA-256 清单已进入仓库。
 - 脱敏但字段形状真实的现代 v5+/v10 与 legacy v4 backup fixture，或负责人明确批准的
   synthetic fixture 方案。
 - 真实输入到位前，不得把 20 条 N5 日语词条描述为完整 corpus，不得激活迁移业务域。

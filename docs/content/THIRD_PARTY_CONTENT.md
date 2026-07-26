@@ -1,9 +1,14 @@
 # 第三方内容与许可
 
-Task011 的首批日语 N5 词条来自
+Task011 的首批日语 N5 词条，以及 Task 015 的完整 canonical corpus，来自
 [`ibka512/jp-study`](https://github.com/ibka512/jp-study)，固定提交
-`36c8129dfc364453198790b64687ff9105a3ecae`。v2 保留其 canonical ID，只发布文本字段，
-不复制图片或音频。
+`36c8129dfc364453198790b64687ff9105a3ecae`。v2 保留其 canonical ID，只发布当前
+`CanonicalWord v1` 合同允许的文本字段，不复制图片或音频。完整转换字段与摘要见
+[canonical corpus 导入记录](./CANONICAL_CORPUS_IMPORT.md)。
+
+Task 015 的固定结果为日语 5,906 条、英语 3,922 条，合计 9,828 条；两个语言域的 ID
+均无重复。源仓库 `wordbanks/` 目录树 SHA-1 为
+`b3faa98bdd25ec3fddf0a87e3ca9f1f0053db387`。
 
 ## Qwerty Learner VSCode
 
