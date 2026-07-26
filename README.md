@@ -23,14 +23,17 @@ Phase 1：核心学习闭环技术验证。
 - Task011 已完成真实 N5 词条与 canonical 身份底座。
 - Task012 已完成正式每日五词课程与可恢复混合题型闭环。
 
-正在实施 Task013：学习者画像与 FSRS 复习调度。系统从 LearningEvent 重放画像与
-ReviewState，网站根入口优先安排当天到期复习和最近仍答错的词，再稳定补足五词。
+Task013 的代码实现已经合并，本地浏览器断网复测已通过，当前继续进行 Phase 1 收口。系统从
+LearningEvent 重放画像与 ReviewState，网站根入口优先安排当天到期复习和最近仍答错的词，
+再稳定补足五词。
+
+当前工作项是 GOV-001（[Issue #21](https://github.com/ibka512/zhongri-v2/issues/21)）：把产品基线、任务合同、验收证据和 AI 交接记录纳入仓库。
 
 尚未实现完整 9,828 词资产、逐域迁移与激活、AI、FSRS 参数训练或真实音频。
 
 ## 开发状态
 
-**Phase 1 - Task 013：学习者画像与 FSRS 复习调度** 正在实施。
+**GOV-001 - 仓库交接与基线治理正在实施；Task 013 实现已合并，Phase 1 收口验收继续进行。**
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
@@ -45,9 +48,10 @@ ReviewState，网站根入口优先安排当天到期复习和最近仍答错的
 - Task 010：迁移 staging、原子提交与回滚边界，已完成。
 - Task 011：真实日语词条与 canonical 身份底座，已完成。
 - Task 012：正式每日课程纵向切片，已完成。
-- Task 013：学习者画像与 FSRS 复习调度，实施中。
+- GOV-001：仓库交接与基线治理，实施中。
+- Task 013：学习者画像与 FSRS 复习调度，代码已合并，浏览器断网验收通过。
 
-详细状态见 [开发状态](./docs/development/STATUS.md)。
+详细状态见 [开发状态](./docs/development/STATUS.md) 和 [Phase 1 收口记录](./docs/development/PHASE1_CLOSEOUT.md)。
 
 ## 开发方式
 
@@ -61,9 +65,10 @@ ReviewState，网站根入口优先安排当天到期复习和最近仍答错的
 提交到 `main` 或创建 Pull Request 时，GitHub Actions 自动执行：
 
 - 格式检查。
+- 仓库内 Markdown 链接检查。
 - ESLint。
 - Vitest 测试。
-- TypeScript 编译与 Vite 构建。
+- TypeScript 编译、Vite 默认构建与 Pages 构建。
 
 任一检查失败时，提交不应视为可交付状态。
 
@@ -71,11 +76,14 @@ ReviewState，网站根入口优先安排当天到期复习和最近仍答错的
 
 建议按以下顺序阅读：
 
-1. [项目上下文](./docs/PROJECT_CONTEXT.md)
-2. [任务记录](./docs/TASKS.md)
-3. [路线图](./docs/ROADMAP.md)
-4. [架构边界](./docs/architecture/ARCHITECTURE.md)
-5. [ADR 索引](./docs/decisions/README.md)
+1. [AI 接手记录](./docs/development/HANDOFF.md)
+2. [项目上下文](./docs/PROJECT_CONTEXT.md)
+3. [任务记录](./docs/TASKS.md)
+4. 当前 Task 合同（见 [`docs/tasks/`](./docs/tasks/)）
+5. [产品与迁移基线](./docs/baseline/README.md)
+6. [路线图](./docs/ROADMAP.md)
+7. [架构边界](./docs/architecture/ARCHITECTURE.md)
+8. [ADR 索引](./docs/decisions/README.md)
 
 分类文档：
 
@@ -135,3 +143,5 @@ Task012 的课程规则见
 [ADR-010](./docs/decisions/ADR-010-deterministic-daily-course.md)。
 Task013 的可重放画像与复习调度规则见
 [ADR-011](./docs/decisions/ADR-011-replayable-profile-fsrs.md)。
+Task013 的验收证据与 Phase 1 剩余交付见
+[Phase 1 收口记录](./docs/development/PHASE1_CLOSEOUT.md)。

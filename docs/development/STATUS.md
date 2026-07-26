@@ -17,10 +17,11 @@
 - **Task 010**：隔离迁移暂存、原子 active 指针和回滚边界。
 - **Task 011**：20 个真实 N5 词条、固定来源 Manifest 与 canonical 身份仓储。
 - **Task 012**：正式每日五词课程、混合题型和可恢复纵向闭环。
+- **Task 013**：LearnerProfile v1、ReviewState v1、可重放投影、FSRS v6 和 Today Plan 优先级，代码已合并。
 
 ## 当前
 
-- **Task 013** 正在实施，任务定义见 [GitHub Issue #18](https://github.com/ibka512/zhongri-v2/issues/18)。
+- **GOV-001：仓库交接与基线治理** 正在进行。Task 013 已通过 PR #19 合并，本地浏览器断网启动/恢复复测已完成。
 - LearnerProfile v1 与 ReviewState v1 从 LearningEvent 全量重放，不创建第二份学习事实。
 - 官方 `ts-fsrs` 的 FSRS v6 只负责长期到期时间，并通过 ReviewScheduler Port 隔离。
 - Today Plan 优先当天到期复习、最近仍答错的词，再稳定补足五个基础词。
@@ -29,5 +30,9 @@
 
 ## 下一步
 
-- 完成 Task013 的代码审查、移动端、离线与重放验收。
-- Task014 在已验证画像摘要之上建立 AI Gateway，基础课程仍保持可离线完成。
+- 完成 GOV-001 的交接治理、提交、推送和 draft PR。
+- 已完成 Task013 的本地浏览器断网复核并同步验收结论。
+- 定义并授权 Phase 1 后续 Task：完整迁移、首次设置/数据页、五十音/TTS、英语/IPA。
+- Phase 1 验收后，才在已验证画像摘要之上建立 AI Gateway；基础课程仍保持可离线完成。
+
+验收证据与剩余交付见 [Phase 1 收口记录](./PHASE1_CLOSEOUT.md)。

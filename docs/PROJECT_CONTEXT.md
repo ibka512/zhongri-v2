@@ -35,7 +35,7 @@ FSRS 复习调度
 
 仓库已经具备可维护的 React + TypeScript + Vite 基础、核心数据契约、UI Lab 和
 GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已由产品负责人验收。
-Task 012 已完成，当前实施 **Task 013：学习者画像与 FSRS 复习调度**。
+Task 012 已完成，Task 013 的代码实现和本地浏览器断网复测已经完成，当前进行 GOV-001 交接治理和 Phase 1 收口验收。
 
 ## 已完成任务
 
@@ -52,6 +52,7 @@ Task 012 已完成，当前实施 **Task 013：学习者画像与 FSRS 复习调
 - **Task 010**：建立隔离 staging、确定性 migrationId、原子 active 指针与回滚边界。
 - **Task 011**：建立首批真实 N5 词条、固定来源 Manifest 和 canonical 身份仓储。
 - **Task 012**：建立正式每日五词计划、混合题型、结果页和可恢复纵向闭环。
+- **Task 013**：完成 LearnerProfile v1、ReviewState v1、可重放投影、FSRS v6 和 Today Plan 优先级的代码实现。
 
 准确提交记录见 [TASKS.md](./TASKS.md)。
 
@@ -98,19 +99,18 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **Task 013：学习者画像与 FSRS 复习调度**。
+当前任务是 **GOV-001：仓库交接与基线治理**（[Issue #21](https://github.com/ibka512/zhongri-v2/issues/21)）；Task 013 已完成代码实现与本地浏览器断网复测。
 
-范围包括 LearnerProfile v1、ReviewState v1、LearningEvent 全量重放、FSRS v6
-Scheduler Port、Dexie v4 原子投影替换，以及 Today Plan 的到期复习/最近错误优先级。
-当天计划只使用当地零点前的事件，保持同日稳定；不实现 AI 或未经事件证明的画像指标。
+范围包括仓库内产品基线、任务合同、交接记录、Phase 1 收口证据和统一验证门禁；不修改学习业务、Schema、FSRS 参数、迁移算法或 AI Gateway。
 
-详细决策见 [ADR-011](./decisions/ADR-011-replayable-profile-fsrs.md)。
+Task 013 的实现与决策见 [ADR-011](./decisions/ADR-011-replayable-profile-fsrs.md)，其验收证据见 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
 
 ## 下一步路线
 
-1. 完成 Task013 的代码审查、重放、移动端与离线验收。
-2. Task014 才接入 AI Gateway，并只发送受控画像摘要。
-3. AI 增强必须继续复用固定题目 UI 和真实 LearningEvent，不替代基础课程。
-4. 完整迁移转换与 9,828 词扩容继续使用独立 Task，不阻塞核心学习纵向切片。
+1. 完成 GOV-001 的交接治理、提交、推送和 draft PR。
+2. 为完整迁移转换、9,828 词身份层、首次设置/数据页、五十音/TTS 和英语/IPA 切片分别定义并授权 Task。
+3. 完成 Phase 1 的双语核心闭环验收，之后再接入 AI Gateway。
+
+详细验收证据见 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
 
 阶段路线见 [ROADMAP.md](./ROADMAP.md)。
