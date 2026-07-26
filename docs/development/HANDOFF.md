@@ -7,11 +7,11 @@
 - 稳定基线：`origin/main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36、核心域纵向切片 PR #37、staging orchestration PR #39/#40）
 - 当前交接分支：`main`
 - 稳定基线提交：`bac661a`（远端 main 当前最新合并提交）
-- 当前实现提交：`5fa9ef9`（对齐迁移预览页状态文案：明确显示逐域隔离转换已完成、等待 V01–V25 报告；本地提交，尚未推送；前一功能提交为 `dc8efd5`）
+- 当前实现提交：`bd69eeb`（负责人批准 synthetic fixture 后完成完整 V01–V25、activation commit、rollback 回归；本地提交，尚未推送；前一功能提交为 `dc8efd5`，状态文案修正为 `5fa9ef9`）
 - 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层
-- 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排、source-aware staging、确定性 canonical/user idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、Word/Override/Folder/Favorite/Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/ReminderSetting/FSRS isolated transformer、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23 固定抽样证据入口和 V25 失败注入演练入口已完成；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，真实脱敏 fixture 字段覆盖复核、V02/V23/V25 真实证据和真实报告驱动的激活/回滚仍待完成
+- 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排、source-aware staging、确定性 canonical/user idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、Word/Override/Folder/Favorite/Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/ReminderSetting/FSRS isolated transformer、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23 固定抽样证据入口、V25 失败注入演练入口和负责人批准 synthetic fixture 的端到端 activation/rollback 验收已完成；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，真实脱敏 fixture 字段覆盖复核、真实 V02/V23/V25 证据和真实报告驱动的激活/回滚仍待完成
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
-- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；`ccbd32f` 及前置本地提交尚未推送，发布前仍按固定启动步骤复查认证状态。
+- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；`bd69eeb` 及前置本地提交尚未推送。用户已表示 GitHub 授权完成，但当前工作区执行 `gh auth status -h github.com` 仍显示 default token invalid，推送前需重新确认 CLI 凭据。
 
 ## 本轮已完成
 
@@ -96,6 +96,9 @@
   `ISOLATED_DATASET_REQUIRED`，不会被静默激活。
 - 迁移预览页同步更新为 Task015 文案，暂存成功后明确显示“逐域结果已进入隔离数据集、等待 V01–V25
   验证报告”，避免把 staging 误称为已完成业务迁移。
+- 负责人批准使用 synthetic fixture 后，新增 `createApprovedSyntheticV1Backup()` 和 ADR-036；完整
+  corpus 下的端到端测试通过 V01–V25、V23 固定抽样、V25 失败注入、activation commit 和 rollback，
+  但明确标注为实现/事务边界验收，不替代真实用户 fixture。
 
 ## 仍未完成
 
@@ -108,7 +111,7 @@
 
 ## 已验证命令
 
-以下命令已在本轮 staged 重建验证入口完成后通过（40 个测试文件、167 个测试）：
+以下命令已在本轮 synthetic end-to-end gate 完成后通过（41 个测试文件、168 个测试）：
 
 ```bash
 npm run verify
@@ -129,8 +132,8 @@ npm run verify
 
 ## 下一项工作
 
-1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的 synthetic fixture 方案；用真实 fixture 复核设备 snapshot → LegacyReader → isolated transformer 的字段覆盖和分歧报告。
-2. 用 `verifyStagedV1Migration` 从持久化数据集重建 V01–V25 报告；获取真实/批准 fixture 后，使用 `MigrationFixedSamplingUseCase` 生成 V23 固定抽样证据，使用
+1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture；负责人批准的 synthetic 回归已经完成，不再作为真实迁移替代品。
+2. 用 `verifyStagedV1Migration` 从持久化数据集重建真实 V01–V25 报告；获取真实 fixture 后，使用 `MigrationFixedSamplingUseCase` 生成 V23 固定抽样证据，使用
    `MigrationRollbackDrillUseCase` 生成 V25 三阶段失败注入证据，并复核 V02 双语 corpus。
 3. 用真实报告调用 `MigrationActivationUseCase`，完成 active pointer 原子提交/回滚验收；archive 仍只读、
    隔离，不自动清理。
