@@ -4,17 +4,18 @@
 
 ## 当前快照
 
-- 分支：`codex/task-015-migration-contract`
-- 基线提交：`b01814a`（GOV-001 PR #22 合并提交）
-- 当前实现提交：`2f32d32`（canonical corpus migration gate）
+- 稳定基线：`main`（已包含 GOV-001 PR #22 与 Task 015 第一小步 PR #24）
+- 当前交接分支：`codex/task-015-handoff`（仅用于本次交接快照更新）
+- 稳定基线提交：`08854aa`（Task 015 canonical corpus migration gate 合并提交）
 - 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层
-- 当前状态：canonical corpus 契约与 fail-closed 完整性门禁已实现，`npm run verify` 已于 2026-07-26 通过；对应 [Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)，完整资产与真实脱敏 fixture 仍待提供
+- 当前状态：canonical corpus 契约与 fail-closed 完整性门禁已通过 PR #24 合并，`npm run verify` 已于 2026-07-26 通过；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，完整资产与真实脱敏 fixture 仍待提供
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
 - 发布阻塞：`gh auth status -h github.com` 报告 `ibka512` token 无效；重新认证后才能推送和创建 PR。
 
 ## 本轮已完成
 
 - GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并。
+- Task 015 第一小步已通过 [PR #24](https://github.com/ibka512/zhongri-v2/pull/24) 合并，Issue #23 保持开放。
 - Task 015 新增 `CanonicalCorpusManifestSchema` 和固定 9,828/5,906/3,922 验收目标。
 - 新增 `verifyCanonicalCorpusIntegrity`，覆盖双语数量、重复身份、来源摘要和 fail-closed 目标门禁。
 - 新增 ADR-012、Task 015 合同和状态文档；CI/本地 `npm run verify` 全部通过。
