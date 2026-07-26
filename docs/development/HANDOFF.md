@@ -7,9 +7,9 @@
 - 稳定基线：`origin/main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36、核心域纵向切片 PR #37、staging orchestration PR #39/#40）
 - 当前交接分支：`main`
 - 稳定基线提交：`bac661a`（远端 main 当前最新合并提交）
-- 当前实现提交：`43f1d39`（在 `ccbd32f` 基础上加入 V01–V25 activation gate、验证摘要审计字段、ADR-033 和门禁测试；本地提交，尚未推送）
+- 当前实现提交：`8f0defc`（在 `43f1d39` 基础上加入 V23 固定抽样证据、V25 stage/commit/rollback 失败注入演练、InMemory/Dexie 验收注入能力、ADR-034 和证据测试；本地提交，尚未推送）
 - 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层
-- 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排、source-aware staging、确定性 canonical/user idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、Word/Override/Folder/Favorite/Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/ReminderSetting/FSRS isolated transformer、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration 和显式 activation gate 已完成；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，真实脱敏 fixture 字段覆盖复核、V02/V23/V25 证据和真实报告驱动的激活/回滚仍待完成
+- 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排、source-aware staging、确定性 canonical/user idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、Word/Override/Folder/Favorite/Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/AIConversation/AIQuizHistory/Preference/ReminderSetting/FSRS isolated transformer、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、显式 activation gate、V23 固定抽样证据入口和 V25 失败注入演练入口已完成；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，真实脱敏 fixture 字段覆盖复核、V02/V23/V25 真实证据和真实报告驱动的激活/回滚仍待完成
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
 - 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；`ccbd32f` 及前置本地提交尚未推送，发布前仍按固定启动步骤复查认证状态。
 
@@ -82,19 +82,25 @@
   再把报告 digest 写入 `MigrationRun.verificationReportDigestSha256` 并调用 persistence 原子 commit；
   失败报告保持 active pointer 不变。门禁机械测试中的 all-pass 报告明确是 synthetic override，不是
   V02/V23/V25 真实证据。
+- 本轮新增 ADR-034、`MigrationFixedSamplingUseCase` 和 `MigrationRollbackDrillUseCase`：V23 按
+  `sourceFingerprint` 固定种子生成 16 类样本并检查 source digest → active payload/archive 绑定；V25
+  在新 persistence 实例中依次注入 stage/commit/rollback 失败，检查 active pointer、MigrationRun 和
+  脱敏快照不变。证据必须显式传入 `MigrationVerificationUseCase`，缺失时 V23/V25 仍分别为
+  `unverified`；synthetic evidence 只证明算法/事务边界，不授权激活。InMemory 与 Dexie 适配器均提供
+  仅验收用 `failNextOperation`。
 
 ## 仍未完成
 
 - Phase 1 双语、迁移和产品页面仍未完成。
-- 真实 backup fixture、设备来源与本轮学习事实字段覆盖复核、V02/V23/V25 证据、真实报告驱动的激活/回滚
-  验收仍未完成；activation gate 的代码接线已经完成，但尚未授权生产数据激活。
+- 真实 backup fixture、设备来源与本轮学习事实字段覆盖复核、V02/V23/V25 真实证据、真实报告驱动的激活/回滚
+  验收仍未完成；activation gate 与证据生成代码已经完成，但尚未授权生产数据激活。
 - 首次设置、内容中心、设置与数据安全页。
 - 日语五十音/TTS、英语/IPA 双语纵向切片。
 - Phase 1 综合验收。
 
 ## 已验证命令
 
-以下命令已在本轮 activation gate 完成后通过（37 个测试文件、158 个测试）：
+以下命令已在本轮 V23/V25 证据入口完成后通过（39 个测试文件、164 个测试）：
 
 ```bash
 npm run verify
@@ -116,7 +122,8 @@ npm run verify
 ## 下一项工作
 
 1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的 synthetic fixture 方案；用真实 fixture 复核设备 snapshot → LegacyReader → isolated transformer 的字段覆盖和分歧报告。
-2. 获取真实/批准 fixture，补齐 V02 的双语 corpus、V23 固定抽样和 V25 失败注入证据。
+2. 获取真实/批准 fixture；使用 `MigrationFixedSamplingUseCase` 生成 V23 固定抽样证据，使用
+   `MigrationRollbackDrillUseCase` 生成 V25 三阶段失败注入证据，并复核 V02 双语 corpus。
 3. 用真实报告调用 `MigrationActivationUseCase`，完成 active pointer 原子提交/回滚验收；archive 仍只读、
    隔离，不自动清理。
 4. 迁移 Task 通过后再继续首次设置、内容和双语基础切片；Phase 1 验收完成后才进入 AI Gateway（Issue #20）。
