@@ -95,6 +95,29 @@ export {
 } from './MigrationSourceSnapshotSchema';
 
 export {
+  MigrationIdentityMapConfidenceSchema,
+  MigrationIdentityMapEntrySchema,
+  MigrationIdentityMapInputSchema,
+  MigrationIdentityMapOutcomeSchema,
+  MigrationIdentityMapQuarantineCodeSchema,
+  MigrationIdentityMapReasonSchema,
+  MigrationIdentityMapResolutionSchema,
+  MigrationIdentityMapSchema,
+  MigrationIdentityMapRecordInputSchema,
+  MigrationIdentitySourceKindSchema,
+  type MigrationIdentityMap,
+  type MigrationIdentityMapConfidence,
+  type MigrationIdentityMapEntry,
+  type MigrationIdentityMapInput,
+  type MigrationIdentityMapOutcome,
+  type MigrationIdentityMapQuarantineCode,
+  type MigrationIdentityMapReason,
+  type MigrationIdentityMapRecordInput,
+  type MigrationIdentityMapResolution,
+  type MigrationIdentitySourceKind,
+} from './MigrationIdentityMapSchema';
+
+export {
   CanonicalCorpusAcceptanceTargetSchema,
   CanonicalCorpusManifestSchema,
   CanonicalManifestSchema,

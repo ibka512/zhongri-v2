@@ -26,19 +26,28 @@ source adapter、Port → snapshot 应用编排，并将完整脱敏快照以 `s
 现有隔离 staging；旧备份 staging 入口保持兼容。实现决策见
 [ADR-015](../decisions/ADR-015-browser-v1-source-adapter-and-staging.md)。
 
+第五小步新增 `MigrationIdentityMapSchema` 与 `MigrationIdentityMapUseCase`：在 canonical 完整性
+门禁通过后，按迁移规格 §5 固化 `language + wordId`、用户词 ID 保留/确定性生成、headword
+candidate、跨语言冲突和关系/override quarantine；输出按 `sourceRef` 排序且带稳定 digest，
+只作为隔离应用层结果，不写入 active dataset。实现决策见
+[ADR-016](../decisions/ADR-016-deterministic-canonical-id-map.md)，契约说明见
+[v1 身份映射契约](../content/MIGRATION_IDENTITY_MAP.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
 
 1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的
    synthetic 方案。
-2. canonical idMap、Word/Override/Folder/Favorite/Mastery/StudyRecord/FSRS 等逐域转换。
+2. 将已冻结 canonical idMap 接入 Word/Override/Folder/Favorite/Mastery/StudyRecord/FSRS 等逐域转换。
 3. 不可关联、损坏和重复记录的 quarantine/rawArchive 与可解释报告。
 4. V01–V25 自动化验证、固定 sourceFingerprint 幂等复跑和 active pointer 原子提交/回滚。
 
 ## 前置条件
 
 - 已固定的 9,828 canonical asset source、来源 manifest 和 SHA-256 清单已进入仓库。
+- canonical idMap 应用层契约和确定性生成算法已进入仓库，但尚未接入真实 backup fixture 或活跃
+  迁移写入。
 - 脱敏但字段形状真实的现代 v5+/v10 与 legacy v4 backup fixture，或负责人明确批准的
   synthetic fixture 方案；当前仓库的 synthetic fixture 只用于 snapshot 算法测试。
 - 真实输入到位前，不得把 20 条 N5 日语词条描述为完整 corpus，不得激活迁移业务域。
