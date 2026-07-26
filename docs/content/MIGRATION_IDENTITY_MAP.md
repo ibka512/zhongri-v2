@@ -50,7 +50,8 @@ entries 按 `sourceRef` 的代码点顺序排序，并且来源引用必须唯�
 
 真实脱敏 v5+/v10 与 legacy v4 fixture 到位后，LegacyReader/逐域 transformer 应先生成该契约
 所需的规范化记录和 `rawRecordDigestSha256`，再把冻结的 idMap 传给 Folder、Favorite、Mastery、
-StudyRecord、FSRS、错题、AI 历史和回收站转换器。关系转换器不得自行重新推导词条身份。
+StudyRecord、FSRS、错题、AI 历史和回收站转换器；每条转换结果还应交给统一的
+[迁移处置与隔离报告](./MIGRATION_DISPOSITION_REPORT.md)。关系转换器不得自行重新推导词条身份。
 
 本文件不表示逐域迁移、quarantine/rawArchive 完整报告、V01–V25、active pointer 激活或回滚
 已经完成。
