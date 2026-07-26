@@ -346,6 +346,8 @@ export class DexieStudyPersistence
           completedAt: input.committedAt,
           priorActiveDatasetId: currentPointer.activeDatasetId,
           commitMarker: input.commitMarker,
+          verificationReportDigestSha256:
+            input.verificationReportDigestSha256 ?? run.verificationReportDigestSha256,
         });
         const pointer = ActiveMigrationDatasetPointerSchema.parse({
           id: 'active-migration-dataset',

@@ -74,9 +74,10 @@ active pointer，也不改变 Word、ReviewState 或 FSRS。
   `migrationArchives` 记录，默认按 stable-version-cycle 保护，未确定周期时 `retentionUntil=null`，
   不自动清理、不压缩/加密。
 - 该切片不代表真实 Mastery、StudyRecord、FSRS、WrongBook、RecycleBin、AIConversation、AIQuizHistory、Preference 字段覆盖、V01–V25 或 active pointer 已完成；
-  staging 字段接线仍需真实来源和后续验证。
-- 下一步是在真实脱敏 fixture（或负责人批准的字段形状 synthetic fixture）上复核字段覆盖，再实现
-  V02/V18/V23/V25 的证据并接入激活/回滚 gate；独立 archive 记录仍只读、隔离，不代表 active 数据已提交。
+  staging 字段接线和 activation gate 仍需真实来源和后续验证。
+- 下一步是在真实脱敏 fixture（或负责人批准的字段形状 synthetic fixture）上复核字段覆盖，补齐
+  V02/V23/V25 的证据，再通过 `MigrationActivationUseCase` 完成激活/回滚验收；独立 archive 记录仍只读、
+  隔离，不代表 active 数据已提交。
 
 ## 测试证据
 

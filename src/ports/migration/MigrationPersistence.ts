@@ -20,6 +20,7 @@ export interface CommitMigrationInput {
   migrationId: string;
   committedAt: string;
   commitMarker: string;
+  verificationReportDigestSha256?: string | null;
 }
 
 export interface CommitMigrationResult {

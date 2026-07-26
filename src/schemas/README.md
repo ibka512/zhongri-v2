@@ -15,6 +15,8 @@
   和稳定版本周期保留策略；记录不代表 active 业务数据。
 - `MigrationVerificationReportSchema`：固定 V01–V25 检查顺序和 passed/failed/unverified 结果；未验证
   项不能作为 active 激活授权。
+- `MigrationRun.verificationReportDigestSha256`：记录通过 activation gate 时绑定的验证报告摘要；
+  为空表示旧 staging 或尚未完成激活门禁，不表示迁移已验收。
 - `MigrationIsolatedReminderSettingSchema`：保存已归一化的提醒偏好和 `permissionState=unknown`，不表示
   系统通知已授权或已排程。
 - `TodayPlanSchema`：锁定某个本地日期的基础课程身份、内容版本和题目引用。

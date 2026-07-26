@@ -60,3 +60,9 @@ export {
   type CreateMigrationVerificationInput,
   type MigrationVerificationDependencies,
 } from './MigrationVerificationUseCase';
+export {
+  MigrationActivationBlockedError,
+  MigrationActivationUseCase,
+  type ActivateMigrationInput,
+  type MigrationActivationDependencies,
+} from './MigrationActivationUseCase';

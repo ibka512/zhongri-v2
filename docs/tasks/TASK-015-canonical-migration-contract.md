@@ -125,6 +125,12 @@ ReminderSetting 或 active pointer。实现决策见 [ADR-029](../decisions/ADR-
 enabled/time 键回退归一化提醒设置，权限固定 unknown，不迁移系统排程；V18 在来源完整映射时通过。
 实现决策见 [ADR-032](../decisions/ADR-032-reminder-setting-isolated-transformer.md)。
 
+第二十二步新增 `MigrationActivationUseCase`：激活前必须提交通过的 V01–V25 报告，校验
+`migrationId/sourceFingerprint` 与 staged dataset 一致且包含 isolated payload，再把验证报告 digest
+绑定到 `MigrationRun` 并调用既有 active pointer 原子提交。实现决策见
+[ADR-033](../decisions/ADR-033-migration-activation-gate.md)。测试中的 all-pass 报告只验证门禁机械流程，
+不替代真实迁移证据。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
@@ -135,7 +141,8 @@ enabled/time 键回退归一化提醒设置，权限固定 unknown，不迁移�
 2. 用真实/批准的 fixture 复核第十、十一小步的设备来源、字段覆盖和分歧报告。
 3. 在真实 fixture 上继续复核字段覆盖，补齐 V02/V23/V25 的真实证据；独立 archive 记录只读、
    不自动清理，直到保留周期与用户确认策略明确。
-4. 将验证报告接入 activation gate，并完成 active pointer 原子提交/回滚。
+4. 已完成 activation gate 的代码接线；在真实 fixture 上产生 V01–V25 报告后，使用该 gate 完成
+   active pointer 原子提交/回滚验收。
 
 ## 前置条件
 

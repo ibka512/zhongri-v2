@@ -64,6 +64,7 @@ export const MigrationRunSchema = z
     commitMarker: z.string().trim().min(1).max(255).nullable(),
     snapshotDigestSha256: Sha256Schema,
     reportDigestSha256: Sha256Schema,
+    verificationReportDigestSha256: Sha256Schema.nullable().default(null),
     containsRedactedSecrets: z.boolean(),
     validation: MigrationValidationSummarySchema,
   })

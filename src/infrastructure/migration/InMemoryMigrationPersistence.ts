@@ -148,6 +148,8 @@ export class InMemoryMigrationPersistence implements MigrationPersistencePort {
       completedAt: input.committedAt,
       priorActiveDatasetId: this.#pointer.activeDatasetId,
       commitMarker: input.commitMarker,
+      verificationReportDigestSha256:
+        input.verificationReportDigestSha256 ?? run.verificationReportDigestSha256,
     });
     const pointer = ActiveMigrationDatasetPointerSchema.parse({
       id: 'active-migration-dataset',
