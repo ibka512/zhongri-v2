@@ -90,3 +90,59 @@ export function createLegacyV4Backup() {
     exportDate: '2025-12-01T00:00:00.000Z',
   };
 }
+
+/**
+ * Field-shape-only fixture for the first v1 → v2 domain transformer slice.
+ * It intentionally contains one orphan override so the disposition report
+ * proves that a relation can be quarantined without creating an active target.
+ */
+export function createCoreDomainSliceV1Backup(includeOrphanOverride = true) {
+  return {
+    format: 'zhongri-backup',
+    backupVersion: 10,
+    schemaVersion: 8,
+    appName: '钟日',
+    kind: 'manual',
+    exportDate: '2026-07-23T10:00:00.000Z',
+    data: {
+      db: [
+        {
+          _id: 'builtin-ja-core-00005',
+          lang: 'ja',
+          word: '元気',
+          kana: 'げんき',
+          meaning: '精神充沛，健康。',
+        },
+      ],
+      userWords: [
+        {
+          _id: 'user-legacy-001',
+          lang: 'ja',
+          word: '猫',
+          kana: 'ねこ',
+          meaning: '猫。',
+        },
+      ],
+      wordOverrides: {
+        'builtin-ja-core-00005': { meaning: '有精神；健康。', lang: 'ja' },
+        ...(includeOrphanOverride
+          ? { 'missing-word-001': { meaning: '不可关联', lang: 'ja' } }
+          : {}),
+      },
+      wordStorageVersion: 1,
+      folders: ['日语基础'],
+      folderLangs: { 日语基础: 'ja' },
+      stars: ['builtin-ja-core-00005', 'user-legacy-001'],
+      records: [],
+      mtGroupClears: {},
+      mtWordClears: {},
+      aiConversations: [],
+      fsrsCards: {},
+      fsrsReviewLogs: [],
+      wrongBook: {},
+      aiQuizHistory: [],
+      recycleBin: [],
+    },
+    preferences: { theme: 'dark' },
+  };
+}

@@ -39,3 +39,9 @@ export {
   MigrationLegacySourceReaderUseCase,
   type MigrationLegacySourceReaderDependencies,
 } from './MigrationLegacySourceReaderUseCase';
+export {
+  MigrationDomainSliceInputError,
+  MigrationDomainSliceUseCase,
+  type CreateMigrationDomainSliceInput,
+  type MigrationDomainSliceDependencies,
+} from './MigrationDomainSliceUseCase';

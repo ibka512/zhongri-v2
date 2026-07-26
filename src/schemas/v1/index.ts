@@ -135,6 +135,21 @@ export {
 } from './MigrationDispositionSchema';
 
 export {
+  MigrationDomainSliceResultSchema,
+  MigrationIsolatedFavoriteSchema,
+  MigrationIsolatedFolderSchema,
+  MigrationIsolatedOverrideSchema,
+  MigrationIsolatedPayloadSchema,
+  MigrationIsolatedWordSchema,
+  type MigrationDomainSliceResult,
+  type MigrationIsolatedFavorite,
+  type MigrationIsolatedFolder,
+  type MigrationIsolatedOverride,
+  type MigrationIsolatedPayload,
+  type MigrationIsolatedWord,
+} from './MigrationDomainSliceSchema';
+
+export {
   MAX_MIGRATION_LEGACY_SOURCE_RECORDS,
   MAX_MIGRATION_LEGACY_SOURCE_TEXT_LENGTH,
   MigrationLegacySourceCountsSchema,

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { MigrationPreviewReportSchema } from './MigrationPreviewReportSchema';
+import { MigrationIsolatedPayloadSchema } from './MigrationDomainSliceSchema';
 import { MigrationSourceSnapshotSchema } from './MigrationSourceSnapshotSchema';
 import { ContractVersionSchema } from './shared';
 
@@ -117,6 +118,7 @@ export const MigrationStagingDatasetSchema = z
     snapshotDigestSha256: Sha256Schema,
     reportDigestSha256: Sha256Schema,
     previewReport: MigrationPreviewReportSchema,
+    isolatedDomainSlice: MigrationIsolatedPayloadSchema.nullable().default(null),
     validation: MigrationValidationSummarySchema,
     createdAt: z.string().datetime({ offset: true }),
   })
@@ -162,6 +164,23 @@ export const MigrationStagingDatasetSchema = z
         path: ['sourceFingerprint'],
         message: 'Staging source fingerprint must match the preview report',
       });
+    }
+
+    if (dataset.isolatedDomainSlice) {
+      if (dataset.isolatedDomainSlice.migrationId !== dataset.migrationId) {
+        context.addIssue({
+          code: 'custom',
+          path: ['isolatedDomainSlice', 'migrationId'],
+          message: 'Isolated domain slice must belong to the staged migration',
+        });
+      }
+      if (dataset.isolatedDomainSlice.sourceFingerprint !== dataset.sourceFingerprint) {
+        context.addIssue({
+          code: 'custom',
+          path: ['isolatedDomainSlice', 'sourceFingerprint'],
+          message: 'Isolated domain slice must match the staged source fingerprint',
+        });
+      }
     }
   });
 

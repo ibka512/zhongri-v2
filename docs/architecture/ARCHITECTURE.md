@@ -86,9 +86,11 @@ Dexie 只存在于 Infrastructure。Domain、页面和 UI 组件不得 import De
 6. 回滚只把 active pointer 恢复为 `priorActiveDatasetId`，保留快照、报告和诊断数据。
 7. 学习事件与会话表不参与迁移事务；staging 不代表业务域已完成迁移。
 
-当前仍不实现 Word/Override 的逐域转换、关系域转换、ReviewState 激活、FSRS 调度迁移或 AI；
+当前仍不实现 Mastery/StudyRecord/FSRS 等剩余域、ReviewState 激活、FSRS 调度迁移或 AI；
 canonical corpus、canonical idMap、disposition/quarantine 报告契约和只读 source-aware staging
-已完成，但这些结果仍只作为隔离应用层输出，未写入 active dataset。
+已完成。Word/Override/Folder/Favorite 核心域现在已经可以从 Legacy Source Reader 生成
+`migration-isolated-domain-slice` payload 和逐条 disposition，但该结果仍只作为隔离应用层输出，
+未写入 MigrationPersistencePort 或 active dataset。
 
 ## Task011 canonical 内容身份
 
@@ -132,6 +134,19 @@ canonical corpus、canonical idMap、disposition/quarantine 报告契约和只�
    `deepseekApiKey`、坏 JSON、过深嵌套和 digest 失败均 fail-closed。
 4. reader 只产生隔离应用层结果，不读取浏览器 API、不写 Word/ReviewState/active pointer；设备
    IndexedDB/localStorage 优先级仍由 ADR-015 的 source adapter 负责，接线和真实 fixture 待后续切片。
+
+## Task015 核心域纵向转换
+
+1. `MigrationDomainSliceUseCase` 只消费已经通过 Legacy Source Reader 的 source records，并将本轮
+   范围固定为 `words / overrides / folders / favorites`；其他域不会被静默标记为已迁移。
+2. Word/Override 目标只能来自 canonical idMap；Folder 以名称、语言和 migrationId 生成确定性
+   `folder-v1-*`；Favorite 只接受唯一可解析的 Word 关系。
+3. 每条范围内 sourceRef 都进入 disposition report；成功/重复记录保留 rawArchive 引用，孤立或
+   类型错误记录进入 quarantine，payload 不包含活跃目标之外的未验证关系。
+4. isolated payload 绑定 reader、idMap 和 disposition digest，并固定
+   `writesPerformed:false`、`activePointerUpdated:false`。纵向用例不直接调用 persistence；现有
+   staging dataset 通过可选 `isolatedDomainSlice` 字段保存该 payload，但该切片尚未实现
+   rawArchive/quarantine 实际存储、其他迁移域、V01–V25 或 active pointer 提交。
 
 ## Task012 正式每日课程
 

@@ -7,10 +7,12 @@ import type {
 } from '../../ports';
 import {
   MigrationPreviewReportSchema,
+  MigrationIsolatedPayloadSchema,
   MigrationRunSchema,
   MigrationSourceSnapshotSchema,
   MigrationStagingDatasetSchema,
   type MigrationPreviewReport,
+  type MigrationIsolatedPayload,
   type MigrationSourceSnapshot,
 } from '../../schemas/v1';
 
@@ -18,6 +20,7 @@ export interface StageV1BackupInput {
   report: MigrationPreviewReport;
   text: string;
   sourceSnapshot?: MigrationSourceSnapshot | null;
+  isolatedDomainSlice?: MigrationIsolatedPayload | null;
 }
 
 export interface MigrationStagingDependencies {
@@ -168,6 +171,17 @@ export class MigrationStagingUseCase {
     const migrationId = createMigrationId(sourceFingerprint);
     const datasetId = `dataset:${migrationId}`;
     const validation = { passed: true, errors: [] } as const;
+    let isolatedDomainSlice: MigrationIsolatedPayload | null = null;
+    if (input.isolatedDomainSlice) {
+      try {
+        isolatedDomainSlice = MigrationIsolatedPayloadSchema.parse(input.isolatedDomainSlice);
+      } catch {
+        throw new MigrationStagingInputError(
+          'INVALID_SOURCE',
+          'isolated domain slice 不符合 staging 契约，请重新生成迁移结果。',
+        );
+      }
+    }
     const dataset = MigrationStagingDatasetSchema.parse({
       schemaVersion: 1,
       datasetId,
@@ -178,6 +192,7 @@ export class MigrationStagingUseCase {
       reportDigestSha256,
       sourceSnapshot,
       previewReport: report,
+      isolatedDomainSlice,
       validation,
       createdAt: now,
     });
