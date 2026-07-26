@@ -37,9 +37,10 @@ Task006 加入版本化会话状态和恢复；Task008 加入按会话清除与�
 Task009 加入只读迁移预检用例、来源摘要 Port 和版本化报告 Schema。
 Task010 加入版本化迁移运行、隔离数据集、active pointer 和原子提交/回滚 Port。
 Task011 加入版本化 canonical 内容、固定来源 Manifest 和内容 Repository Port。
-Task015 当前切片加入纯 Application source snapshot contract：Infrastructure 负责未来读取
-IndexedDB/localStorage，Application 负责稳定序列化、敏感字段脱敏和 sourceFingerprint；快照
-尚未接入 staging 或业务域激活。
+Task015 当前切片加入纯 Application source snapshot contract：Infrastructure 通过
+`V1SourceStoragePort` 只读读取 IndexedDB/localStorage，Application 负责稳定序列化、敏感字段
+脱敏和 sourceFingerprint，并把完整脱敏快照作为可选审计载荷接入隔离 staging；快照仍未激活
+任何业务域。
 Task012 加入确定性 TodayPlan、正式每日课程编排和文本题判定。
 Task013 加入可重放 LearnerProfile、ReviewState、ReviewScheduler Port 与 Dexie v4 投影。
 `/today` 与 `/study-demo` 只消费 Application 快照，不直接执行业务规则或访问数据库。

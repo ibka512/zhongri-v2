@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { MigrationPreviewReportSchema } from './MigrationPreviewReportSchema';
+import { MigrationSourceSnapshotSchema } from './MigrationSourceSnapshotSchema';
 import { ContractVersionSchema } from './shared';
 
 export const MigrationRunStatusSchema = z.enum([
@@ -112,6 +113,7 @@ export const MigrationStagingDatasetSchema = z
       .string()
       .min(1)
       .max(30 * 1024 * 1024),
+    sourceSnapshot: MigrationSourceSnapshotSchema.nullable().default(null),
     snapshotDigestSha256: Sha256Schema,
     reportDigestSha256: Sha256Schema,
     previewReport: MigrationPreviewReportSchema,
@@ -128,7 +130,33 @@ export const MigrationStagingDatasetSchema = z
       });
     }
 
-    if (dataset.sourceFingerprint !== dataset.previewReport.source.fileDigestSha256) {
+    if (
+      dataset.sourceSnapshot &&
+      dataset.sourceSnapshot.sourceFingerprint !== dataset.sourceFingerprint
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['sourceFingerprint'],
+        message: 'Staging source fingerprint must match the captured source snapshot',
+      });
+    }
+
+    if (
+      dataset.sourceSnapshot?.selectedBackup &&
+      dataset.sourceSnapshot.selectedBackup.rawDigestSha256 !==
+        dataset.previewReport.source.fileDigestSha256
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['sourceSnapshot', 'selectedBackup', 'rawDigestSha256'],
+        message: 'Captured backup must match the preview report source digest',
+      });
+    }
+
+    if (
+      !dataset.sourceSnapshot &&
+      dataset.sourceFingerprint !== dataset.previewReport.source.fileDigestSha256
+    ) {
       context.addIssue({
         code: 'custom',
         path: ['sourceFingerprint'],

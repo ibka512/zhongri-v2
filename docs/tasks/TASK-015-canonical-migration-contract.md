@@ -21,14 +21,17 @@ canonical corpus：日语 5,906 条、英语 3,922 条。资产映射、许可�
 18 个 v1 业务 IndexedDB 键、27 个 localStorage 键、选定备份、版本元数据和 canonical
 manifest digest；所有键值稳定排序，敏感键只保留存在性并替换为 `[REDACTED]`。合成但字段形状
 真实的 fixture 和测试见 [v1 来源快照契约](../content/MIGRATION_SOURCE_SNAPSHOT.md) 与
-[ADR-014](../decisions/ADR-014-v1-source-snapshot-contract.md)。本小步尚未接入浏览器读取器或
-staging 持久化。
+[ADR-014](../decisions/ADR-014-v1-source-snapshot-contract.md)。第四小步新增只读浏览器
+source adapter、Port → snapshot 应用编排，并将完整脱敏快照以 `sourceSnapshot` 可选字段接入
+现有隔离 staging；旧备份 staging 入口保持兼容。实现决策见
+[ADR-015](../decisions/ADR-015-browser-v1-source-adapter-and-staging.md)。
 
 ## 后续范围
 
-在 source adapter 与真实 v1 backup fixture 到位后，继续实现：
+在真实 v1 backup fixture 到位后，继续实现：
 
-1. 浏览器 IndexedDB/localStorage 语义的只读 source adapter，并把 snapshot 接入 staging。
+1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的
+   synthetic 方案。
 2. canonical idMap、Word/Override/Folder/Favorite/Mastery/StudyRecord/FSRS 等逐域转换。
 3. 不可关联、损坏和重复记录的 quarantine/rawArchive 与可解释报告。
 4. V01–V25 自动化验证、固定 sourceFingerprint 幂等复跑和 active pointer 原子提交/回滚。

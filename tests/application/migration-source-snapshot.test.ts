@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 
 import {
+  CaptureV1SourceSnapshotUseCase,
   MigrationSourceSnapshotInputError,
   MigrationSourceSnapshotUseCase,
 } from '../../src/application/migration';
@@ -21,6 +22,36 @@ function createUseCase(timestamp = '2026-07-24T05:00:00.000Z') {
 }
 
 describe('MigrationSourceSnapshotUseCase', () => {
+  it('captures through the read-only source storage port before applying snapshot rules', async () => {
+    const input = createV1SourceSnapshotInput();
+    let readCount = 0;
+    const capture = new CaptureV1SourceSnapshotUseCase({
+      sourceStorage: {
+        read: async () => {
+          readCount += 1;
+          return {
+            indexedDb: input.indexedDb,
+            localStorage: input.localStorage,
+            sourceAppVersion: input.sourceAppVersion,
+            dataSchemaVersion: input.dataSchemaVersion,
+            wordStorageVersion: input.wordStorageVersion,
+          };
+        },
+      },
+      snapshot: createUseCase(),
+    });
+
+    const snapshot = await capture.capture({
+      selectedBackup: input.selectedBackup,
+      canonicalManifestDigest: input.canonicalManifestDigest,
+    });
+
+    expect(readCount).toBe(1);
+    expect(snapshot.sourceFingerprint).toHaveLength(64);
+    expect(snapshot.dataSchemaVersion).toBe(8);
+    expect(snapshot.wordStorageVersion).toBe(1);
+  });
+
   it('captures real-shaped v1 source keys while redacting sensitive values', async () => {
     const secret = 'sk-sensitive-fixture-value';
     const snapshot = await createUseCase().capture(createV1SourceSnapshotInput(secret));

@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import {
   MigrationPreviewUseCase,
+  MigrationSourceSnapshotUseCase,
   MigrationStagingInputError,
   MigrationStagingUseCase,
 } from '../../src/application/migration';
 import { InMemoryMigrationPersistence } from '../../src/infrastructure/migration';
 import { webTextDigest } from '../../src/infrastructure/system';
 import { createModernV1Backup } from '../fixtures/v1-backups';
+import { createV1SourceSnapshotInput } from '../fixtures/v1-source-snapshot';
 
 function createClock() {
   let timestamp = Date.parse('2026-07-24T05:00:00.000Z');
@@ -37,7 +39,52 @@ async function createHarness(value: unknown = createModernV1Backup()) {
   return { persistence, report, stagingUseCase, text };
 }
 
+async function createSourceSnapshot(text: string, secret = 'sk-sensitive-value') {
+  const input = createV1SourceSnapshotInput(secret);
+  input.selectedBackup = {
+    fileName: 'zhongri-v1-backup.json',
+    fileSizeBytes: new TextEncoder().encode(text).byteLength,
+    text,
+  };
+  return new MigrationSourceSnapshotUseCase({
+    digest: webTextDigest,
+    now: () => new Date('2026-07-24T05:00:00.000Z'),
+  }).capture(input);
+}
+
 describe('MigrationStagingUseCase', () => {
+  it('persists a redacted source snapshot and derives staging identity from it', async () => {
+    const secret = 'sk-sensitive-value';
+    const backup = createModernV1Backup();
+    backup.preferences = { ...backup.preferences, deepseekApiKey: secret };
+    const { persistence, report, stagingUseCase, text } = await createHarness(backup);
+    const sourceSnapshot = await createSourceSnapshot(text, secret);
+
+    const result = await stagingUseCase.stage({ report, text, sourceSnapshot });
+    const stored = await persistence.findMigrationDataset(result.run.datasetId);
+
+    expect(result.status).toBe('staged');
+    expect(result.run.sourceFingerprint).toBe(sourceSnapshot.sourceFingerprint);
+    expect(result.run.sourceFingerprint).not.toBe(report.source.fileDigestSha256);
+    expect(stored?.sourceSnapshot).toEqual(sourceSnapshot);
+    expect(stored?.sanitizedSourceText).toBe(sourceSnapshot.selectedBackup?.sanitizedText);
+    expect(stored?.sanitizedSourceText).not.toContain(secret);
+    expect(result.run.containsRedactedSecrets).toBe(true);
+  });
+
+  it('rejects a source snapshot that does not match the previewed backup', async () => {
+    const original = createModernV1Backup();
+    const originalText = JSON.stringify(original);
+    const sourceSnapshot = await createSourceSnapshot(originalText);
+    const changed = createModernV1Backup();
+    changed.preferences = { ...changed.preferences, theme: 'light' };
+    const { report, stagingUseCase, text } = await createHarness(changed);
+
+    await expect(stagingUseCase.stage({ report, text, sourceSnapshot })).rejects.toMatchObject({
+      code: 'SNAPSHOT_MISMATCH',
+    });
+  });
+
   it('creates a deterministic safe staging dataset and redacts an old API key', async () => {
     const secret = 'sk-sensitive-value';
     const backup = createModernV1Backup();

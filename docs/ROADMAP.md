@@ -25,7 +25,7 @@
 - Task011 已建立第一批真实日语 canonical 内容与零容差稳定身份层。
 - Task012 已建立不依赖 AI 的正式每日课程纵向切片。
 - Task013 的代码实现已经合并，本地浏览器断网验收通过，继续进行 Phase 1 收口。
-- GOV-001 已通过 PR #22 合并；Task 015 已固定并导入完整 9,828 条 canonical corpus，并建立脱敏 source snapshot contract，当前继续 source adapter、迁移转换和 fail-closed 激活。
+- GOV-001 已通过 PR #22 合并；Task 015 已固定并导入完整 9,828 条 canonical corpus，建立脱敏 source snapshot contract、只读 source adapter 和 source-aware staging，当前继续真实 fixture、迁移转换和 fail-closed 激活。
 - 完整逐域迁移、首次设置、五十音/TTS 和英语/IPA 仍需独立 Task；canonical 资产已到位不等于用户迁移已完成。
 - 不在路线图中推测或提前实现未授权模块。
 
