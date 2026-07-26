@@ -7,9 +7,9 @@
 - 稳定基线：`origin/main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36、核心域纵向切片 PR #37、staging orchestration PR #39/#40）
 - 当前交接分支：`main`
 - 稳定基线提交：`bac661a`（远端 main 当前最新合并提交）
-- 当前实现提交：`f780e9f`（设备 source snapshot → Legacy Source Reader 接线、当前设备 staging UI、Mastery/StudyRecord/GroupProgress/WrongBook/FSRS isolated transformer、inline archive payload、ADR-021–025；本地提交，尚未推送）
+- 当前实现提交：`2d7f8f0`（设备 source snapshot → Legacy Source Reader 接线、当前设备 staging UI、Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/FSRS isolated transformer、inline archive payload、ADR-021–026；本地提交，尚未推送）
 - 当前任务：Task 015 · v1 迁移逐域转换与 canonical 身份层
-- 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排、source-aware staging、确定性 canonical/user idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、Word/Override/Folder/Favorite/Mastery/StudyRecord/GroupProgress/WrongBook/FSRS isolated transformer、inline archive payload 和统一 staging orchestration 已完成；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，真实脱敏 fixture 字段覆盖复核、AI/回收站/preferences、独立归档存储和激活仍待完成
+- 当前状态：完整 9,828 条 canonical corpus 已从固定 `jp-study` 提交导入，fail-closed 完整性门禁与全量测试已通过，脱敏 source snapshot contract、只读浏览器 source adapter、Port → snapshot 编排、source-aware staging、确定性 canonical/user idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、Word/Override/Folder/Favorite/Mastery/StudyRecord/GroupProgress/WrongBook/RecycleBin/FSRS isolated transformer、inline archive payload 和统一 staging orchestration 已完成；[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23) 仍开放，真实脱敏 fixture 字段覆盖复核、AI/preferences、独立归档存储和激活仍待完成
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
 - 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；`177258b` 及前置本地提交尚未推送，发布前仍按固定启动步骤复查认证状态。
 
@@ -55,11 +55,14 @@
 - 本轮继续新增 ADR-025 和 WrongBook isolated transformer：按既有 identity map 关联错题本目标，
   保守保存累计/维度/来源计数、状态、日期和最多 20 条最近答题；不确定字段通过 quality flag 保留，
   孤立关系进入 `RELATION_UNRESOLVED` quarantine，重复目标合并并保留 inline archive；payload 仍不写 active。
+- 本轮继续新增 ADR-026 和 RecycleBin isolated transformer：按原始或确定性 item ID 保存 tombstone，
+  保守映射 kind、删除/过期时间和 resolved Word 目标，以 source exportDate 判断 retention，不执行
+  restore/cleanup；未知或无法关联项目保留在隔离 payload 并标记 quality flag。
 
 ## 仍未完成
 
 - Phase 1 双语、迁移和产品页面仍未完成。
-- 真实 backup fixture、设备来源与本轮学习事实字段覆盖复核、AI/回收站/preferences 等剩余域、
+- 真实 backup fixture、设备来源与本轮学习事实字段覆盖复核、AI/preferences 等剩余域、
   独立 rawArchive/quarantine 存储、V01–V25 和激活/回滚仍未完成。
 - 首次设置、内容中心、设置与数据安全页。
 - 日语五十音/TTS、英语/IPA 双语纵向切片。
@@ -89,8 +92,8 @@ npm run verify
 ## 下一项工作
 
 1. 获取脱敏但字段形状真实的 v5+/v10、legacy v4 backup fixture，或记录负责人批准的 synthetic fixture 方案；用真实 fixture 复核设备 snapshot → LegacyReader → isolated transformer 的字段覆盖和分歧报告。
-2. 将 inline `archives` 接入独立 rawArchive/quarantine 存储（含保留周期），并实现 AI、回收站、
-   preferences 等剩余域。
+2. 将 inline `archives` 接入独立 rawArchive/quarantine 存储（含保留周期），并实现 AI、preferences
+   等剩余域。
 3. 在真实输入上实现 V01–V25 验证和激活/回滚。
 4. 迁移 Task 通过后再继续首次设置、内容和双语基础切片；Phase 1 验收完成后才进入 AI Gateway（Issue #20）。
 
