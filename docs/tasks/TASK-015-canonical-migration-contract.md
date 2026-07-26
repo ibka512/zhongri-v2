@@ -75,6 +75,10 @@ UI 新增独立的当前设备暂存入口，仍只执行 stage。实现决策�
 [ADR-022](../decisions/ADR-022-mastery-study-fsrs-isolated-transformer.md)，契约说明见
 [v1 核心域纵向转换契约](../content/MIGRATION_DOMAIN_SLICE.md)。
 
+第十二小步新增 `groupProgress` isolated transformer：`mtGroupClears_v3` 组键规范化、完成次数
+取整/质量标记和重复组键去重均输出到隔离 payload，不拆解历史成员、不生成 StudySession。实现
+决策见 [ADR-023](../decisions/ADR-023-group-progress-isolated-transformer.md)。
+
 ## 后续范围
 
 在真实 v1 backup fixture 到位后，继续实现：
@@ -83,8 +87,8 @@ UI 新增独立的当前设备暂存入口，仍只执行 stage。实现决策�
    synthetic 方案；当前设备 snapshot → LegacyReader 的入口和优先级已接通，但仍需真实 fixture
    复核字段覆盖。
 2. 用真实/批准的 fixture 复核第十、十一小步的设备来源、字段覆盖和分歧报告。
-3. 将处置报告接入 rawArchive/quarantine payload 的实际隔离存储，并继续实现 groupProgress、
-   wrongBook、AI、recycleBin 和 preferences 等剩余域。
+3. 将处置报告接入 rawArchive/quarantine payload 的实际隔离存储，并继续实现 wrongBook、AI、
+   recycleBin 和 preferences 等剩余域。
 4. V01–V25 自动化验证、固定 sourceFingerprint 幂等复跑和 active pointer 原子提交/回滚。
 
 ## 前置条件

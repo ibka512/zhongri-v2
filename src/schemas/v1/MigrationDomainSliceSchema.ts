@@ -40,6 +40,7 @@ const MigrationMasteryMissingFieldSchema = z.enum([
 
 const MigrationStudyEventTypeSchema = z.enum(['DAILY_PUNCH', 'GROUP_COMPLETED', 'UNKNOWN']);
 const MigrationStudyQualityFlagSchema = z.enum(['DATE_MISSING', 'DATE_INVALID', 'UNKNOWN_TYPE']);
+const MigrationGroupProgressQualityFlagSchema = z.enum(['COUNT_DEFAULTED', 'COUNT_FLOORED']);
 
 const MigrationReviewDimensionSchema = z.enum(['spelling', 'reading', 'listening', 'meaning']);
 const MigrationFsrsQualityFlagSchema = z.enum([
@@ -140,6 +141,19 @@ export const MigrationIsolatedStudyRecordSchema = z
   })
   .strict();
 
+export const MigrationIsolatedGroupProgressSchema = z
+  .object({
+    schemaVersion: ContractVersionSchema,
+    groupProgressId: IdentifierSchema,
+    groupKey: z.string().max(500),
+    completionCount: z.number().int().nonnegative(),
+    sourceRefs: SourceRefListSchema,
+    sourceRecordDigestsSha256: SourceDigestListSchema,
+    qualityFlags: z.array(MigrationGroupProgressQualityFlagSchema).max(3),
+    serializedValues: SerializedValueListSchema,
+  })
+  .strict();
+
 export const MigrationIsolatedFsrsCardSchema = z
   .object({
     schemaVersion: ContractVersionSchema,
@@ -201,6 +215,7 @@ export const MigrationIsolatedPayloadSchema = z
     favorites: z.array(MigrationIsolatedFavoriteSchema).max(100_000),
     mastery: z.array(MigrationIsolatedMasterySchema).max(100_000).default([]),
     studyRecords: z.array(MigrationIsolatedStudyRecordSchema).max(100_000).default([]),
+    groupProgress: z.array(MigrationIsolatedGroupProgressSchema).max(100_000).default([]),
     fsrsCards: z.array(MigrationIsolatedFsrsCardSchema).max(100_000).default([]),
     fsrsLogs: z.array(MigrationIsolatedFsrsLogSchema).max(100_000).default([]),
     writesPerformed: z.literal(false),
@@ -263,6 +278,18 @@ export const MigrationIsolatedPayloadSchema = z
         });
       }
       reviewCardIds.add(card.reviewCardId);
+    }
+
+    const groupProgressIds = new Set<string>();
+    for (const [index, progress] of payload.groupProgress.entries()) {
+      if (groupProgressIds.has(progress.groupProgressId)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['groupProgress', index, 'groupProgressId'],
+          message: 'Isolated group progress payloads must contain one target per group ID',
+        });
+      }
+      groupProgressIds.add(progress.groupProgressId);
     }
 
     const studyEventIds = new Set<string>();
@@ -375,6 +402,7 @@ export type MigrationIsolatedFolder = z.infer<typeof MigrationIsolatedFolderSche
 export type MigrationIsolatedFavorite = z.infer<typeof MigrationIsolatedFavoriteSchema>;
 export type MigrationIsolatedMastery = z.infer<typeof MigrationIsolatedMasterySchema>;
 export type MigrationIsolatedStudyRecord = z.infer<typeof MigrationIsolatedStudyRecordSchema>;
+export type MigrationIsolatedGroupProgress = z.infer<typeof MigrationIsolatedGroupProgressSchema>;
 export type MigrationIsolatedFsrsCard = z.infer<typeof MigrationIsolatedFsrsCardSchema>;
 export type MigrationIsolatedFsrsLog = z.infer<typeof MigrationIsolatedFsrsLogSchema>;
 export type MigrationIsolatedPayload = z.infer<typeof MigrationIsolatedPayloadSchema>;

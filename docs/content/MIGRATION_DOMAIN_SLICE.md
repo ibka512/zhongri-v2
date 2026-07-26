@@ -5,18 +5,18 @@
 本轮在已完成的 Legacy Source Reader、canonical idMap 和 disposition report 之上，新增
 `MigrationDomainSliceUseCase`。当前 isolated transformer 已贯通核心词域和第一批学习事实域：
 
-`words → overrides → folders → favorites → mastery → studyRecords → fsrsCards → fsrsLogs`
+`words → overrides → folders → favorites → mastery → studyRecords → groupProgress → fsrsCards → fsrsLogs`
 
 本轮的 synthetic fixture 不是任何用户的真实历史。它只验证 `db/userWords`、
 `wordOverrides`、`folders/folderLangs`、`stars`、`mtWordClears`、`studyRecords`、
-`fsrsCards` 和 `fsrsReviewLogs` 的字段形状、身份关联、重复处理和 quarantine 边界。真实脱敏
+`fsrsCards`、`fsrsReviewLogs` 和 `mtGroupClears` 的字段形状、身份关联、重复处理和 quarantine 边界。真实脱敏
 backup 到位前，不能把测试结果描述为真实迁移完成。
 
 ## 输入与输出
 
 用例输入是已经由 `MigrationLegacySourceReaderUseCase` 校验的
 `MigrationLegacySourceSchema`。用例选择 `words`、`overrides`、`folders`、`favorites`、
-`mastery`、`studyRecords`、`fsrsCards` 和 `fsrsLogs` 记录；groupProgress、wrongBook、AI、回收站、
+`mastery`、`studyRecords`、`groupProgress`、`fsrsCards` 和 `fsrsLogs` 记录；wrongBook、AI、回收站、
 preferences 和 unknown 仍保留在 reader 结果中，等待后续 transformer，不会被静默当成已迁移。
 
 输出 `MigrationDomainSliceResultSchema` 同时绑定三个结果：
@@ -24,7 +24,7 @@ preferences 和 unknown 仍保留在 reader 结果中，等待后续 transformer
 - `identityMap`：所有 Word/Override 身份解析仍由既有 canonical idMap 完成；
 - `dispositionReport`：已接入域的每条 sourceRef 都有 `migrated`、`deduped` 或 `quarantined` 去向，
   成功/去重记录生成 rawArchive 引用，quarantine 不生成活跃目标；
-- `isolatedPayload`：包含 canonical/user Word、Override、Folder、Favorite、Mastery、StudyEvent、
+- `isolatedPayload`：包含 canonical/user Word、Override、Folder、Favorite、Mastery、StudyEvent、GroupProgress、
   legacy ReviewCard 和 ReviewLog 目标，带 reader、idMap、处置报告和自身 payload 摘要。
 
 `isolatedPayload.datasetId` 固定派生自 `migrationId`，并明确携带
@@ -49,6 +49,8 @@ staging 存储入口，仍不提交 active pointer，也不改变 Word、ReviewS
    关系、关键数值或关键时间无法解释时进入 quarantine。
 7. FSRS payload 只保存 `ts-fsrs@v1-adapter` 的历史卡状态，不调用 v2 scheduler、不重算、不由
    mastery/reps 反造 LearningEvent；未知学习记录类型保留 `UNKNOWN` 与 raw。
+8. GroupProgress 只保存规范化组键和非负完成次数；小数向下取整、非法值置 0 并标记质量，重复
+   组键取最大值去重，不推导具体 StudySession 或组成员。
 
 ## 安全与后续边界
 
@@ -68,6 +70,7 @@ staging 存储入口，仍不提交 active pointer，也不改变 Word、ReviewS
 - canonical Word、user Word、Override、Folder、Favorite 的端到端目标生成；
 - Mastery 三维/needsReview 保留与关系 quarantine；
 - `daily_punch`/`pendulum` 的 StudyEvent 映射、日期质量标记和确定性去重；
+- `mtGroupClears` 组完成次数的确定性 ID、小数取整和 quality flag；
 - legacy FSRS 卡的完整状态保存、坏卡/孤立日志 quarantine、日志内容指纹去重；
 - 孤立 Override 的 quarantine 与数量守恒；
 - reader → transformer → report → isolated payload 的 digest 绑定；

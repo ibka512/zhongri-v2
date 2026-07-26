@@ -143,6 +143,13 @@ describe('MigrationDomainSliceUseCase', () => {
         }),
       ]),
     );
+    expect(result.isolatedPayload.groupProgress).toEqual([
+      expect.objectContaining({
+        groupKey: '日语基础|all|1',
+        completionCount: 2,
+        qualityFlags: ['COUNT_FLOORED'],
+      }),
+    ]);
     expect(result.isolatedPayload.fsrsCards).toHaveLength(1);
     expect(result.isolatedPayload.fsrsCards[0]).toMatchObject({
       targetWordId: 'builtin-ja-core-00005',

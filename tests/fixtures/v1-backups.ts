@@ -182,7 +182,7 @@ export function createMasteryStudyFsrsDomainSliceV1Backup() {
         { date: '2026-07-23', type: 'daily_punch' },
         { date: 'not-a-date', type: 'future_type' },
       ],
-      mtGroupClears: {},
+      mtGroupClears: { '日语基础|all|1': 2.5 },
       mtWordClears: {
         'ja:builtin-ja-core-00005': {
           kanji: true,

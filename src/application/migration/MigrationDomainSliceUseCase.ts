@@ -8,6 +8,7 @@ import {
   MigrationIsolatedFsrsCardSchema,
   MigrationIsolatedFsrsLogSchema,
   MigrationIsolatedFolderSchema,
+  MigrationIsolatedGroupProgressSchema,
   MigrationIsolatedMasterySchema,
   MigrationIsolatedOverrideSchema,
   MigrationIsolatedPayloadSchema,
@@ -21,6 +22,7 @@ import {
   type MigrationIsolatedFsrsCard,
   type MigrationIsolatedFsrsLog,
   type MigrationIsolatedFolder,
+  type MigrationIsolatedGroupProgress,
   type MigrationIsolatedMastery,
   type MigrationIsolatedOverride,
   type MigrationIsolatedWord,
@@ -801,6 +803,95 @@ export class MigrationDomainSliceUseCase {
       );
     }
 
+    const groupProgressPayloadByKey = new Map<string, MigrationIsolatedGroupProgress>();
+    for (const { record, value } of sourceValueRecords(source, 'groupProgress')) {
+      const groupKey =
+        stringValue(readSourceKey(record.sourceRef, 'data.mtGroupClears')) ??
+        (isRecord(value) ? readField(value, 'groupKey', 'key', 'group') : null);
+      if (!groupKey) {
+        dispositionRecords.push(
+          createQuarantineDisposition(
+            record,
+            'GROUP_KEY_INVALID',
+            'RELATION_UNRESOLVED',
+            'warning',
+          ),
+        );
+        continue;
+      }
+      const count =
+        typeof value === 'number' && Number.isFinite(value)
+          ? { value, present: true }
+          : readNumberField(value, 'completionCount', 'count', 'value');
+      const countInvalid = !count.present || !Number.isFinite(count.value) || count.value < 0;
+      const qualityFlags = [
+        countInvalid ? 'COUNT_DEFAULTED' : null,
+        !countInvalid && !Number.isInteger(count.value) ? 'COUNT_FLOORED' : null,
+      ].filter((flag): flag is 'COUNT_DEFAULTED' | 'COUNT_FLOORED' => flag !== null);
+      const completionCount = countInvalid ? 0 : Math.floor(count.value);
+      const groupProgressDigest = await this.dependencies.digest.sha256(
+        JSON.stringify({
+          schemaVersion: 1,
+          migrationId: source.migrationId,
+          groupKey,
+        }),
+      );
+      assertDigest(groupProgressDigest, 'group progress ID');
+      const groupProgressId = `group-progress-v1:${groupProgressDigest.slice(0, 24)}`;
+      const existing = groupProgressPayloadByKey.get(groupKey);
+      if (existing) {
+        groupProgressPayloadByKey.set(
+          groupKey,
+          MigrationIsolatedGroupProgressSchema.parse({
+            ...existing,
+            completionCount: Math.max(existing.completionCount, completionCount),
+            sourceRefs: [...new Set([...existing.sourceRefs, record.sourceRef])].sort(
+              compareStrings,
+            ),
+            sourceRecordDigestsSha256: [
+              ...new Set([...existing.sourceRecordDigestsSha256, record.sourceRecordDigestSha256]),
+            ].sort(compareStrings),
+            qualityFlags: [...new Set([...existing.qualityFlags, ...qualityFlags])].sort(
+              compareStrings,
+            ),
+            serializedValues: [
+              ...new Set([...existing.serializedValues, record.serializedValue]),
+            ].sort(compareStrings),
+          }),
+        );
+        dispositionRecords.push(
+          createDedupedDisposition(
+            record,
+            'groupProgress',
+            'DUPLICATE_GROUP_PROGRESS',
+            existing.groupProgressId,
+            existing.sourceRefs[0],
+          ),
+        );
+        continue;
+      }
+      const payload = MigrationIsolatedGroupProgressSchema.parse({
+        schemaVersion: 1,
+        groupProgressId,
+        groupKey,
+        completionCount,
+        sourceRefs: [record.sourceRef],
+        sourceRecordDigestsSha256: [record.sourceRecordDigestSha256],
+        qualityFlags,
+        serializedValues: [record.serializedValue],
+      });
+      groupProgressPayloadByKey.set(groupKey, payload);
+      dispositionRecords.push(
+        createMigratedDisposition(
+          record,
+          'groupProgress',
+          'GROUP_PROGRESS_MAPPED',
+          groupProgressId,
+          qualityFlags.length > 0 ? 'warning' : 'info',
+        ),
+      );
+    }
+
     const masteryPayloadByTargetId = new Map<string, MigrationIsolatedMastery>();
     for (const { record, value } of sourceValueRecords(source, 'mastery')) {
       const sourceKey = readSourceKey(record.sourceRef, 'data.mtWordClears');
@@ -1200,7 +1291,6 @@ export class MigrationDomainSliceUseCase {
 
     const handledSourceRefs = new Set(dispositionRecords.map((record) => record.sourceRef));
     const unsupportedBusinessDomains = new Set<MigrationLegacySourceRecord['domain']>([
-      'groupProgress',
       'wrongBook',
       'aiConversations',
       'aiQuizHistory',
@@ -1258,6 +1348,9 @@ export class MigrationDomainSliceUseCase {
       ),
       studyRecords: [...studyPayloadByFingerprint.values()].sort((left, right) =>
         compareStrings(left.eventId, right.eventId),
+      ),
+      groupProgress: [...groupProgressPayloadByKey.values()].sort((left, right) =>
+        compareStrings(left.groupProgressId, right.groupProgressId),
       ),
       fsrsCards: [...fsrsCardPayloadByRelation.values()].sort((left, right) =>
         compareStrings(left.reviewCardId, right.reviewCardId),
