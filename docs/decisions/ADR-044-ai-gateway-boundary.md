@@ -2,7 +2,7 @@
 
 ## 状态
 
-PWA 底座与独立 Gateway 已实现并发布，待双端 contract tests 与真实联调（2026-07-29）
+PWA 底座与独立 Gateway 已实现、发布并通过双端 contract tests，待真实联调（2026-07-29）
 
 ## 背景
 
@@ -23,6 +23,8 @@ Task 021 已完成日语/英语共用学习闭环，基础课程必须在离线�
 - 独立 Gateway 已在 `work/zhongri-ai-gateway` 完成本地 Worker 工程、Mock provider、DeepSeek adapter、
   稳定错误映射和 Wrangler dry-run，并发布到公开仓库
   [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway)。
+- 两仓共享 `contracts/ai-task-protocol-v1.json`；两个仓库各自用本地 Zod Schema 解析该 fixture，
+  `zhongri-v2` 的 `npm run verify:gateway-contract` 额外比较两份 fixture 的 SHA，防止跨仓协议样例漂移。
 - 真实 Secret、生产 Worker 和真实供应商联调仍必须单独确认；在此之前只允许本地 mock、contract test
   和文档工作，不配置 Secret、不调用供应商。
 
