@@ -6,12 +6,12 @@
 
 - 稳定基线：`origin/main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36、核心域纵向切片 PR #37、staging orchestration PR #39/#40、负责人真实 v1 数据验收记录 `07ef6f9`、Task 016 推送记录 `819799b`、Task 017 推送记录 `d182a25`、Task 018 推送记录 `9dc2c7f` 和负责人 Pages 验收确认）
 - 当前交接分支：`main`
-- 稳定基线提交：`9dc2c7f`（Task 018 实现与交接记录已推送到远端 main）
-- 当前实现提交：`38fd7f8`（Task 018 内容中心首个只读切片实现与测试；已推送到远端 main，待负责人 Pages 验收）
-- 当前任务：Task 018 · 内容中心首个只读切片（ADR-040）
-- 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016 已实现版本化 UserSettings、首次打开路由、语言/时长/重点/声音向导、旧 v1 来源只读检测，并已通过负责人 Pages 验收；Task 017 已实现设置/数据摘要和安全迁移入口，并已通过负责人 Pages 验收；Task 018 只复用 canonical repository 建立当前语言内容摘要与可搜索词条入口，真实备份不入库，迁移激活、AI、TTS、五十音和 IPA 仍未实现
+- 稳定基线提交：`ac1cf49`（Task 018 实现、交接记录与远端发布记录已推送到远端 main）
+- 当前实现提交：`ac1cf49`（Task 018 内容中心首个只读切片实现与测试；已由负责人在 GitHub Pages 验收）
+- 当前任务：Task 019 · 日语五十音与浏览器 TTS 最小切片（ADR-041）
+- 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016/017/018 已实现并通过负责人 Pages 验收；Task 019 已冻结 `/kana`、10 个基础平假名、辨认/听辨模式和浏览器 Speech Synthesis 回退边界，代码尚未实现，远程音频、AI、账号同步和 LearningEvent 持久化仍未授权
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
-- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；`38fd7f8`（Task 018 实现）与 `9dc2c7f`（本轮交接记录）已通过 `git push origin main` 推送到远端 main，且已由负责人在 GitHub Pages 完成 Task 016/017 手工验收。Task 018 当前等待 Pages 验收。当前 Codex 工作区的 `gh auth status` 仍显示 token invalid，但 Git credential helper 已完成本次推送；后续继续以 Git credential helper 推送，并在推送后复核远端提交。
+- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；`38fd7f8`、`9dc2c7f` 与 `ac1cf49` 已通过 `git push origin main` 推送到远端 main，Task 016/017/018 已由负责人在 GitHub Pages 手工验收。当前 Codex 工作区的 `gh auth status` 仍可能显示 token invalid，但 Git credential helper 已完成推送；后续继续以 Git credential helper 推送，并在推送后复核远端提交。
 
 ## 本轮已完成
 
@@ -110,6 +110,8 @@
   组合测试与状态测试，页面不直接访问浏览器存储。
 - 负责人已在 2026-07-28 使用 GitHub Pages 验收 Task 016/017：首次设置、刷新恢复、英语入口、设置摘要和旧版提示均无阻塞反馈。
 - Task 018 已实现 `/content` 内容中心、今日/设置入口、当前语言摘要、搜索、level 筛选、空/错误状态与重试；本轮只复用 canonical repository，不新增内容 Schema、数据库表、用户词或音频能力。
+- 负责人已在 2026-07-28 完成 Task 018 的 GitHub Pages 验收，内容摘要、搜索、level 筛选和空/错误状态无阻塞反馈。
+- Task 019 已冻结为 `/kana` 基础平假名辨认/听辨和浏览器 Speech Synthesis 最小切片，见 [TASK-019](../tasks/TASK-019-kana-tts-slice.md) 与 [ADR-041](../decisions/ADR-041-kana-tts-slice.md)；本轮尚未开始代码实现。
 - 全量并行验证时既有 synthetic migration 验收测试偶发超过 Vitest 默认 5 秒；已将该单测显式设为 15 秒，单独运行和全量运行均通过，不改变业务断言。
 
 ## 仍未完成
@@ -119,9 +121,9 @@
   如需审计由负责人本地保留。仓库仍不把该手工结果伪装成可公开复现的真实 fixture。
 - Task 016 已完成并由负责人在 GitHub Pages 验收。
 - Task 017 已完成并由负责人在 GitHub Pages 验收。
-- Task 018 代码已完成并推送，待负责人在 GitHub Pages 验收。
+- Task 018 代码已完成并推送，且已由负责人在 GitHub Pages 验收。
 - 内容中心和完整数据安全操作（备份恢复、危险操作等）尚未实现；Task 017 目前只提供安全摘要入口。
-- 日语五十音/TTS、英语/IPA 双语纵向切片。
+- Task 019 的日语五十音/TTS 代码切片尚未实现；英语/IPA 双语纵向切片也尚未开始。
 - Phase 1 综合验收。
 
 ## 已验证命令
@@ -147,8 +149,10 @@ npm run verify
 
 ## 下一项工作
 
-1. 负责人在 GitHub Pages 验收 Task 018：当前语言摘要、搜索、level 筛选和空/错误状态。
-2. Task 018 验收后，定义并实施日语五十音/TTS 与英语/IPA 最小切片。
+1. 实现 Task 019：`/#/kana` 基础平假名辨认/听辨、浏览器 Speech Synthesis adapter、不可用/失败
+   回退状态和 Today 深链接。
+2. 运行 `npm run verify`，更新本文件与任务状态并推送，交由负责人在 GitHub Pages 验收。
+3. Task 019 验收后，再定义英语/IPA 最小切片。
 
 ## 交接规则
 

@@ -35,7 +35,7 @@ FSRS 复习调度
 
 仓库已经具备可维护的 React + TypeScript + Vite 基础、核心数据契约、UI Lab 和
 GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已由产品负责人验收。
-Task 012 已完成，Task 013 的代码实现和本地浏览器断网复测已经完成，GOV-001 已通过 PR #22 合并，当前进行 Task 015 迁移契约与 Phase 1 收口验收。
+Task 012 已完成，Task 013 的代码实现和本地浏览器断网复测已经完成，GOV-001 已通过 PR #22 合并，Task 018 已通过负责人 GitHub Pages 验收，当前进行 Task 019 与 Phase 1 收口。
 
 ## 已完成任务
 
@@ -92,7 +92,7 @@ Infrastructure Adapters
 
 - 修改 FSRS 算法版本、参数或接入未经独立任务授权的写入式数据迁移。
 - 接入 AI API、模型 SDK、聊天界面或真实音频服务。
-- 创建未授权的首页、词库、五十音、IPA、账号、同步、商业化或社区功能；Task 016/017/018 只实现已授权的首次设置、设置/数据摘要和内容中心只读入口。
+- 创建未授权的首页、词库、五十音、IPA、账号、同步、商业化或社区功能；Task 016/017/018/019 只实现各自合同授权的首次设置、设置/数据摘要、内容中心只读入口和基础五十音/TTS 练习。
 - 让组件直接调用外部能力或把业务事实写入 Zustand、LocalStorage。
 - 修改既有 Schema 语义而不新增 ADR 和兼容性说明。
 - 为未来需求提前创建空模块、无用抽象或新增依赖。
@@ -100,16 +100,16 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **Task 018：内容中心首个只读切片**；Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）已经完成负责人真实 v1 数据手工验收，Task 016/017 已完成实现并由负责人在 GitHub Pages 验收。Task 018 只复用 canonical repository 展示当前语言的内容摘要与可搜索词条，不执行迁移激活。
+当前任务是 **Task 019：日语五十音与浏览器 TTS 最小切片**；Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）已经完成负责人真实 v1 数据手工验收，Task 016/017/018 已由负责人在 GitHub Pages 验收。Task 019 只提供基础平假名辨认/听辨练习和浏览器内置朗读回退，不执行迁移激活、不写入 LearningEvent，也不接入远程音频或 AI。
 
-Task 015 已完成 canonical corpus Schema、固定 9,828/5,906/3,922 目标、真实资产导入、fail-closed 完整性验证、脱敏 source snapshot contract、只读浏览器 source adapter、source-aware staging、确定性 canonical idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、全域 isolated 纵向转换、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23/V25 证据入口、负责人批准 synthetic fixture 的端到端 activation/rollback 验收和负责人真实 v1 数据手工验收；真实备份不入库。Task 016/017 按 ADR-038/039 已完成实现并通过负责人 Pages 验收；Task 018 按 ADR-040 开始补上只读内容中心，不修改 FSRS 参数或接入 AI。
+Task 015 已完成 canonical corpus Schema、固定 9,828/5,906/3,922 目标、真实资产导入、fail-closed 完整性验证、脱敏 source snapshot contract、只读浏览器 source adapter、source-aware staging、确定性 canonical idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、全域 isolated 纵向转换、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23/V25 证据入口、负责人批准 synthetic fixture 的端到端 activation/rollback 验收和负责人真实 v1 数据手工验收；真实备份不入库。Task 016/017/018 按 ADR-038/039/040 已完成实现并通过负责人 Pages 验收；Task 019 按 ADR-041 补上最小五十音/TTS 入口，不修改 FSRS 参数或接入 AI。
 
 Task 013 的实现与决策见 [ADR-011](./decisions/ADR-011-replayable-profile-fsrs.md)，其验收证据见 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
 
 ## 下一步路线
 
-1. 完成 Task 018：当前语言 canonical 内容摘要与可搜索词条的只读内容中心。
-2. Task 018 完成后，定义并实施日语五十音/TTS 与英语/IPA 最小切片。
+1. 完成 Task 019：基础平假名辨认/听辨和浏览器内置朗读的最小离线切片。
+2. Task 019 完成后，定义并实施英语/IPA 最小切片。
 3. 完成 Phase 1 的双语核心闭环验收，之后再接入 AI Gateway（Issue #20）。
 
 详细验收证据见 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
