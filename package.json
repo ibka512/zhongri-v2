@@ -15,6 +15,7 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc -b",
     "verify:canonical": "node scripts/verify-canonical-corpus.mjs",
+    "verify:gateway-contract": "node scripts/verify-gateway-contract.mjs",
     "verify:docs": "node scripts/verify-docs.mjs",
     "verify": "node scripts/verify.mjs"
   },
