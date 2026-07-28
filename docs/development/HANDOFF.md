@@ -12,6 +12,7 @@
 - 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016/017/018/019 已实现并通过负责人 Pages 验收；Task 020 已在本地实现 `/ipa`、10 个 canonical 英语词条、IPA/词形双向辨认模式、语言提示和 fail-closed 内容选择边界，`npm run verify` 已通过（51 个测试文件、204 个测试）；英语 TTS、远程音频、AI、账号同步和 LearningEvent 持久化仍未授权
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
 - 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；Task 018 的 `38fd7f8`、`9dc2c7f`、`ac1cf49` 已推送且由负责人 Pages 验收。Task 019 的 `04a97ee`、`c855e30`、`7a56f37`、`3a6e55f` 已推送到远端 main，并已由负责人在 GitHub Pages 验收。Task 020 的规格提交 `234878b` 与实现提交 `877bc19` 已在本地完成，当前 `origin/main` 仍停在 `3a6e55f`，待本轮推送。
+- 发布阻塞证据：本轮两次 `env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY git push origin main` 均因外部权限审批超时未执行完成；只读 `git ls-remote origin` 明确返回 `Could not resolve host: github.com`，当前环境配置的 `127.0.0.1:7897` 代理连接被拒绝；GitHub 连接器也无法连接其后端。因此不能把 Task 020 写成已发布，恢复网络/代理后优先重试推送并核对 `origin/main`。
 
 ## 本轮已完成
 
@@ -153,7 +154,7 @@ npm run verify
 
 ## 下一项工作
 
-1. 推送 Task 020 的规格提交 `234878b`、实现提交 `877bc19` 和本次交接记录到远端 `main`。
+1. 恢复可用的 GitHub 网络/代理后，推送 Task 020 的规格提交 `234878b`、实现提交 `877bc19` 和本次交接记录到远端 `main`（可先运行 `git status -sb`，再按环境使用 `git push origin main`）。
 2. 负责人在 GitHub Pages 打开 `/#/ipa`，验收 10 个 canonical 词条、两种辨认模式、错误/重试和日语/未设置语言提示。
 3. 根据验收结果记录 Task 020 发布/验收状态，再进入 Phase 1 双语综合验收。
 
