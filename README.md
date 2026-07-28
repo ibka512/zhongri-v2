@@ -24,18 +24,19 @@ Phase 1：核心学习闭环技术验证。
 - Task012 已完成正式每日五词课程与可恢复混合题型闭环。
 - Task016/017 已完成首次设置、设置与数据摘要，并由负责人在 GitHub Pages 验收。
 - Task018 已完成内容中心只读切片，并由负责人在 GitHub Pages 验收。
+- Task019 已完成日语五十音与浏览器朗读最小切片，并由负责人在 GitHub Pages 验收。
 
 Task013 的代码实现已经合并，本地浏览器断网复测已通过，当前继续进行 Phase 1 收口。系统从
 LearningEvent 重放画像与 ReviewState，网站根入口优先安排当天到期复习和最近仍答错的词，
 再稳定补足五词。
 
-当前工作项是 Task 019：日语五十音与浏览器 TTS 最小切片。Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）的 canonical corpus、迁移契约和负责人真实 v1 数据验收已完成；Task 016/017/018 已在 GitHub Pages 验收。GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并。
+当前工作项是 Task 020：英语音标最小切片。Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）的 canonical corpus、迁移契约和负责人真实 v1 数据验收已完成；Task 016/017/018/019 已在 GitHub Pages 验收。GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并。
 
-尚未实现真实 v1 逐域迁移与激活、AI、FSRS 参数训练、远程真实音频或英语/IPA；Task 019 的浏览器内置朗读和基础平假名练习已实现，待 Pages 验收。
+尚未实现真实 v1 逐域迁移与激活、AI、FSRS 参数训练或远程真实音频；Task 019 已完成，Task 020 的英语 IPA 展示和辨认练习正在实施。
 
 ## 开发状态
 
-**Task 019 - 日语五十音与浏览器 TTS 最小切片已实现，待 Pages 验收；Task 016/017/018 已验收，Phase 1 收口继续进行。**
+**Task 020 - 英语音标最小切片正在实施；Task 016/017/018/019 已验收，Phase 1 收口继续进行。**
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
@@ -56,7 +57,8 @@ LearningEvent 重放画像与 ReviewState，网站根入口优先安排当天到
 - Task 016：首次设置与本地学习者目标，已由负责人在 GitHub Pages 验收。
 - Task 017：设置与数据安全页入口，已由负责人在 GitHub Pages 验收。
 - Task 018：内容中心首个只读切片，已由负责人在 GitHub Pages 验收。
-- Task 019：日语五十音与浏览器 TTS 最小切片，已实现，待负责人在 GitHub Pages 验收。
+- Task 019：日语五十音与浏览器 TTS 最小切片，已由负责人在 GitHub Pages 验收。
+- Task 020：英语音标最小切片，实施中。
 
 详细状态见 [开发状态](./docs/development/STATUS.md) 和 [Phase 1 收口记录](./docs/development/PHASE1_CLOSEOUT.md)。
 
@@ -111,6 +113,7 @@ npm run dev
 - 正式每日课程：`/` 或 `/#/today`
 - 内容中心：`/#/content`
 - 五十音练习：`/#/kana`
+- 英语音标练习：`/#/ipa`
 - 学习闭环技术演示：`/#/study-demo`
 - v1 备份迁移预检：`/#/migration-preview`
 - UI Lab：`/#/ui-lab`

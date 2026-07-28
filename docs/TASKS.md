@@ -22,7 +22,8 @@
 | Task 016   | Phase 1 首次设置与本地学习者目标                  | 已验收（负责人 Pages 实测） | `81a17a4`  |
 | Task 017   | 设置与数据安全页入口                              | 已验收（负责人 Pages 实测） | `cf5d328`  |
 | Task 018   | 内容中心首个只读切片                              | 已验收（负责人 Pages 实测） | `38fd7f8`  |
-| Task 019   | 日语五十音与浏览器 TTS 最小切片                   | 实现完成，待验收            | `c855e30`  |
+| Task 019   | 日语五十音与浏览器 TTS 最小切片                   | 已验收（负责人 Pages 实测） | `c855e30`  |
+| Task 020   | 英语音标最小切片                                  | 已接受，实施中              | —          |
 
 ## 当前
 
@@ -30,7 +31,8 @@
 - **Task 016：Phase 1 首次设置与本地学习者目标** 已完成并由负责人在 GitHub Pages 验收（见 [ADR-038](./decisions/ADR-038-phase1-onboarding-settings.md)）。本切片只建立版本化本地设置、首次打开入口和 v1 来源只读检测。
 - **Task 017：设置与数据安全页入口** 已完成并由负责人在 GitHub Pages 验收（见 [ADR-039](./decisions/ADR-039-settings-data-page.md)）。本切片只提供本地设置摘要、旧来源三态提示和安全迁移入口，不新增 Schema、数据库表或数据写入行为。
 - **Task 018：内容中心首个只读切片** 已实现并由负责人在 GitHub Pages 验收（见 [TASK-018](./tasks/TASK-018-content-center.md) 和 [ADR-040](./decisions/ADR-040-content-center-readonly-slice.md)）。本切片只复用 canonical repository 展示当前语言的内容摘要与可搜索词条。
-- **Task 019：日语五十音与浏览器 TTS 最小切片** 已按冻结范围实现，待负责人在 GitHub Pages 验收（见 [TASK-019](./tasks/TASK-019-kana-tts-slice.md) 和 [ADR-041](./decisions/ADR-041-kana-tts-slice.md)）。本切片只提供基础平假名辨认/听辨练习和浏览器内置朗读回退，不接入远程音频、AI 或掌握持久化。
+- **Task 019：日语五十音与浏览器 TTS 最小切片** 已按冻结范围实现并由负责人在 GitHub Pages 验收（见 [TASK-019](./tasks/TASK-019-kana-tts-slice.md) 和 [ADR-041](./decisions/ADR-041-kana-tts-slice.md)）。本切片只提供基础平假名辨认/听辨练习和浏览器内置朗读回退，不接入远程音频、AI 或掌握持久化。
+- **Task 020：英语音标最小切片** 已冻结范围，正在实现（见 [TASK-020](./tasks/TASK-020-english-ipa.md) 和 [ADR-042](./decisions/ADR-042-english-ipa.md)）。本切片只复用 canonical 英语词条展示 IPA 并提供当前页面辨认练习，不接入英语 TTS、远程音频、AI 或掌握持久化。
 - GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并，仓库交接记录已进入 `main`。
 - Task 013 已通过 PR #19 合并；本地浏览器断网启动/恢复复测已完成，验收证据已同步到项目状态。
 - 当前切片从 LearningEvent 重放 LearnerProfile v1 与 ReviewState v1，并让 Today Plan
@@ -46,8 +48,9 @@
 | Task 016 首次设置   | 已验收（负责人实测） | 版本化本地学习者设置、首次打开路由、语言/时长/重点/声音向导和 v1 来源只读检测。                                                                                                                                                                                                                                                                                                                 |
 | Task 017 设置与数据 | 已验收（负责人实测） | 只读设置摘要、旧版来源三态提示、今日/首次设置/迁移预检入口；不扩展设置 Schema、不执行迁移激活。                                                                                                                                                                                                                                                                                                 |
 | Task 018 内容中心   | 已验收（负责人实测） | 只读展示当前语言 canonical 内容摘要与词条搜索；不实现用户词、编辑、收藏、导入或音频。                                                                                                                                                                                                                                                                                                           |
-| Task 019 五十音/TTS | 实现完成，待验收     | `/kana` 提供基础平假名辨认/听辨和浏览器 Speech Synthesis；不写入 LearningEvent，不接入远程音频、AI、账号或同步。                                                                                                                                                                                                                                                                                |
-| Phase 1 后续 Task   | 未排期               | Task 019 完成后再定义英语/IPA 切片，最后进行 Phase 1 双语闭环验收；Phase 2 AI 仍不在当前范围。                                                                                                                                                                                                                                                                                                  |
+| Task 019 五十音/TTS | 已验收（负责人实测） | `/kana` 提供基础平假名辨认/听辨和浏览器 Speech Synthesis；不写入 LearningEvent，不接入远程音频、AI、账号或同步。                                                                                                                                                                                                                                                                                |
+| Task 020 英语音标   | 已接受，实施中       | `/ipa` 复用 canonical 英语词条展示 IPA 并提供词形/音标辨认；不接入英语 TTS、远程音频、AI、账号或同步。                                                                                                                                                                                                                                                                                          |
+| Phase 1 后续 Task   | 未排期               | Task 020 完成后进行 Phase 1 双语闭环验收；Phase 2 AI 仍不在当前范围。                                                                                                                                                                                                                                                                                                                           |
 
 远端 Issue #20 当前名为 Task 014（AI Gateway），但它必须等 Phase 1 验收完成后才可授权实施；治理工作不占用产品 Task 编号。
 
