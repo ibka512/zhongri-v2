@@ -2,7 +2,7 @@
 
 ## 状态
 
-合同冻结，待负责人授权实施（2026-07-28，Task 021 验收后）
+本地 PWA 底座已实现，待独立 Gateway 授权与联调（2026-07-28）
 
 ## 背景
 
@@ -21,7 +21,8 @@ Task 021 已完成日语/英语共用学习闭环，基础课程必须在离线�
 - Gateway 暴露固定健康检查和白名单任务端点，不开放任意 prompt/model、外部 URL 或通用代理；供应商
   失败映射为稳定失败结果，PWA 回退到现有规则课程。
 - 真实 Secret、生产 Worker、真实供应商联调和跨仓库发布必须在负责人明确授权后执行；在此之前只允许
-  本地 Schema、mock、contract test 和文档工作。
+  本地 Schema、mock、contract test 和文档工作。本轮负责人只授权了 `zhongri-v2` 本地实现，因此
+  仍不创建 Gateway 仓库、不配置 Secret、不调用供应商。
 
 ## 影响
 
@@ -41,3 +42,14 @@ Task 021 已完成日语/英语共用学习闭环，基础课程必须在离线�
    稳定降级。
 3. `DEEPSEEK_API_KEY` 不出现在前端构建产物、日志、备份、fixture 或 Git 历史。
 4. Gateway 缺失、断网或失败时，`/#/today` 现有课程仍可完成。
+
+## 本地实现证据
+
+- `src/schemas/v1/AITaskProtocolSchema.ts` 是 request/result/failure/trace metadata 的单一来源，
+  并导出按需 JSON Schema。
+- `src/ports/ai/AIGateway.ts` 只暴露白名单 `generateQuestions`；
+  `src/infrastructure/ai/AIGatewayHttpClient.ts` 固定端点、超时、Content-Type 和稳定失败映射。
+- `tests/schemas/ai-task-protocol.test.ts` 与 `tests/infrastructure/ai-gateway.test.ts` 覆盖有效/无效
+  fixture、未知字段、关联校验、空/非 JSON、超时、429、4xx、5xx 和网络失败。
+- `npm run verify`：53 个测试文件、220 个测试、默认构建和 Pages 构建均通过；构建产物不包含
+  `DEEPSEEK_API_KEY`。

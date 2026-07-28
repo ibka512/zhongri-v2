@@ -207,5 +207,6 @@ Task012 当时不包含 LearnerProfile、FSRS、AI Gateway、完整 canonical �
 5. Today Plan 只消费当天零点前的投影，按到期复习、最近错误、基础补位的顺序选满五词。
 6. UI 只接收 Application 提供的画像摘要，不直接访问 Dexie 或 FSRS。
 
-当前仍不实现 AI Gateway、FSRS 参数训练、FSRS 重算、完整 canonical 资产或迁移业务域激活；
-旧 FSRS 目前只进入不激活的 adapter-version isolated payload。
+当前仅实现 AI Gateway 的本地协议、Port 和 HTTP adapter 底座，不连接独立 Worker 或供应商；FSRS 参数
+训练、FSRS 重算、完整 canonical 资产或迁移业务域激活仍不在当前运行时范围。旧 FSRS 目前只进入不激活
+的 adapter-version isolated payload。

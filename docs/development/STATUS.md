@@ -32,13 +32,13 @@
 - 官方 `ts-fsrs` 的 FSRS v6 只负责长期到期时间，并通过 ReviewScheduler Port 隔离。
 - Today Plan 优先当天到期复习、最近仍答错的词，再稳定补足五个基础词。
 - 首页只显示真实到期数、薄弱词和历史正确率；无历史时明确展示空状态。
-- 当前仍不包含用户词库管理、AI、远程真实音频、FSRS 参数训练或旧 FSRS 迁移；Task 019 的基础平假名/TTS、Task 020 的 canonical 英语 IPA 与 Task 021 的双语闭环均已验收，Task 014 AI Gateway 仅完成合同冻结。
+- 当前仍不包含用户词库管理、AI 题目 UI、远程真实音频、FSRS 参数训练或旧 FSRS 迁移；Task 019 的基础平假名/TTS、Task 020 的 canonical 英语 IPA 与 Task 021 的双语闭环均已验收。Task 014 已完成本地协议底座，但尚未连接独立 Gateway 或供应商。
 
 ## 下一步
 
 - 继续维护 Task 015 的脱敏、可恢复和 fail-closed 边界；真实备份、报告和私人内容不进入仓库。
 - 若要补齐完整产品级备份/恢复体验，需另行定义任务，不改变已验收的迁移契约或激活门禁。
-- Phase 1 双语闭环总结已完成；Task 014 AI Gateway 需负责人明确授权后开始，不配置真实 Secret 作为默认步骤。
-- Phase 1 验收后，才在已验证画像摘要之上建立 AI Gateway；基础课程仍保持可离线完成。
+- Phase 1 双语闭环总结已完成；Task 014 本地底座已完成，下一步是独立 Gateway 的授权、施工和双端联调，不配置真实 Secret 作为默认步骤。
+- 在 Gateway 缺失、断网或失败时，基础课程仍保持可离线完成。
 
 验收证据与剩余交付见 [Phase 1 收口记录](./PHASE1_CLOSEOUT.md)。

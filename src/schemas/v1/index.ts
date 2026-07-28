@@ -283,3 +283,45 @@ export {
 
 export { AnswerValueSchema, ContractVersionSchema, LanguageSchema } from './shared';
 export type { AnswerValue, Language } from './shared';
+export {
+  AIGatewayFailureSchema,
+  AIGatewayResponseSchema,
+  AIGatewaySuccessSchema,
+  AIFailureSchema,
+  AIRequestSchema,
+  AIResponseSchema,
+  AIResultSchema,
+  AIProfileSummarySchema,
+  AIProtocolFailureCodeSchema,
+  AIProtocolFailureSchema,
+  AIProtocolRequestSchema,
+  AIProtocolResultSchema,
+  AIQuestionCandidateSchema,
+  AIQuestionContextSchema,
+  AITaskName,
+  AITaskNameSchema,
+  AIPromptVersion,
+  AIPromptVersionSchema,
+  AITraceMetadataSchema,
+  GenerateQuestionsRequestSchema,
+  GenerateQuestionsResultSchema,
+  parseGenerateQuestionsResponse,
+} from './AITaskProtocolSchema';
+export type {
+  AIGatewayFailure,
+  AIGatewayResponse,
+  AIGatewaySuccess,
+  AIFailure,
+  AIRequest,
+  AIResponse,
+  AIResult,
+  AIProfileSummary,
+  AIProtocolFailureCode,
+  AIQuestionCandidate,
+  AIQuestionContext,
+  AITaskName as AITaskNameType,
+  AITraceMetadata,
+  GenerateQuestionsRequest,
+  GenerateQuestionsResult,
+} from './AITaskProtocolSchema';
+export { createAITaskProtocolJsonSchemas } from './AITaskProtocolJsonSchema';

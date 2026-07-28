@@ -1,3 +1,4 @@
+export * from './ai';
 export * from './audio';
 export * from './content';
 export * from './migration';

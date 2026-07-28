@@ -9,7 +9,7 @@
 - 稳定基线提交：`cc2b694`（Task 021 代码、验证记录、远端发布和交接状态已推送到远端 main）
 - 当前实现提交：`cc2b694`（Task 021 双语复习投影保留与英语今日课程闭环测试；已由负责人 Pages 验收）
 - 当前任务：Task 014 · DeepSeek AI Gateway 与结构化任务协议（Issue #20 / ADR-044）
-- 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016/017/018/019/020/021 已实现并通过负责人 Pages 验收；Task 014 合同已本地化、ADR-044 已记录，但尚未授权实现。当前不创建 Gateway 仓库、不配置 Cloudflare Secret、不调用 DeepSeek API。英语 TTS、账号同步和迁移激活仍不在本任务范围
+- 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016/017/018/019/020/021 已实现并通过负责人 Pages 验收；负责人已授权 Task 014 的 `zhongri-v2` 本地实现，本地协议底座、Port、HTTP adapter、运行时 URL 配置、fixture 和 contract tests 已完成。当前不创建 Gateway 仓库、不配置 Cloudflare Secret、不调用 DeepSeek API。英语 TTS、账号同步和迁移激活仍不在本任务范围
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
 - 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；Task 018 的 `38fd7f8`、`9dc2c7f`、`ac1cf49` 已推送且由负责人 Pages 验收。Task 019 的 `04a97ee`、`c855e30`、`7a56f37`、`3a6e55f` 已推送到远端 main，并已由负责人在 GitHub Pages 验收。Task 020 的 `234878b`、`877bc19`、`dfb3260`、`db8322e`、`e0d83eb` 已推送到远端 main，负责人已完成 Pages 验收。Task 021 的 `6f13716`、`3ce1532`、`1e1d2bf`、`cc2b694` 已推送到远端 main，远端核对为 `cc2b694`，负责人已完成 Pages 验收。
 - 发布阻塞记录：普通环境的本地代理端口曾不可用；改用已恢复的外部网络通道后，Task 021 已成功推送并以 `git ls-remote` 核对远端 `HEAD`/`main` 为 `cc2b694`。
@@ -118,6 +118,9 @@
 - 本轮 Task 020 的本地验证已通过：canonical 9,828 条、文档 87 份、51 个测试文件/204 个测试、生产构建与 Pages 构建均通过；`dist` 已验证 `/zhongri-v2/` 基路径。
 - Task 021 已按 [TASK-021](../tasks/TASK-021-bilingual-loop-closeout.md) 与 [ADR-043](../decisions/ADR-043-bilingual-projection-preservation.md) 冻结并实现：当前语言投影精确替换，其他语言 ReviewState 保留；英语今日课程通过同一计划、作答、LearningEvent 持久化闭环。
 - 全量并行验证时既有 synthetic migration 验收测试偶发超过 Vitest 默认 5 秒；已将该单测显式设为 15 秒，单独运行和全量运行均通过，不改变业务断言。
+- Task 014 本地实现新增版本化 AI Task Protocol v1：严格 request/result/failure/trace metadata Schema、JSON Schema 按需导出、白名单 `generateQuestions`、最小画像/内容上下文和题目候选约束；未知字段、非白名单任务、语言/数量/来源不一致均拒绝。
+- Task 014 本地实现新增 `AIGatewayPort`、固定 `/v1/tasks/generate-questions` 的 HTTP adapter 和公开运行时 Gateway URL 配置；网络不可用、超时、408、429、4xx、5xx、空/非 JSON 和响应 Schema 错误均返回不泄漏上游内容的稳定 failure。
+- Task 014 新增 `tests/fixtures/ai-task-protocol.ts`、Schema contract tests 与 HTTP failure mapping tests；本地 `npm run verify` 已通过 53 个测试文件/220 个测试，默认构建和 Pages 构建均通过，产物不含 `DEEPSEEK_API_KEY`。
 
 ## 仍未完成
 
@@ -131,12 +134,12 @@
 - Task 019 代码已完成并推送，且已由负责人 Pages 验收。
 - Task 020 代码已完成本地验证、推送到远端并由负责人 Pages 验收。
 - Task 021 已完成本地实现、全量验证、推送并由负责人 Pages 验收。
-- Task 014 已完成本地合同与 ADR 冻结；未开始代码、Gateway 仓库、Secret 或供应商联调，等待负责人明确授权。
+- Task 014 的 `zhongri-v2` 本地实现已完成并通过全量验证；独立 Gateway Worker、Cloudflare Secret、真实供应商联调和跨仓库发布仍未开始，需另行授权。
 - Phase 1 综合验收。
 
 ## 已验证命令
 
-以下命令已在 Task 021 实现后通过（51 个测试文件、206 个测试）：
+以下命令已在 Task 014 本地实现后通过（53 个测试文件、220 个测试）：
 
 ```bash
 npm run verify
@@ -157,8 +160,9 @@ npm run verify
 
 ## 下一项工作
 
-1. 负责人明确是否授权 Task 014 的本地合同实现和独立 Gateway 仓库施工。
-2. 获得授权后先实现 mock/contract tests 和 PWA Port，再决定是否配置 Cloudflare/供应商 Secret；真实联调不作为默认步骤。
+1. 若继续 Phase 2，先由负责人单独授权 `zhongri-ai-gateway` Worker 仓库施工，并同步本地协议 fixture 与 JSON Schema。
+2. Gateway 本地实现完成后，再进行双端 contract tests；只有负责人另行授权并提供 Cloudflare 权限/Secret，才进行真实 DeepSeek 联调。
+3. 在 Gateway 缺失、离线或失败时保持 `/#/today` 规则课程可用；不要把 AI 输出直接写入学习事实。
 
 ## 交接规则
 

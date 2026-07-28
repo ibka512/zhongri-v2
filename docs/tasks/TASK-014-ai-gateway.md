@@ -4,7 +4,9 @@
 
 ## 当前状态
 
-合同已冻结，等待负责人明确实施授权。Task 021 的双语学习闭环已经验收通过；在授权前不创建
+负责人已授权“Task 014 本地实现”（2026-07-28）。`zhongri-v2` 本地底座已完成：AI Task
+Protocol v1、`AIGateway` Port、HTTP adapter、运行时公开 URL 配置、有效/无效 fixture、contract
+tests 和 JSON Schema 导出均已落地；`npm run verify` 通过（53 个测试文件、220 个测试）。本轮不创建
 独立 Gateway 仓库、不申请或配置 Cloudflare Secret、不调用 DeepSeek API、不部署 Worker。
 
 ## 背景
@@ -35,6 +37,9 @@ Phase 1 的固定课程、LearningEvent、画像与复习安排已经可以在 A
 - 不把 AI 输出直接写入 `LearningEvent`、`LearnerProfile`、`ReviewState` 或 `TodayPlan`。
 - ADR、状态文档、回滚说明和下一个 AI handoff。
 
+本地实现已验证：未知字段、非白名单任务、语言/数量/来源约束、响应关联错误、空/非 JSON/无效
+Schema、408/429/4xx/5xx、超时和网络不可用均会拒绝或映射为不泄漏上游内容的稳定 failure。
+
 ## `zhongri-ai-gateway` 范围
 
 - Cloudflare Worker 工程、CI、Wrangler 配置与安全部署说明。
@@ -61,8 +66,9 @@ Phase 1 的固定课程、LearningEvent、画像与复习安排已经可以在 A
 5. 浏览器构建产物和两个仓库均不包含 `DEEPSEEK_API_KEY`。
 6. Draft PR 链接本 Task、ADR、fixture、contract test、回滚与部署前置条件。
 
-## 实施前置
+## 下一阶段前置
 
-- 负责人明确授权“开始 Task 014”，并确认是否允许创建/使用独立 `zhongri-ai-gateway` GitHub 仓库。
+- 负责人另行明确是否允许创建/使用独立 `zhongri-ai-gateway` GitHub 仓库，并授权 Gateway Worker
+  施工；当前授权只覆盖 `zhongri-v2` 本地实现。
 - 若需要真实联调，负责人另行提供 Cloudflare 账户/Worker 权限和 Secret 配置；本地 mock/contract 测试
   不需要真实密钥。

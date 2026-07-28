@@ -47,11 +47,13 @@
 当前仍保留两条边界：
 
 1. 完整产品级备份/恢复体验和生产数据操作仍需按迁移规格独立维护，不把私人数据写入 Git。
-2. Issue #20 / Task 014 的 AI Gateway 合同已冻结，进入待授权状态；实现前必须完成独立任务授权。
+2. Issue #20 / Task 014 的 AI Gateway 合同已冻结；负责人已授权 `zhongri-v2` 本地协议底座实现，独立
+   Gateway Worker、Secret 和真实联调仍需单独授权。
 
 ## 当前明确不做
 
-- 未经 Task 014 明确授权，不接入 AI API、模型 SDK、聊天界面或 AI 生成题目。
+- 不接入 AI API、模型 SDK、聊天界面或 AI 生成题目；本地协议/Port/HTTP adapter 只用于 contract
+  validation，不改变现有学习闭环。
 - 不迁移旧 FSRS 状态并重算，不训练 FSRS 参数。
 - 不加入 ASR、实时语音、账号同步、商业化或社区功能。
 - 不把完整词库、迁移业务域激活或真实音频描述成已经完成。
