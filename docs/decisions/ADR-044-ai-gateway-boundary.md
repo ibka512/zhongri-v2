@@ -2,7 +2,7 @@
 
 ## 状态
 
-PWA 底座与独立 Gateway 已实现、发布并通过双端 contract tests，待真实联调（2026-07-29）
+PWA 底座与独立 Gateway 已实现、发布并完成 Worker 健康检查，待 Secret/真实联调（2026-07-29）
 
 ## 背景
 

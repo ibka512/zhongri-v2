@@ -9,9 +9,9 @@
 adapter、运行时公开 URL 配置、fixture、contract tests、跨仓 fixture SHA 检查和 JSON Schema 导出；后者固定
 `/health`、`/v1/tasks/generate-questions`、Prompt Registry、Mock provider、DeepSeek adapter、请求/响应
 校验、稳定 failure mapping、CORS 和 secret 扫描。独立工程路径为
-`work/zhongri-ai-gateway`，当前提交 `7c71e1e`（代码基线 `f27cb6e`）；其 `npm run verify`（15 tests）和 Wrangler dry-run
+`work/zhongri-ai-gateway`，当前提交 `26b4d1e`（代码基线 `f27cb6e`）；其 `npm run verify`（15 tests）和 Wrangler dry-run
 均通过。公开远端已创建并推送为 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway)，
-`main` 核对为 `7c71e1e`。主仓库的 `npm run verify:gateway-contract` 已通过，Cloudflare Secret、真实 DeepSeek API 和生产部署均未执行。
+`main` 核对为 `26b4d1e`。Worker 已部署到 [`zhongri-ai-gateway.moyu54433.workers.dev`](https://zhongri-ai-gateway.moyu54433.workers.dev)，`GET /health` 返回 200；主仓库的 `npm run verify:gateway-contract` 已通过。Cloudflare Secret 尚未配置，真实 DeepSeek API 尚未调用。
 
 ## 背景
 
