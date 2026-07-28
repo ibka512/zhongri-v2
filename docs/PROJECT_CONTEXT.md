@@ -35,7 +35,7 @@ FSRS 复习调度
 
 仓库已经具备可维护的 React + TypeScript + Vite 基础、核心数据契约、UI Lab 和
 GitHub 协作基础设施。**Task 004：第一个学习闭环技术验证** 已由产品负责人验收。
-Task 012 已完成，Task 013 的代码实现和本地浏览器断网复测已经完成，GOV-001 已通过 PR #22 合并，Task 018/019 已通过负责人 GitHub Pages 验收，Task 020 已完成实现、全量验证并推送，当前等待负责人 Pages 验收后进入 Phase 1 收口。
+Task 012 已完成，Task 013 的代码实现和本地浏览器断网复测已经完成，GOV-001 已通过 PR #22 合并，Task 018/019/020 已通过负责人 GitHub Pages 验收，当前进行 Task 021 双语学习闭环收口。
 
 ## 已完成任务
 
@@ -100,15 +100,15 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **Task 020：英语音标最小切片**；Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）已经完成负责人真实 v1 数据手工验收，Task 016/017/018/019 已由负责人在 GitHub Pages 验收。Task 020 已完成并推送，只复用 canonical 英语词条展示 IPA，并提供当前页面内的词形/音标辨认练习；不执行迁移激活、不写入 LearningEvent，也不接入英语 TTS、远程音频或 AI，当前等待负责人 Pages 验收。
+当前任务是 **Task 021：Phase 1 双语学习闭环收口**；Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）已经完成负责人真实 v1 数据手工验收，Task 016/017/018/019/020 已由负责人在 GitHub Pages 验收。Task 021 只修复日语/英语切换时的复习投影保留，并补齐英语今日课程真实闭环测试；不执行迁移激活、不修改 Schema、不接入 AI 或新音频能力。
 
-Task 015 已完成 canonical corpus Schema、固定 9,828/5,906/3,922 目标、真实资产导入、fail-closed 完整性验证、脱敏 source snapshot contract、只读浏览器 source adapter、source-aware staging、确定性 canonical idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、全域 isolated 纵向转换、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23/V25 证据入口、负责人批准 synthetic fixture 的端到端 activation/rollback 验收和负责人真实 v1 数据手工验收；真实备份不入库。Task 016/017/018/019 按 ADR-038/039/040/041 已完成实现并通过负责人 Pages 验收；Task 020 按 ADR-042 补上英语/IPA 最小入口，不修改 FSRS 参数或接入 AI。
+Task 015 已完成 canonical corpus Schema、固定 9,828/5,906/3,922 目标、真实资产导入、fail-closed 完整性验证、脱敏 source snapshot contract、只读浏览器 source adapter、source-aware staging、确定性 canonical idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、全域 isolated 纵向转换、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23/V25 证据入口、负责人批准 synthetic fixture 的端到端 activation/rollback 验收和负责人真实 v1 数据手工验收；真实备份不入库。Task 016/017/018/019/020 按 ADR-038/039/040/041/042 已完成实现并通过负责人 Pages 验收；Task 021 按 ADR-043 收口双语学习闭环，不修改 FSRS 参数或接入 AI。
 
 Task 013 的实现与决策见 [ADR-011](./decisions/ADR-011-replayable-profile-fsrs.md)，其验收证据见 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
 
 ## 下一步路线
 
-1. 验收 Task 020：复用 canonical 英语词条的 IPA 展示与当前页面辨认练习。
+1. 完成 Task 021：日语/英语共用今日课程引擎，切换语言保留各自 ReviewState，并通过双语闭环测试。
 2. 完成 Phase 1 的双语核心闭环验收，之后再接入 AI Gateway（Issue #20）。
 
 详细验收证据见 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。

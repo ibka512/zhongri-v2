@@ -46,6 +46,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-040：以 canonical repository 驱动内容中心只读首个切片](./ADR-040-content-center-readonly-slice.md)
 - [ADR-041：以浏览器内置朗读承载五十音最小切片](./ADR-041-kana-tts-slice.md)
 - [ADR-042：以 canonical 英语词条承载音标最小切片](./ADR-042-english-ipa.md)
+- [ADR-043：按语言边界保留双语复习投影](./ADR-043-bilingual-projection-preservation.md)
 
 ## 未来
 

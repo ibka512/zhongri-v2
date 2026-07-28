@@ -6,13 +6,13 @@
 
 - 稳定基线：`origin/main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36、核心域纵向切片 PR #37、staging orchestration PR #39/#40、负责人真实 v1 数据验收记录 `07ef6f9`、Task 016 推送记录 `819799b`、Task 017 推送记录 `d182a25`、Task 018 推送记录 `9dc2c7f` 和负责人 Pages 验收确认）
 - 当前交接分支：`main`
-- 稳定基线提交：`db8322e`（Task 020 远端发布记录已推送到远端 main；负责人待进行 Pages 验收）
-- 当前实现提交：`db8322e`（Task 020 英语音标最小切片实现、交接记录与远端发布记录；已推送，待负责人 Pages 验收）
-- 当前任务：Task 020 · 英语音标最小切片（ADR-042）
-- 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016/017/018/019 已实现并通过负责人 Pages 验收；Task 020 已实现并推送 `/ipa`、10 个 canonical 英语词条、IPA/词形双向辨认模式、语言提示和 fail-closed 内容选择边界，`npm run verify` 已通过（51 个测试文件、204 个测试），当前只待负责人 Pages 验收；英语 TTS、远程音频、AI、账号同步和 LearningEvent 持久化仍未授权
+- 稳定基线提交：`e0d83eb`（Task 020 远端发布记录已推送到远端 main，并由负责人完成 Pages 验收）
+- 当前实现提交：`e0d83eb`（Task 020 英语音标最小切片实现、交接记录与远端发布记录；已推送并验收）
+- 当前任务：Task 021 · Phase 1 双语学习闭环收口（ADR-043）
+- 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016/017/018/019/020 已实现并通过负责人 Pages 验收；Task 021 已冻结合同与 ADR，尚未实现代码。当前明确缺口是语言切换时现有投影会删除另一语言 ReviewState；英语今日课程仍需补上同一引擎的真实闭环测试。英语 TTS、远程音频、AI、账号同步和迁移激活仍未授权
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
-- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；Task 018 的 `38fd7f8`、`9dc2c7f`、`ac1cf49` 已推送且由负责人 Pages 验收。Task 019 的 `04a97ee`、`c855e30`、`7a56f37`、`3a6e55f` 已推送到远端 main，并已由负责人在 GitHub Pages 验收。Task 020 的 `234878b`、`877bc19`、`dfb3260`、`db8322e` 已推送到远端 main，远端核对为 `db8322e`，负责人待进行 Pages 验收。
-- 发布阻塞记录：普通环境的本地代理端口曾不可用；改用已恢复的外部网络通道后，Task 020 已成功推送并以 `git ls-remote` 核对远端 `HEAD`/`main` 为 `db8322e`。
+- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；Task 018 的 `38fd7f8`、`9dc2c7f`、`ac1cf49` 已推送且由负责人 Pages 验收。Task 019 的 `04a97ee`、`c855e30`、`7a56f37`、`3a6e55f` 已推送到远端 main，并已由负责人在 GitHub Pages 验收。Task 020 的 `234878b`、`877bc19`、`dfb3260`、`db8322e`、`e0d83eb` 已推送到远端 main，远端核对为 `e0d83eb`，负责人已完成 Pages 验收。
+- 发布阻塞记录：普通环境的本地代理端口曾不可用；改用已恢复的外部网络通道后，Task 020 已成功推送并以 `git ls-remote` 核对远端 `HEAD`/`main` 为 `e0d83eb`。
 
 ## 本轮已完成
 
@@ -114,8 +114,9 @@
 - 负责人已在 2026-07-28 完成 Task 018 的 GitHub Pages 验收，内容摘要、搜索、level 筛选和空/错误状态无阻塞反馈。
 - Task 019 已按 [TASK-019](../tasks/TASK-019-kana-tts-slice.md) 与 [ADR-041](../decisions/ADR-041-kana-tts-slice.md) 冻结并实现 `/kana`、10 个基础平假名、辨认/听辨模式、浏览器 Speech Synthesis adapter、不可用/关闭/失败回退和 Today 深链接；新增 10 项专项测试，`npm run verify` 已通过（49 个测试文件、196 个测试）。
 - 负责人已在 2026-07-28 完成 Task 019 的 GitHub Pages 验收，10 个假名、辨认/听辨、浏览器支持/关闭/失败回退和今日页深链接无阻塞反馈。
-- Task 020 已按 [TASK-020](../tasks/TASK-020-english-ipa.md) 与 [ADR-042](../decisions/ADR-042-english-ipa.md) 冻结并实现 `/ipa` 英语音标最小切片；内容选择、双向辨认、错误/重试、语言提示、Today/内容中心深链接和路由组合测试已完成，不接入英语音频、AI 或学习事实持久化。
+- Task 020 已按 [TASK-020](../tasks/TASK-020-english-ipa.md) 与 [ADR-042](../decisions/ADR-042-english-ipa.md) 冻结并实现 `/ipa` 英语音标最小切片，并由负责人完成 Pages 验收；内容选择、双向辨认、错误/重试、语言提示、Today/内容中心深链接和路由组合测试已完成，不接入英语音频、AI 或学习事实持久化。
 - 本轮 Task 020 的本地验证已通过：canonical 9,828 条、文档 87 份、51 个测试文件/204 个测试、生产构建与 Pages 构建均通过；`dist` 已验证 `/zhongri-v2/` 基路径。
+- Task 021 已按 [TASK-021](../tasks/TASK-021-bilingual-loop-closeout.md) 与 [ADR-043](../decisions/ADR-043-bilingual-projection-preservation.md) 冻结合同和决策；代码尚未开始，本轮将只实现跨语言 ReviewState 合并和英语今日课程闭环测试。
 - 全量并行验证时既有 synthetic migration 验收测试偶发超过 Vitest 默认 5 秒；已将该单测显式设为 15 秒，单独运行和全量运行均通过，不改变业务断言。
 
 ## 仍未完成
@@ -128,7 +129,8 @@
 - Task 018 代码已完成并推送，且已由负责人在 GitHub Pages 验收。
 - 内容中心和完整数据安全操作（备份恢复、危险操作等）尚未实现；Task 017 目前只提供安全摘要入口。
 - Task 019 代码已完成并推送，且已由负责人 Pages 验收。
-- Task 020 代码已完成本地验证并推送到远端，负责人 Pages 验收尚未开始；Phase 1 双语综合验收尚未开始。
+- Task 020 代码已完成本地验证、推送到远端并由负责人 Pages 验收。
+- Task 021 代码尚未实现；Phase 1 双语综合验收尚未开始。
 - Phase 1 综合验收。
 
 ## 已验证命令
@@ -154,8 +156,8 @@ npm run verify
 
 ## 下一项工作
 
-1. 负责人在 GitHub Pages 打开 `/#/ipa`，验收 10 个 canonical 词条、两种辨认模式、错误/重试和日语/未设置语言提示。
-2. 根据验收结果记录 Task 020 Pages 验收状态，再进入 Phase 1 双语综合验收。
+1. 实现 Task 021：当前语言投影精确替换，同时保留其他语言 ReviewState；补上英语 `/today` 同引擎闭环测试。
+2. 运行 `npm run verify`，更新交接记录并推送；负责人随后在 GitHub Pages 验收日语/英语切换、刷新恢复与离线闭环。
 
 ## 交接规则
 
