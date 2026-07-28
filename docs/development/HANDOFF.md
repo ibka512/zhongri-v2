@@ -7,11 +7,11 @@
 - 稳定基线：`origin/main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36、核心域纵向切片 PR #37、staging orchestration PR #39/#40、负责人真实 v1 数据验收记录 `07ef6f9`、Task 016 推送记录 `819799b`、Task 017 推送记录 `d182a25`、Task 018 推送记录 `9dc2c7f` 和负责人 Pages 验收确认）
 - 当前交接分支：`main`
 - 稳定基线提交：`cc2b694`（Task 021 代码、验证记录、远端发布和交接状态已推送到远端 main）
-- 当前实现提交：`cc2b694`（Task 021 双语复习投影保留与英语今日课程闭环测试；已由负责人 Pages 验收）
+- 当前实现提交：`783807e`（Task 014 本地 AI Task Protocol、AIGateway Port、HTTP adapter、运行时 URL 配置和 contract tests；未连接独立 Gateway/供应商）
 - 当前任务：Task 014 · DeepSeek AI Gateway 与结构化任务协议（Issue #20 / ADR-044）
 - 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016/017/018/019/020/021 已实现并通过负责人 Pages 验收；负责人已授权 Task 014 的 `zhongri-v2` 本地实现，本地协议底座、Port、HTTP adapter、运行时 URL 配置、fixture 和 contract tests 已完成。当前不创建 Gateway 仓库、不配置 Cloudflare Secret、不调用 DeepSeek API。英语 TTS、账号同步和迁移激活仍不在本任务范围
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
-- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；Task 018 的 `38fd7f8`、`9dc2c7f`、`ac1cf49` 已推送且由负责人 Pages 验收。Task 019 的 `04a97ee`、`c855e30`、`7a56f37`、`3a6e55f` 已推送到远端 main，并已由负责人在 GitHub Pages 验收。Task 020 的 `234878b`、`877bc19`、`dfb3260`、`db8322e`、`e0d83eb` 已推送到远端 main，负责人已完成 Pages 验收。Task 021 的 `6f13716`、`3ce1532`、`1e1d2bf`、`cc2b694` 已推送到远端 main，远端核对为 `cc2b694`，负责人已完成 Pages 验收。
+- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；Task 018 的 `38fd7f8`、`9dc2c7f`、`ac1cf49` 已推送且由负责人 Pages 验收。Task 019 的 `04a97ee`、`c855e30`、`7a56f37`、`3a6e55f` 已推送到远端 main，并已由负责人在 GitHub Pages 验收。Task 020 的 `234878b`、`877bc19`、`dfb3260`、`db8322e`、`e0d83eb` 已推送到远端 main，负责人已完成 Pages 验收。Task 021 的 `6f13716`、`3ce1532`、`1e1d2bf`、`cc2b694` 已推送到远端 main，远端核对为 `cc2b694`，负责人已完成 Pages 验收。Task 014 本地实现提交为 `783807e`，待后续发布/远端核对。
 - 发布阻塞记录：普通环境的本地代理端口曾不可用；改用已恢复的外部网络通道后，Task 021 已成功推送并以 `git ls-remote` 核对远端 `HEAD`/`main` 为 `cc2b694`。
 
 ## 本轮已完成
