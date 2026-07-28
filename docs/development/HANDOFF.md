@@ -7,7 +7,7 @@
 - 稳定基线：`origin/main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36、核心域纵向切片 PR #37、staging orchestration PR #39/#40、负责人真实 v1 数据验收记录 `07ef6f9`、Task 016 推送记录 `819799b`、Task 017 推送记录 `d182a25` 和负责人 Pages 验收确认）
 - 当前交接分支：`main`
 - 稳定基线提交：`48f5ea9`（Task 017 实现与交接记录已推送到远端 main）
-- 当前实现提交：`48f5ea9`（Task 016/017 已实现并由负责人在 GitHub Pages 验收；Task 018 规格与 ADR 正在冻结）
+- 当前实现提交：`38fd7f8`（Task 018 内容中心首个只读切片实现与测试；待推送到远端 main 并由负责人 Pages 验收）
 - 当前任务：Task 018 · 内容中心首个只读切片（ADR-040）
 - 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016 已实现版本化 UserSettings、首次打开路由、语言/时长/重点/声音向导、旧 v1 来源只读检测，并已通过负责人 Pages 验收；Task 017 已实现设置/数据摘要和安全迁移入口，并已通过负责人 Pages 验收；Task 018 只复用 canonical repository 建立当前语言内容摘要与可搜索词条入口，真实备份不入库，迁移激活、AI、TTS、五十音和 IPA 仍未实现
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
@@ -109,7 +109,8 @@
 - Task 017 已实现 `/settings` 页面、今日页入口、设置摘要、v1 来源三态提示和迁移安全说明；新增路由
   组合测试与状态测试，页面不直接访问浏览器存储。
 - 负责人已在 2026-07-28 使用 GitHub Pages 验收 Task 016/017：首次设置、刷新恢复、英语入口、设置摘要和旧版提示均无阻塞反馈。
-- Task 018 已冻结为内容中心首个只读切片，见任务合同和 ADR-040；本轮只复用 canonical repository，不新增内容 Schema、数据库表、用户词或音频能力。
+- Task 018 已实现 `/content` 内容中心、今日/设置入口、当前语言摘要、搜索、level 筛选、空/错误状态与重试；本轮只复用 canonical repository，不新增内容 Schema、数据库表、用户词或音频能力。
+- 全量并行验证时既有 synthetic migration 验收测试偶发超过 Vitest 默认 5 秒；已将该单测显式设为 15 秒，单独运行和全量运行均通过，不改变业务断言。
 
 ## 仍未完成
 
@@ -118,14 +119,14 @@
   如需审计由负责人本地保留。仓库仍不把该手工结果伪装成可公开复现的真实 fixture。
 - Task 016 已完成并由负责人在 GitHub Pages 验收。
 - Task 017 已完成并由负责人在 GitHub Pages 验收。
-- Task 018 规格已冻结，代码尚未实现。
+- Task 018 代码已完成，待推送并由负责人在 GitHub Pages 验收。
 - 内容中心和完整数据安全操作（备份恢复、危险操作等）尚未实现；Task 017 目前只提供安全摘要入口。
 - 日语五十音/TTS、英语/IPA 双语纵向切片。
 - Phase 1 综合验收。
 
 ## 已验证命令
 
-以下命令已在 Task 017 实现后通过（46 个测试文件、181 个测试）：
+以下命令已在 Task 018 实现后通过（47 个测试文件、186 个测试）：
 
 ```bash
 npm run verify
@@ -146,8 +147,8 @@ npm run verify
 
 ## 下一项工作
 
-1. 实现并验证 Task 018 内容中心只读切片：当前语言摘要、搜索、level 筛选和 50 条结果上限。
-2. Task 018 完成后，定义并实施日语五十音/TTS 与英语/IPA 最小切片。
+1. 推送 `38fd7f8` 内容中心实现，并由负责人在 GitHub Pages 验收当前语言摘要、搜索、level 筛选和空/错误状态。
+2. Task 018 验收后，定义并实施日语五十音/TTS 与英语/IPA 最小切片。
 
 ## 交接规则
 
