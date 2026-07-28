@@ -8,11 +8,13 @@ import { MigrationPreviewPage } from '../pages/MigrationPreview';
 import { LaunchPage } from '../pages/Launch';
 import { StudyDemoPage } from '../pages/StudyDemo';
 import { SettingsDataPage } from '../pages/SettingsData';
+import { ContentCenterPage } from '../pages/ContentCenter';
 import { TodayCoursePage } from '../pages/TodayCourse';
 import { UILabPage } from '../pages/UILab';
 import type { MigrationPreviewReport, TodayPlan } from '../schemas/v1';
 import type { StageMigrationResult } from '../ports';
 import { App } from './App';
+import { createCanonicalContentRepository } from './content';
 import {
   previewV1Backup,
   serializeMigrationPreview,
@@ -24,6 +26,7 @@ import { createStudyDemoUseCase, restartStudyDemoUseCase } from './studyDemo';
 import { createTodayCourse, restartTodayCourse, type TodayCourseSession } from './todayCourse';
 
 export interface AppRouteDependencies {
+  loadCanonicalContent: typeof createCanonicalContentRepository;
   createTodayCourse: () => Promise<TodayCourseSession>;
   createStudyDemoUseCase: () => Promise<StudyUseCase>;
   detectLegacyV1Data: typeof detectLegacyV1Data;
@@ -38,6 +41,7 @@ export interface AppRouteDependencies {
 }
 
 const defaultDependencies: AppRouteDependencies = {
+  loadCanonicalContent: createCanonicalContentRepository,
   createTodayCourse,
   createStudyDemoUseCase,
   detectLegacyV1Data,
@@ -83,6 +87,15 @@ export function createAppRoutes(dependencies: Partial<AppRouteDependencies> = {}
       element: (
         <SettingsDataPage
           detectLegacyData={resolvedDependencies.detectLegacyV1Data}
+          loadSettings={resolvedDependencies.loadUserSettings}
+        />
+      ),
+    },
+    {
+      path: '/content',
+      element: (
+        <ContentCenterPage
+          loadContent={resolvedDependencies.loadCanonicalContent}
           loadSettings={resolvedDependencies.loadUserSettings}
         />
       ),

@@ -238,6 +238,9 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
             </Button>
           </Card>
           <div className="today-course__secondary-links">
+            <Link className="today-course__secondary-link" to="/content">
+              浏览内容
+            </Link>
             <Link className="today-course__secondary-link" to="/onboarding">
               调整学习目标
             </Link>

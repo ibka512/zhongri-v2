@@ -187,6 +187,9 @@ export function SettingsDataPage({ detectLegacyData, loadSettings }: SettingsDat
               v1 预检、隔离暂存、验证和激活是分开的步骤。当前页面只提供入口，不会替你执行迁移。
             </p>
             <div className="settings-data__actions">
+              <Link className="settings-data__action" to="/content">
+                浏览当前内容
+              </Link>
               <Link className="settings-data__action" to="/migration-preview">
                 检查旧版备份
               </Link>

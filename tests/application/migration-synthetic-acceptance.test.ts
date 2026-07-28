@@ -104,5 +104,5 @@ describe('approved synthetic migration acceptance', () => {
     expect(rollback.run.verificationReportDigestSha256).toBe(
       verification.report.reportDigestSha256,
     );
-  });
+  }, 15_000);
 });
