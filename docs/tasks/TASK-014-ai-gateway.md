@@ -9,8 +9,9 @@
 adapter、运行时公开 URL 配置、fixture、contract tests 和 JSON Schema 导出；后者固定
 `/health`、`/v1/tasks/generate-questions`、Prompt Registry、Mock provider、DeepSeek adapter、请求/响应
 校验、稳定 failure mapping、CORS 和 secret 扫描。独立工程路径为
-`work/zhongri-ai-gateway`，当前交接提交 `c56918e`（代码基线 `f27cb6e`）；其 `npm run verify`（13 tests）和 Wrangler dry-run
-均通过。GitHub 远端仓库尚未创建/推送，Cloudflare Secret、真实 DeepSeek API 和生产部署均未执行。
+`work/zhongri-ai-gateway`，当前交接提交 `c72b0f8`（代码基线 `f27cb6e`）；其 `npm run verify`（13 tests）和 Wrangler dry-run
+均通过。公开远端已创建并推送为 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway)，
+`main` 核对为 `c72b0f8`。Cloudflare Secret、真实 DeepSeek API 和生产部署均未执行。
 
 ## 背景
 
@@ -71,7 +72,7 @@ Schema、408/429/4xx/5xx、超时和网络不可用均会拒绝或映射为不�
 
 ## 下一阶段前置
 
-- 远端发布前，负责人需明确 GitHub 仓库可见性和发布目标；当前本地工程已准备好，但尚未向远端
-  创建/推送代码。
+- 远端仓库已按负责人授权创建为公开仓库并推送；后续修改必须继续保持密钥不入 Git，并在两个仓库
+  同步协议 fixture/Schema。
 - 若需要真实联调，负责人另行提供 Cloudflare 账户/Worker 权限和 Secret 配置；本地 mock/contract 测试
   不需要真实密钥。真实 Secret、真实 API 请求和生产部署仍需单独确认。

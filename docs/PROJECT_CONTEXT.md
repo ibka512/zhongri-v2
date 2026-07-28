@@ -100,7 +100,7 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **Task 014：DeepSeek AI Gateway 与结构化任务协议** 的跨仓本地实现收口；Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）已完成负责人真实 v1 数据手工验收，Task 016/017/018/019/020/021 已由负责人在 GitHub Pages 验收。`zhongri-v2` 与 `work/zhongri-ai-gateway@c56918e` 均已完成本地实现和验证；远端发布、Cloudflare Secret 和供应商联调仍未执行。
+当前任务是 **Task 014：DeepSeek AI Gateway 与结构化任务协议** 的跨仓实现收口；Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）已完成负责人真实 v1 数据手工验收，Task 016/017/018/019/020/021 已由负责人在 GitHub Pages 验收。`zhongri-v2` 与公开仓库 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway) 均已完成本地实现和验证，Gateway `main` 为 `c72b0f8`；Cloudflare Secret 和供应商联调仍未执行。
 
 Task 015 已完成 canonical corpus Schema、固定 9,828/5,906/3,922 目标、真实资产导入、fail-closed 完整性验证、脱敏 source snapshot contract、只读浏览器 source adapter、source-aware staging、确定性 canonical idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、全域 isolated 纵向转换、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23/V25 证据入口、负责人批准 synthetic fixture 的端到端 activation/rollback 验收和负责人真实 v1 数据手工验收；真实备份不入库。Task 016/017/018/019/020/021 按 ADR-038/039/040/041/042/043 已完成实现并通过负责人 Pages 验收；Task 014 已按 Issue #20、TASK-014 和 ADR-044 完成本地协议 Schema、Port、HTTP adapter、运行时 URL 配置、fixture 和 contract tests，未接入供应商或写入学习事实。
 
@@ -109,7 +109,7 @@ Task 013 的实现与决策见 [ADR-011](./decisions/ADR-011-replayable-profile-
 ## 下一步路线
 
 1. 负责人已验收 Task 021，双语核心闭环总结记录在 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
-2. Task 014 两仓本地底座已完成；下一步先明确远端仓库发布目标，再进行双端 contract tests，最后才考虑单独授权的 Secret/真实联调，继续保持基础课程离线可用。
+2. Task 014 两仓实现已发布；下一步进行双端 contract tests，最后才考虑单独授权的 Secret/真实联调，继续保持基础课程离线可用。
 
 详细验收证据见 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
 
