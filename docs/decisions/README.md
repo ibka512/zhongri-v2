@@ -47,6 +47,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-041：以浏览器内置朗读承载五十音最小切片](./ADR-041-kana-tts-slice.md)
 - [ADR-042：以 canonical 英语词条承载音标最小切片](./ADR-042-english-ipa.md)
 - [ADR-043：按语言边界保留双语复习投影](./ADR-043-bilingual-projection-preservation.md)
+- [ADR-044：以独立 Gateway 隔离 AI 供应商与学习事实](./ADR-044-ai-gateway-boundary.md)
 
 ## 未来
 
