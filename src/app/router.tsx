@@ -7,6 +7,7 @@ import { OnboardingPage } from '../pages/Onboarding';
 import { MigrationPreviewPage } from '../pages/MigrationPreview';
 import { LaunchPage } from '../pages/Launch';
 import { StudyDemoPage } from '../pages/StudyDemo';
+import { SettingsDataPage } from '../pages/SettingsData';
 import { TodayCoursePage } from '../pages/TodayCourse';
 import { UILabPage } from '../pages/UILab';
 import type { MigrationPreviewReport, TodayPlan } from '../schemas/v1';
@@ -74,6 +75,15 @@ export function createAppRoutes(dependencies: Partial<AppRouteDependencies> = {}
         <TodayCoursePage
           createCourse={resolvedDependencies.createTodayCourse}
           restartCourse={resolvedDependencies.restartTodayCourse}
+        />
+      ),
+    },
+    {
+      path: '/settings',
+      element: (
+        <SettingsDataPage
+          detectLegacyData={resolvedDependencies.detectLegacyV1Data}
+          loadSettings={resolvedDependencies.loadUserSettings}
         />
       ),
     },

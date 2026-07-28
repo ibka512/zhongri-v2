@@ -42,6 +42,7 @@ ADR 用于记录会长期影响架构、契约、兼容性或迁移的决策。
 - [ADR-036：以批准的 synthetic fixture 验收迁移边界](./ADR-036-approved-synthetic-migration-acceptance.md)
 - [ADR-037：以负责人真实 v1 数据手工验收关闭迁移阻塞](./ADR-037-real-v1-manual-acceptance.md)
 - [ADR-038：以本地 UserSettings 契约承载 Phase 1 首次设置](./ADR-038-phase1-onboarding-settings.md)
+- [ADR-039：以只读安全摘要承载设置与数据页首个切片](./ADR-039-settings-data-page.md)
 
 ## 未来
 

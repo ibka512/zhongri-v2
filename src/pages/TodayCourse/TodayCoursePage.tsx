@@ -241,6 +241,9 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
             <Link className="today-course__secondary-link" to="/onboarding">
               调整学习目标
             </Link>
+            <Link className="today-course__secondary-link" to="/settings">
+              设置与数据
+            </Link>
             <Link className="today-course__secondary-link" to="/migration-preview">
               检查旧版备份
             </Link>
