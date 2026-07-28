@@ -241,6 +241,9 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
             <Link className="today-course__secondary-link" to="/kana">
               练习五十音
             </Link>
+            <Link className="today-course__secondary-link" to="/ipa">
+              练习英语音标
+            </Link>
             <Link className="today-course__secondary-link" to="/content">
               浏览内容
             </Link>

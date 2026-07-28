@@ -287,6 +287,9 @@ export function ContentCenterPage({ loadContent, loadSettings }: ContentCenterPa
         </div>
 
         <nav aria-label="内容中心相关入口" className="content-center__links">
+          <Link className="content-center__secondary-link" to="/ipa">
+            练习英语音标
+          </Link>
           <Link className="content-center__secondary-link" to="/onboarding">
             调整学习目标
           </Link>

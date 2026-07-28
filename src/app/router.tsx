@@ -9,6 +9,7 @@ import { LaunchPage } from '../pages/Launch';
 import { StudyDemoPage } from '../pages/StudyDemo';
 import { SettingsDataPage } from '../pages/SettingsData';
 import { ContentCenterPage } from '../pages/ContentCenter';
+import { IpaPracticePage } from '../pages/IpaPractice';
 import { KanaPracticePage } from '../pages/KanaPractice';
 import { TodayCoursePage } from '../pages/TodayCourse';
 import { UILabPage } from '../pages/UILab';
@@ -110,6 +111,15 @@ export function createAppRoutes(dependencies: Partial<AppRouteDependencies> = {}
         <KanaPracticePage
           loadSettings={resolvedDependencies.loadUserSettings}
           loadSpeech={resolvedDependencies.loadKanaSpeech}
+        />
+      ),
+    },
+    {
+      path: '/ipa',
+      element: (
+        <IpaPracticePage
+          loadContent={resolvedDependencies.loadCanonicalContent}
+          loadSettings={resolvedDependencies.loadUserSettings}
         />
       ),
     },
