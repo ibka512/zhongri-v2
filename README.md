@@ -31,7 +31,7 @@ Task013 的代码实现已经合并，本地浏览器断网复测已通过，当
 LearningEvent 重放画像与 ReviewState，网站根入口优先安排当天到期复习和最近仍答错的词，
 再稳定补足五词。
 
-当前工作项是 Task 014：DeepSeek AI Gateway 与结构化任务协议的跨仓实现收口。Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）的 canonical corpus、迁移契约和负责人真实 v1 数据验收已完成；Task 016/017/018/019/020/021 已在 GitHub Pages 验收，Task 014 的 `zhongri-v2` 与公开仓库 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway) 均已完成本地实现、双端契约测试、远端发布和 Worker 初次部署，Gateway `main` 为 `26b4d1e`，`/health` 已返回 200；Secret/真实联调仍未执行。GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并。
+当前工作项是 Task 014：DeepSeek AI Gateway 与结构化任务协议的跨仓实现收口。Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）的 canonical corpus、迁移契约和负责人真实 v1 数据验收已完成；Task 016/017/018/019/020/021 已在 GitHub Pages 验收，Task 014 的 `zhongri-v2` 与公开仓库 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway) 均已完成本地实现、双端契约测试、远端发布和 Worker 初次部署，Gateway `main` 为 `dd96d75`，`/health` 已返回 200；Secret/真实联调仍未执行。GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并。
 
 真实 v1 数据只按用户明确操作进入迁移流程，不写入仓库；完整产品级备份/恢复体验、AI 题目 UI、FSRS 参数训练和远程真实音频仍未实现。Task 021 已完成双语复习投影保留和英语今日课程闭环；Task 014 已完成 PWA 协议底座与独立 Gateway 的本地 Worker 工程，但尚未连接真实供应商。
 
