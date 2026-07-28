@@ -10,7 +10,12 @@ import { jaN5StarterManifest, jaN5StarterWords } from '../../src/content';
 import { InMemoryStudyPersistence } from '../../src/infrastructure/study';
 import type { CanonicalContentRepositoryPort } from '../../src/ports';
 import { TodayCoursePage } from '../../src/pages/TodayCourse';
-import { LearnerProfileSchema, LearnerSettingsSchema, QuestionType } from '../../src/schemas/v1';
+import {
+  CanonicalWordSchema,
+  LearnerProfileSchema,
+  LearnerSettingsSchema,
+  QuestionType,
+} from '../../src/schemas/v1';
 import { ThemeProvider } from '../../src/ui/theme';
 
 const repository: CanonicalContentRepositoryPort = {
@@ -24,9 +29,28 @@ const repository: CanonicalContentRepositoryPort = {
   },
 };
 
-function createHarness() {
+const englishWords = jaN5StarterWords.map((word, index) =>
+  CanonicalWordSchema.parse({
+    ...word,
+    id: `en-${String(index + 1).padStart(3, '0')}`,
+    language: 'en',
+    headword: `word-${index + 1}`,
+    reading: null,
+    meaning: `meaning ${index + 1}`,
+  }),
+);
+
+const bilingualRepository: CanonicalContentRepositoryPort = {
+  ...repository,
+  listByLanguage: (language) => (language === 'en' ? englishWords : jaN5StarterWords),
+  findById: (language, wordId) =>
+    (language === 'en' ? englishWords : jaN5StarterWords).find((word) => word.id === wordId) ??
+    null,
+};
+
+function createHarness(language: 'ja' | 'en' = 'ja') {
   const persistence = new InMemoryStudyPersistence();
-  const dailyCourse = createDailyCourse(repository, '2026-07-24');
+  const dailyCourse = createDailyCourse(bilingualRepository, '2026-07-24', [], { language });
   let id = 0;
   let timestamp = Date.parse('2026-07-24T01:00:00.000Z');
   const dependencies = {
@@ -56,7 +80,7 @@ function createHarness() {
       schemaVersion: 1,
       projectionVersion: 1,
       userId: input.userId,
-      language: 'ja',
+      language,
       answeredCount: 0,
       correctCount: 0,
       incorrectCount: 0,
@@ -163,6 +187,58 @@ describe('TodayCoursePage', () => {
     expect(screen.getByText('5', { selector: 'strong' })).toBeInTheDocument();
     expect(screen.getAllByRole('listitem')).toHaveLength(5);
     expect(await persistence.findBySessionId(dailyCourse.plan.id)).toHaveLength(10);
+  });
+
+  it('completes the English course through the same plan, answer, and event loop', async () => {
+    const { createCourse, dailyCourse, persistence, restartCourse } = createHarness('en');
+    render(
+      <MemoryRouter>
+        <ThemeProvider initialTheme="light">
+          <TodayCoursePage createCourse={createCourse} restartCourse={restartCourse} />
+        </ThemeProvider>
+      </MemoryRouter>,
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: '今天，稳稳学 5 个英语词' }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '开始今日课程' }));
+
+    for (const [index, item] of dailyCourse.items.entries()) {
+      const question = item.question;
+      expect(await screen.findByText(`${index + 1} / 5`)).toBeInTheDocument();
+
+      if (question.type === QuestionType.Choice) {
+        const correctId = question.answer.correctOptionIds[0];
+        const correctOption = question.options.find((option) => option.id === correctId);
+        if (!correctOption) {
+          throw new Error('Expected a correct English choice option');
+        }
+        fireEvent.click(screen.getByRole('button', { name: correctOption.label }));
+      } else {
+        expect(screen.getByText('根据中文释义输入英语单词或音标')).toBeInTheDocument();
+        fireEvent.change(screen.getByRole('textbox', { name: '你的答案' }), {
+          target: { value: question.answer.acceptedAnswers[0] },
+        });
+        fireEvent.click(screen.getByRole('button', { name: '提交答案' }));
+      }
+
+      expect(await screen.findByRole('heading', { name: '理解正确' })).toBeInTheDocument();
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: index === dailyCourse.items.length - 1 ? '查看学习结果' : '下一题',
+        }),
+      );
+    }
+
+    expect(
+      await screen.findByRole('heading', { name: '今天的 5 个英语词，完成了' }),
+    ).toBeInTheDocument();
+    const events = await persistence.findBySessionId(dailyCourse.plan.id);
+    expect(events).toHaveLength(10);
+    expect(new Set(events.map((event) => event.itemId))).toEqual(
+      new Set(dailyCourse.words.map((word) => word.id)),
+    );
   });
 
   it('restores feedback after remounting without losing the answer events', async () => {

@@ -8,7 +8,14 @@ import { projectLearningState } from '../application/profile';
 import { StudyUseCase } from '../application/study';
 import { FsrsReviewScheduler } from '../infrastructure/review';
 import { cryptoIdGenerator, webClock } from '../infrastructure/system';
-import type { CanonicalWord, LearnerProfile, LearningProjection, TodayPlan } from '../schemas/v1';
+import {
+  LearningProjectionSchema,
+  type CanonicalWord,
+  type LearnerProfile,
+  type LearningProjection,
+  type ReviewState,
+  type TodayPlan,
+} from '../schemas/v1';
 import { createCanonicalContentRepository } from './content';
 import { appPersistence } from './persistence';
 import { localUserId } from './user';
@@ -54,6 +61,29 @@ export function createTodayCoursePriorities(
     }));
 
   return [...due, ...recentIncorrect];
+}
+
+/**
+ * Replace the projected states for the active language while keeping states
+ * belonging to other canonical language corpora in the shared persistence
+ * table. The persistence port intentionally remains an atomic whole-user
+ * replacement, so the composition root supplies the complete merged view.
+ */
+export function mergeCrossLanguageReviewStates(
+  projection: LearningProjection,
+  existingReviewStates: readonly ReviewState[],
+  currentLanguageItemIds: ReadonlySet<string>,
+): LearningProjection {
+  const preservedReviewStates = existingReviewStates.filter(
+    (state) => !currentLanguageItemIds.has(state.itemId),
+  );
+
+  return LearningProjectionSchema.parse({
+    ...projection,
+    reviewStates: [...preservedReviewStates, ...projection.reviewStates].sort((left, right) =>
+      left.itemId.localeCompare(right.itemId),
+    ),
+  });
 }
 
 async function createCourseForDate(
@@ -103,7 +133,13 @@ async function createCourseForDate(
     scheduler: reviewScheduler,
     userId: localUserId,
   });
-  await appPersistence.replaceLearningProjection(currentProjection);
+  const existingReviewStates = await appPersistence.listReviewStates(localUserId);
+  const mergedProjection = mergeCrossLanguageReviewStates(
+    currentProjection,
+    existingReviewStates,
+    knownItemIds,
+  );
+  await appPersistence.replaceLearningProjection(mergedProjection);
   const dueReviewCount = historicalProjection.reviewStates.filter(
     (state) => new Date(state.due) < dayRange.end,
   ).length;

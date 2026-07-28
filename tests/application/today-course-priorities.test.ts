@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { createTodayCoursePriorities } from '../../src/app/todayCourse';
+import {
+  createTodayCoursePriorities,
+  mergeCrossLanguageReviewStates,
+} from '../../src/app/todayCourse';
 import { LearningProjectionSchema } from '../../src/schemas/v1';
 
 function review(itemId: string, due: string) {
@@ -55,5 +58,38 @@ describe('createTodayCoursePriorities', () => {
       { wordId: 'word-1', reason: 'due-review' },
       { wordId: 'word-3', reason: 'recent-incorrect' },
     ]);
+  });
+});
+
+describe('mergeCrossLanguageReviewStates', () => {
+  it('replaces the active language and preserves another language', () => {
+    const projection = LearningProjectionSchema.parse({
+      profile: {
+        schemaVersion: 1,
+        projectionVersion: 1,
+        userId: 'learner-1',
+        language: 'en',
+        answeredCount: 1,
+        correctCount: 1,
+        incorrectCount: 0,
+        accuracy: 1,
+        averageResponseTimeMs: 1_000,
+        recentIncorrectItemIds: [],
+        recentTrend: 'insufficient',
+        projectedThrough: '2026-07-24T01:00:00.000Z',
+      },
+      reviewStates: [review('en-current', '2026-07-25T10:00:00.000Z')],
+    });
+
+    const merged = mergeCrossLanguageReviewStates(
+      projection,
+      [
+        review('en-stale', '2026-07-23T10:00:00.000Z'),
+        review('ja-word', '2026-07-24T10:00:00.000Z'),
+      ],
+      new Set(['en-current', 'en-stale']),
+    );
+
+    expect(merged.reviewStates.map((state) => state.itemId)).toEqual(['en-current', 'ja-word']);
   });
 });
