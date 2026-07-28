@@ -6,12 +6,12 @@
 
 - 稳定基线：`origin/main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36、核心域纵向切片 PR #37、staging orchestration PR #39/#40、负责人真实 v1 数据验收记录 `07ef6f9`、Task 016 推送记录 `819799b`、Task 017 推送记录 `d182a25`、Task 018 推送记录 `9dc2c7f` 和负责人 Pages 验收确认）
 - 当前交接分支：`main`
-- 稳定基线提交：`04a97ee`（Task 019 规格冻结；本地已提交，远端推送待网络/权限恢复）
-- 当前实现提交：`c855e30`（Task 019 日语五十音与浏览器 TTS 最小切片实现与测试；本地已提交，远端推送待网络/权限恢复）
+- 稳定基线提交：`7a56f37`（Task 019 实现交接记录已推送到远端 main）
+- 当前实现提交：`c855e30`（Task 019 日语五十音与浏览器 TTS 最小切片实现与测试；已推送到远端 main，待负责人 Pages 验收）
 - 当前任务：Task 019 · 日语五十音与浏览器 TTS 最小切片（ADR-041）
 - 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016/017/018 已实现并通过负责人 Pages 验收；Task 019 已实现 `/kana`、10 个基础平假名、辨认/听辨模式、浏览器 Speech Synthesis adapter、不可用/关闭/失败回退和 Today 深链接，待负责人 Pages 验收；远程音频、AI、账号同步和 LearningEvent 持久化仍未授权
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
-- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；Task 018 的 `38fd7f8`、`9dc2c7f`、`ac1cf49` 已推送且由负责人 Pages 验收。Task 019 的 `04a97ee` 与 `c855e30` 已在本地提交，但本轮 `git push origin main` 因网络代理 `127.0.0.1:7897` 不可达和自动权限审批超时尚未推送；代码和文档均未声称已发布。恢复网络后先推送这两个提交并复核远端提交。
+- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；Task 018 的 `38fd7f8`、`9dc2c7f`、`ac1cf49` 已推送且由负责人 Pages 验收。Task 019 的 `04a97ee`、`c855e30`、`7a56f37` 已绕过失效代理推送到远端 main，并已复核 `origin/main` 指向 `7a56f37`；当前等待负责人 Pages 验收 `/kana`。
 
 ## 本轮已完成
 
@@ -123,7 +123,7 @@
 - Task 017 已完成并由负责人在 GitHub Pages 验收。
 - Task 018 代码已完成并推送，且已由负责人在 GitHub Pages 验收。
 - 内容中心和完整数据安全操作（备份恢复、危险操作等）尚未实现；Task 017 目前只提供安全摘要入口。
-- Task 019 代码已完成但尚未推送，待负责人 Pages 验收；英语/IPA 双语纵向切片尚未开始。
+- Task 019 代码已完成并推送，待负责人 Pages 验收；英语/IPA 双语纵向切片尚未开始。
 - Phase 1 综合验收。
 
 ## 已验证命令
@@ -149,9 +149,8 @@ npm run verify
 
 ## 下一项工作
 
-1. 恢复网络后推送 `04a97ee` 与 `c855e30`，复核 `origin/main` 和 Pages workflow。
-2. 负责人在 GitHub Pages 验收 `/kana`：10 个假名、辨认反馈、浏览器支持/关闭/失败回退、听辨朗读。
-3. Task 019 验收后，再定义英语/IPA 最小切片。
+1. 负责人在 GitHub Pages 验收 `/kana`：10 个假名、辨认反馈、浏览器支持/关闭/失败回退、听辨朗读。
+2. Task 019 验收后，再定义英语/IPA 最小切片。
 
 ## 交接规则
 
