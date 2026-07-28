@@ -1,0 +1,278 @@
+.kana-practice {
+  display: grid;
+  min-height: 100vh;
+  padding: max(var(--zr-space-8), env(safe-area-inset-top))
+    max(var(--zr-page-gutter), env(safe-area-inset-right))
+    max(var(--zr-space-8), env(safe-area-inset-bottom))
+    max(var(--zr-page-gutter), env(safe-area-inset-left));
+}
+
+.kana-practice--loading {
+  place-items: center;
+  color: var(--zr-text-secondary);
+}
+
+.kana-practice__content {
+  width: min(100%, var(--zr-layout-wide));
+  margin-inline: auto;
+}
+
+.kana-practice__header {
+  display: grid;
+  gap: var(--zr-space-3);
+  margin-block-end: var(--zr-space-6);
+}
+
+.kana-practice__back,
+.kana-practice__secondary-link {
+  display: inline-flex;
+  min-height: var(--zr-size-touch);
+  align-items: center;
+  color: var(--zr-brand-primary);
+  cursor: pointer;
+  font-weight: var(--zr-font-weight-medium);
+  touch-action: manipulation;
+  text-underline-offset: 0.2em;
+}
+
+.kana-practice__back {
+  align-self: start;
+}
+
+.kana-practice__eyebrow,
+.kana-practice__label,
+.kana-practice__prompt-label {
+  margin: 0;
+  color: var(--zr-brand-primary);
+  font-size: var(--zr-font-size-body-sm);
+  font-weight: var(--zr-font-weight-semibold);
+  letter-spacing: var(--zr-letter-spacing-label);
+}
+
+.kana-practice h1,
+.kana-practice h2,
+.kana-practice h3,
+.kana-practice p {
+  margin-block-start: 0;
+}
+
+.kana-practice h1 {
+  max-width: 36rem;
+  margin-block-end: var(--zr-space-2);
+  font-size: var(--zr-font-size-display);
+  line-height: var(--zr-line-height-display);
+  letter-spacing: var(--zr-letter-spacing-display);
+}
+
+.kana-practice__lead {
+  max-width: 42rem;
+  margin-block-end: 0;
+  color: var(--zr-text-secondary);
+}
+
+.kana-practice__sections {
+  display: grid;
+  gap: var(--zr-space-4);
+}
+
+.kana-practice__inventory,
+.kana-practice__drill {
+  display: grid;
+  gap: var(--zr-space-5);
+  padding: var(--zr-space-5);
+}
+
+.kana-practice__card-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--zr-space-4);
+}
+
+.kana-practice__card-heading h2 {
+  margin-block-end: 0;
+  font-size: var(--zr-font-size-title-2);
+  line-height: var(--zr-line-height-title-2);
+}
+
+.kana-practice__count,
+.kana-practice__question-count {
+  flex: none;
+  color: var(--zr-text-secondary);
+  font-size: var(--zr-font-size-body-sm);
+  font-weight: var(--zr-font-weight-medium);
+}
+
+.kana-practice__syllables {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--zr-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kana-practice__syllables article {
+  display: grid;
+  min-height: 7rem;
+  align-content: center;
+  justify-items: center;
+  gap: var(--zr-space-1);
+  padding: var(--zr-space-3) var(--zr-space-2);
+  border: var(--zr-size-border) solid var(--zr-border-subtle);
+  border-radius: var(--zr-radius-md);
+  background: var(--zr-surface-subtle);
+  text-align: center;
+}
+
+.kana-practice__glyph {
+  color: var(--zr-text-primary);
+  font-size: var(--zr-font-size-display);
+  line-height: 1;
+}
+
+.kana-practice__romanization {
+  color: var(--zr-brand-strong);
+  font-weight: var(--zr-font-weight-semibold);
+}
+
+.kana-practice__row {
+  color: var(--zr-text-secondary);
+  font-size: var(--zr-font-size-caption);
+}
+
+.kana-practice__mode-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--zr-space-2);
+}
+
+.kana-practice__notice,
+.kana-practice__error {
+  margin: 0;
+  padding: var(--zr-space-3) var(--zr-space-4);
+  border-radius: var(--zr-radius-md);
+}
+
+.kana-practice__notice {
+  background: var(--zr-info-container);
+  color: var(--zr-text-primary);
+}
+
+.kana-practice__notice a {
+  color: var(--zr-brand-strong);
+  font-weight: var(--zr-font-weight-semibold);
+  text-underline-offset: 0.2em;
+}
+
+.kana-practice__error {
+  background: var(--zr-error-container);
+  color: var(--zr-error);
+  font-weight: var(--zr-font-weight-medium);
+}
+
+.kana-practice__prompt {
+  display: grid;
+  justify-items: start;
+  gap: var(--zr-space-3);
+  padding: var(--zr-space-4);
+  border: var(--zr-size-border) solid var(--zr-border-subtle);
+  border-radius: var(--zr-radius-md);
+  background: var(--zr-surface-subtle);
+}
+
+.kana-practice__prompt h3 {
+  margin: 0;
+  color: var(--zr-text-primary);
+  font-size: var(--zr-font-size-display);
+  line-height: 1;
+}
+
+.kana-practice__options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--zr-space-2);
+}
+
+.kana-practice__option {
+  min-height: 5rem;
+  flex-direction: column;
+  gap: var(--zr-space-1);
+}
+
+.kana-practice__option.zr-button.kana-practice__option--correct,
+.kana-practice__option.zr-button.kana-practice__option--correct:disabled {
+  --zr-button-bg: var(--zr-success-container);
+  --zr-button-border: var(--zr-success);
+  --zr-button-text: var(--zr-success);
+}
+
+.kana-practice__option.zr-button.kana-practice__option--incorrect,
+.kana-practice__option.zr-button.kana-practice__option--incorrect:disabled {
+  --zr-button-bg: var(--zr-error-container);
+  --zr-button-border: var(--zr-error);
+  --zr-button-text: var(--zr-error);
+}
+
+.kana-practice__option-glyph {
+  font-size: var(--zr-font-size-title-2);
+  line-height: 1;
+}
+
+.kana-practice__feedback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--zr-space-4);
+  padding: var(--zr-space-4);
+  border: var(--zr-size-border) solid;
+  border-radius: var(--zr-radius-md);
+}
+
+.kana-practice__feedback p {
+  margin: 0;
+}
+
+.kana-practice__feedback--correct {
+  border-color: var(--zr-success);
+  background: var(--zr-success-container);
+  color: var(--zr-success);
+}
+
+.kana-practice__feedback--incorrect {
+  border-color: var(--zr-error);
+  background: var(--zr-error-container);
+  color: var(--zr-error);
+}
+
+.kana-practice__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--zr-space-3);
+  margin-block-start: var(--zr-space-4);
+}
+
+@media (max-width: 37.499rem) {
+  .kana-practice__card-heading {
+    flex-direction: column;
+    gap: var(--zr-space-2);
+  }
+
+  .kana-practice__syllables {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kana-practice__options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kana-practice__feedback {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .kana-practice__feedback .zr-button {
+    width: 100%;
+  }
+}

@@ -9,12 +9,14 @@ import { LaunchPage } from '../pages/Launch';
 import { StudyDemoPage } from '../pages/StudyDemo';
 import { SettingsDataPage } from '../pages/SettingsData';
 import { ContentCenterPage } from '../pages/ContentCenter';
+import { KanaPracticePage } from '../pages/KanaPractice';
 import { TodayCoursePage } from '../pages/TodayCourse';
 import { UILabPage } from '../pages/UILab';
 import type { MigrationPreviewReport, TodayPlan } from '../schemas/v1';
 import type { StageMigrationResult } from '../ports';
 import { App } from './App';
 import { createCanonicalContentRepository } from './content';
+import { loadKanaSpeech } from './kanaSpeech';
 import {
   previewV1Backup,
   serializeMigrationPreview,
@@ -27,6 +29,7 @@ import { createTodayCourse, restartTodayCourse, type TodayCourseSession } from '
 
 export interface AppRouteDependencies {
   loadCanonicalContent: typeof createCanonicalContentRepository;
+  loadKanaSpeech: typeof loadKanaSpeech;
   createTodayCourse: () => Promise<TodayCourseSession>;
   createStudyDemoUseCase: () => Promise<StudyUseCase>;
   detectLegacyV1Data: typeof detectLegacyV1Data;
@@ -42,6 +45,7 @@ export interface AppRouteDependencies {
 
 const defaultDependencies: AppRouteDependencies = {
   loadCanonicalContent: createCanonicalContentRepository,
+  loadKanaSpeech,
   createTodayCourse,
   createStudyDemoUseCase,
   detectLegacyV1Data,
@@ -97,6 +101,15 @@ export function createAppRoutes(dependencies: Partial<AppRouteDependencies> = {}
         <ContentCenterPage
           loadContent={resolvedDependencies.loadCanonicalContent}
           loadSettings={resolvedDependencies.loadUserSettings}
+        />
+      ),
+    },
+    {
+      path: '/kana',
+      element: (
+        <KanaPracticePage
+          loadSettings={resolvedDependencies.loadUserSettings}
+          loadSpeech={resolvedDependencies.loadKanaSpeech}
         />
       ),
     },

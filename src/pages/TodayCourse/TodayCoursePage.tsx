@@ -238,6 +238,9 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
             </Button>
           </Card>
           <div className="today-course__secondary-links">
+            <Link className="today-course__secondary-link" to="/kana">
+              练习五十音
+            </Link>
             <Link className="today-course__secondary-link" to="/content">
               浏览内容
             </Link>

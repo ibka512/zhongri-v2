@@ -6,3 +6,5 @@ export { IconButton } from './IconButton';
 export type { IconButtonProps } from './IconButton';
 export { Progress } from './Progress';
 export type { ProgressKind, ProgressProps } from './Progress';
+export { AudioControl } from './audio';
+export type { AudioControlProps, AudioControlStatus } from './audio';
