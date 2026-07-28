@@ -25,13 +25,13 @@
 
 ## 当前
 
-- **Task 020：英语音标最小切片** 已完成本地实现与全量验证，待推送远端并由负责人 Pages 验收。Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）已完成负责人真实 v1 数据验收，Task 016/017/018/019 已完成负责人 Pages 验收。
+- **Task 020：英语音标最小切片** 已完成实现、全量验证并推送，待负责人 Pages 验收。Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）已完成负责人真实 v1 数据验收，Task 016/017/018/019 已完成负责人 Pages 验收。
 - Task 015 已完成 canonical corpus Schema、9,828/5,906/3,922 目标声明、真实资产导入、完整性验证、脱敏 source snapshot contract、只读浏览器 source adapter、source-aware staging 接线、确定性 canonical/user idMap 和统一 disposition/quarantine 报告契约；真实备份不入库，完整产品级备份恢复操作仍未实现。
 - LearnerProfile v1 与 ReviewState v1 从 LearningEvent 全量重放，不创建第二份学习事实。
 - 官方 `ts-fsrs` 的 FSRS v6 只负责长期到期时间，并通过 ReviewScheduler Port 隔离。
 - Today Plan 优先当天到期复习、最近仍答错的词，再稳定补足五个基础词。
 - 首页只显示真实到期数、薄弱词和历史正确率；无历史时明确展示空状态。
-- 当前仍不包含用户词库管理、AI、远程真实音频、FSRS 参数训练或旧 FSRS 迁移；Task 019 的基础平假名/TTS 已验收，Task 020 已提供 canonical 英语词条的 IPA 展示和当前页面辨认练习，尚待负责人 Pages 验收。
+- 当前仍不包含用户词库管理、AI、远程真实音频、FSRS 参数训练或旧 FSRS 迁移；Task 019 的基础平假名/TTS 已验收，Task 020 已提供并推送 canonical 英语词条的 IPA 展示和当前页面辨认练习，尚待负责人 Pages 验收。
 
 ## 下一步
 
