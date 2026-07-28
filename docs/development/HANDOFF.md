@@ -6,13 +6,13 @@
 
 - 稳定基线：`origin/main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36、核心域纵向切片 PR #37、staging orchestration PR #39/#40、负责人真实 v1 数据验收记录 `07ef6f9`、Task 016 推送记录 `819799b`、Task 017 推送记录 `d182a25`、Task 018 推送记录 `9dc2c7f` 和负责人 Pages 验收确认）
 - 当前交接分支：`main`
-- 稳定基线提交：`e0d83eb`（Task 020 远端发布记录已推送到远端 main，并由负责人完成 Pages 验收）
-- 当前实现提交：`3ce1532`（Task 021 双语复习投影保留与英语今日课程闭环测试；本地已验证，待发布）
+- 稳定基线提交：`1e1d2bf`（Task 021 代码、验证记录与交接状态已推送到远端 main）
+- 当前实现提交：`1e1d2bf`（Task 021 双语复习投影保留与英语今日课程闭环测试；已推送，待负责人 Pages 验收）
 - 当前任务：Task 021 · Phase 1 双语学习闭环收口（ADR-043）
-- 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016/017/018/019/020 已实现并通过负责人 Pages 验收；Task 021 已实现跨语言 ReviewState 合并，并补上英语今日课程同引擎闭环测试，`npm run lint`、`npm run typecheck`、`npm run test` 已通过（51 个测试文件、206 个测试），待生产构建、Pages 构建和远端发布。英语 TTS、远程音频、AI、账号同步和迁移激活仍未授权
+- 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016/017/018/019/020 已实现并通过负责人 Pages 验收；Task 021 已实现跨语言 ReviewState 合并，并补上英语今日课程同引擎闭环测试，`npm run verify` 已通过（51 个测试文件、206 个测试），已推送，待负责人 Pages 验收。英语 TTS、远程音频、AI、账号同步和迁移激活仍未授权
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
-- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；Task 018 的 `38fd7f8`、`9dc2c7f`、`ac1cf49` 已推送且由负责人 Pages 验收。Task 019 的 `04a97ee`、`c855e30`、`7a56f37`、`3a6e55f` 已推送到远端 main，并已由负责人在 GitHub Pages 验收。Task 020 的 `234878b`、`877bc19`、`dfb3260`、`db8322e`、`e0d83eb` 已推送到远端 main，远端核对为 `e0d83eb`，负责人已完成 Pages 验收。
-- 发布阻塞记录：普通环境的本地代理端口曾不可用；改用已恢复的外部网络通道后，Task 020 已成功推送并以 `git ls-remote` 核对远端 `HEAD`/`main` 为 `e0d83eb`。
+- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；Task 018 的 `38fd7f8`、`9dc2c7f`、`ac1cf49` 已推送且由负责人 Pages 验收。Task 019 的 `04a97ee`、`c855e30`、`7a56f37`、`3a6e55f` 已推送到远端 main，并已由负责人在 GitHub Pages 验收。Task 020 的 `234878b`、`877bc19`、`dfb3260`、`db8322e`、`e0d83eb` 已推送到远端 main，负责人已完成 Pages 验收。Task 021 的 `6f13716`、`3ce1532`、`1e1d2bf` 已推送到远端 main，远端核对为 `1e1d2bf`，负责人 Pages 验收待开始。
+- 发布阻塞记录：普通环境的本地代理端口曾不可用；改用已恢复的外部网络通道后，Task 021 已成功推送并以 `git ls-remote` 核对远端 `HEAD`/`main` 为 `1e1d2bf`。
 
 ## 本轮已完成
 
@@ -130,7 +130,7 @@
 - 内容中心和完整数据安全操作（备份恢复、危险操作等）尚未实现；Task 017 目前只提供安全摘要入口。
 - Task 019 代码已完成并推送，且已由负责人 Pages 验收。
 - Task 020 代码已完成本地验证、推送到远端并由负责人 Pages 验收。
-- Task 021 已完成本地实现与测试，尚未推送；负责人 Pages 双语切换/刷新/离线综合验收尚未开始。
+- Task 021 已完成本地实现、全量验证并推送；负责人 Pages 双语切换/刷新/离线综合验收尚未开始。
 - Phase 1 综合验收。
 
 ## 已验证命令
@@ -156,8 +156,8 @@ npm run verify
 
 ## 下一项工作
 
-1. 运行 `npm run verify`，更新交接记录并推送 `3ce1532`。
-2. 负责人随后在 GitHub Pages 验收日语/英语切换、刷新恢复与离线闭环，再决定 Phase 1 是否收口。
+1. 负责人在 GitHub Pages 验收日语/英语切换、刷新恢复与离线闭环。
+2. 验收通过后记录 Task 021 与 Phase 1 收口状态，再决定是否授权 AI Gateway。
 
 ## 交接规则
 
