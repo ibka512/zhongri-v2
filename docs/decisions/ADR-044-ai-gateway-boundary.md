@@ -27,7 +27,8 @@ Task 021 已完成日语/英语共用学习闭环，基础课程必须在离线�
   `zhongri-v2` 的 `npm run verify:gateway-contract` 额外比较两份 fixture 的 SHA，防止跨仓协议样例漂移。
 - 真实 Secret、生产 Worker 和真实供应商联调已在负责人单独确认后执行；合成请求确认 Secret 已进入
   Worker，但 Cloudflare→DeepSeek 出站 `fetch` 抛出 `TypeError`，因此继续保留稳定 failure 和本地规则回退。
-  后续出站方案必须单独评估，不把 Key 下沉到 PWA。
+  Gateway 代码已准备只允许官方 Cloudflare AI Gateway DeepSeek 地址的 `DEEPSEEK_BASE_URL`，但在网关
+  创建并验证前不启用；不把 Key 下沉到 PWA。
 
 ## 影响
 
@@ -67,5 +68,5 @@ Task 021 已完成日语/英语共用学习闭环，基础课程必须在离线�
   返回 HTTP 200 的协议 failure `unavailable`。
 - Cloudflare Secret 列表包含 `DEEPSEEK_API_KEY`；未读取或记录 Secret 值。临时安全 tail 只记录了
   `deepseek_fetch_failed`、`timedOut=false`、`errorName=TypeError`，随后已移除调试标志并重新部署干净版本。
-- 当前结论：合同、Worker 路由和 Secret 绑定均已验证；阻塞点是 Cloudflare 到 DeepSeek 的出站路径，
-  尚未取得供应商 HTTP 响应。
+- 当前结论：合同、Worker 路由和 Secret 绑定均已验证；直连阻塞点是 Cloudflare 到 DeepSeek 的出站路径，
+  尚未取得供应商 HTTP 响应；下一步通过官方 AI Gateway 出口配置重跑合成联调。

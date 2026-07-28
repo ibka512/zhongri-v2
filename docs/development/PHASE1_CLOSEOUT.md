@@ -48,8 +48,8 @@
 
 1. 完整产品级备份/恢复体验和生产数据操作仍需按迁移规格独立维护，不把私人数据写入 Git。
 2. Issue #20 / Task 014 的 AI Gateway 合同已冻结；负责人已授权 `zhongri-v2` 协议底座、独立 Gateway
-   Worker、Secret 和合成真实联调。当前联调因 Worker→DeepSeek 出站 `fetch` 阶段失败而暂停，不改变
-   Phase 1 基础课程的离线可用性。
+   Worker、Secret 和合成真实联调。直连联调因 Worker→DeepSeek 出站 `fetch` 阶段失败而暂停；受限的
+   官方 Cloudflare AI Gateway 出口配置已准备，待创建网关后继续，不改变 Phase 1 基础课程的离线可用性。
 
 ## 当前明确不做
 

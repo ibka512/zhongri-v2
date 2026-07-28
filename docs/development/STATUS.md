@@ -32,13 +32,13 @@
 - 官方 `ts-fsrs` 的 FSRS v6 只负责长期到期时间，并通过 ReviewScheduler Port 隔离。
 - Today Plan 优先当天到期复习、最近仍答错的词，再稳定补足五个基础词。
 - 首页只显示真实到期数、薄弱词和历史正确率；无历史时明确展示空状态。
-- 当前仍不包含用户词库管理、AI 题目 UI、远程真实音频、FSRS 参数训练或旧 FSRS 迁移；Task 019 的基础平假名/TTS、Task 020 的 canonical 英语 IPA 与 Task 021 的双语闭环均已验收。Task 014 的 PWA 协议底座与独立 Gateway Worker 已完成部署和 Secret 配置；合成真实联调在 Worker→DeepSeek 出站 `fetch` 阶段失败，基础课程仍保持离线可用。
+- 当前仍不包含用户词库管理、AI 题目 UI、远程真实音频、FSRS 参数训练或旧 FSRS 迁移；Task 019 的基础平假名/TTS、Task 020 的 canonical 英语 IPA 与 Task 021 的双语闭环均已验收。Task 014 的 PWA 协议底座与独立 Gateway Worker 已完成部署和 Secret 配置；直连合成联调在 Worker→DeepSeek 出站 `fetch` 阶段失败，官方 AI Gateway 出口配置已准备但尚未启用，基础课程仍保持离线可用。
 
 ## 下一步
 
 - 继续维护 Task 015 的脱敏、可恢复和 fail-closed 边界；真实备份、报告和私人内容不进入仓库。
 - 若要补齐完整产品级备份/恢复体验，需另行定义任务，不改变已验收的迁移契约或激活门禁。
-- Phase 1 双语闭环总结已完成；Task 014 两仓实现、双端 contract tests、Worker `/health`、Secret 配置和一次合成真实联调均已完成，下一步是单独确定 Cloudflare→DeepSeek 出站方案；不把 API Key 改为浏览器输入。
+- Phase 1 双语闭环总结已完成；Task 014 两仓实现、双端 contract tests、Worker `/health`、Secret 配置和一次合成真实联调均已完成，下一步是在 Cloudflare 控制台创建 DeepSeek AI Gateway 网关并启用受限出口；不把 API Key 改为浏览器输入。
 - 在 Gateway 缺失、断网或失败时，基础课程仍保持可离线完成。
 
 验收证据与剩余交付见 [Phase 1 收口记录](./PHASE1_CLOSEOUT.md)。

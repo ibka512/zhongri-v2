@@ -31,13 +31,13 @@ Task013 的代码实现已经合并，本地浏览器断网复测已通过，当
 LearningEvent 重放画像与 ReviewState，网站根入口优先安排当天到期复习和最近仍答错的词，
 再稳定补足五词。
 
-当前工作项是 Task 014：DeepSeek AI Gateway 与结构化任务协议的跨仓实现收口。Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）的 canonical corpus、迁移契约和负责人真实 v1 数据验收已完成；Task 016/017/018/019/020/021 已在 GitHub Pages 验收，Task 014 的 `zhongri-v2` 与公开仓库 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway) 均已完成本地实现、双端契约测试、远端发布和 Worker 部署，Gateway 代码基线为 `dcea4f7`，`/health` 已返回 200。Cloudflare Secret `DEEPSEEK_API_KEY` 已配置；合成真实联调因 Cloudflare 到 DeepSeek 的出站 `fetch` 抛出 `TypeError` 而返回稳定 `unavailable`，尚未验证供应商成功响应。GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并。
+当前工作项是 Task 014：DeepSeek AI Gateway 与结构化任务协议的跨仓实现收口。Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）的 canonical corpus、迁移契约和负责人真实 v1 数据验收已完成；Task 016/017/018/019/020/021 已在 GitHub Pages 验收，Task 014 的 `zhongri-v2` 与公开仓库 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway) 均已完成本地实现、双端契约测试、远端发布和 Worker 部署，Gateway 代码基线为 `cc9231f`，`/health` 已返回 200。Cloudflare Secret `DEEPSEEK_API_KEY` 已配置；合成真实联调因 Cloudflare 到 DeepSeek 的出站 `fetch` 抛出 `TypeError` 而返回稳定 `unavailable`，尚未验证供应商成功响应。Gateway 已准备好受限的官方 Cloudflare AI Gateway 出口配置，但尚未启用。GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并。
 
 真实 v1 数据只按用户明确操作进入迁移流程，不写入仓库；完整产品级备份/恢复体验、AI 题目 UI、FSRS 参数训练和远程真实音频仍未实现。Task 021 已完成双语复习投影保留和英语今日课程闭环；Task 014 已完成 PWA 协议底座、独立 Gateway 部署和 Secret 配置，但真实供应商联调被 Cloudflare→DeepSeek 出站链路阻塞。
 
 ## 开发状态
 
-**Task 014 - PWA 与独立 Gateway 已实现、发布并完成 Worker 健康检查；Secret 已配置，但 Cloudflare→DeepSeek 出站链路仍阻塞，PWA 继续使用本地回退。Task 016/017/018/019/020/021 已验收，Phase 1 双语门已通过。**
+**Task 014 - PWA 与独立 Gateway 已实现、发布并完成 Worker 健康检查；Secret 已配置，直连 Cloudflare→DeepSeek 仍阻塞，官方 AI Gateway 出口配置已准备但待创建网关后启用，PWA 继续使用本地回退。Task 016/017/018/019/020/021 已验收，Phase 1 双语门已通过。**
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
@@ -61,7 +61,7 @@ LearningEvent 重放画像与 ReviewState，网站根入口优先安排当天到
 - Task 019：日语五十音与浏览器 TTS 最小切片，已由负责人在 GitHub Pages 验收。
 - Task 020：英语音标最小切片，已实现、通过本地全量验证并由负责人 Pages 验收。
 - Task 021：Phase 1 双语学习闭环收口，已实现、全量验证并由负责人 Pages 验收。
-- Task 014：DeepSeek AI Gateway 与结构化任务协议，PWA Schema/Port/HTTP adapter/contract tests 与独立 Worker 均已实现、发布并通过双端契约测试；Secret 已配置，合成真实联调已执行但被 Cloudflare→DeepSeek 出站 `fetch` 阻塞。
+- Task 014：DeepSeek AI Gateway 与结构化任务协议，PWA Schema/Port/HTTP adapter/contract tests 与独立 Worker 均已实现、发布并通过双端契约测试；Secret 已配置，合成真实联调已执行但被 Cloudflare→DeepSeek 出站 `fetch` 阻塞；受限的官方 AI Gateway 出口变量已部署但未启用。
 
 详细状态见 [开发状态](./docs/development/STATUS.md) 和 [Phase 1 收口记录](./docs/development/PHASE1_CLOSEOUT.md)。
 
