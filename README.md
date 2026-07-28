@@ -31,11 +31,11 @@ LearningEvent 重放画像与 ReviewState，网站根入口优先安排当天到
 
 当前工作项是 Task 019：日语五十音与浏览器 TTS 最小切片。Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）的 canonical corpus、迁移契约和负责人真实 v1 数据验收已完成；Task 016/017/018 已在 GitHub Pages 验收。GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并。
 
-尚未实现真实 v1 逐域迁移与激活、AI、FSRS 参数训练、远程真实音频或英语/IPA；Task 019 的浏览器内置朗读和基础平假名练习正在实施。
+尚未实现真实 v1 逐域迁移与激活、AI、FSRS 参数训练、远程真实音频或英语/IPA；Task 019 的浏览器内置朗读和基础平假名练习已实现，待 Pages 验收。
 
 ## 开发状态
 
-**Task 019 - 日语五十音与浏览器 TTS 最小切片正在实施；Task 016/017/018 已验收，Phase 1 收口继续进行。**
+**Task 019 - 日语五十音与浏览器 TTS 最小切片已实现，待 Pages 验收；Task 016/017/018 已验收，Phase 1 收口继续进行。**
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
@@ -56,7 +56,7 @@ LearningEvent 重放画像与 ReviewState，网站根入口优先安排当天到
 - Task 016：首次设置与本地学习者目标，已由负责人在 GitHub Pages 验收。
 - Task 017：设置与数据安全页入口，已由负责人在 GitHub Pages 验收。
 - Task 018：内容中心首个只读切片，已由负责人在 GitHub Pages 验收。
-- Task 019：日语五十音与浏览器 TTS 最小切片，实施中。
+- Task 019：日语五十音与浏览器 TTS 最小切片，已实现，待负责人在 GitHub Pages 验收。
 
 详细状态见 [开发状态](./docs/development/STATUS.md) 和 [Phase 1 收口记录](./docs/development/PHASE1_CLOSEOUT.md)。
 

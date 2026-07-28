@@ -24,7 +24,7 @@
 
 ## 当前
 
-- **Task 019：日语五十音与浏览器 TTS 最小切片** 正在进行。Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）已完成负责人真实 v1 数据验收，Task 016/017/018 已完成负责人 Pages 验收。
+- **Task 019：日语五十音与浏览器 TTS 最小切片** 已实现，待负责人 Pages 验收。Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）已完成负责人真实 v1 数据验收，Task 016/017/018 已完成负责人 Pages 验收。
 - Task 015 已完成 canonical corpus Schema、9,828/5,906/3,922 目标声明、真实资产导入、完整性验证、脱敏 source snapshot contract、只读浏览器 source adapter、source-aware staging 接线、确定性 canonical/user idMap 和统一 disposition/quarantine 报告契约；真实备份不入库，完整产品级备份恢复操作仍未实现。
 - LearnerProfile v1 与 ReviewState v1 从 LearningEvent 全量重放，不创建第二份学习事实。
 - 官方 `ts-fsrs` 的 FSRS v6 只负责长期到期时间，并通过 ReviewScheduler Port 隔离。
@@ -36,7 +36,7 @@
 
 - 获取并固定脱敏 v5+/v10、legacy v4 fixture；在缺少输入时保持 fail-closed。
 - 在 Task 015 内取得真实 fixture，将冻结 idMap 和 disposition 报告接入逐域转换，再实现隔离 payload、V01–V25 可执行验证和激活/回滚演练。
-- Task 019 完成后再定义英语/IPA；Phase 1 双语闭环验收后才进入 AI Gateway。
+- Task 019 验收后再定义英语/IPA；Phase 1 双语闭环验收后才进入 AI Gateway。
 - Phase 1 验收后，才在已验证画像摘要之上建立 AI Gateway；基础课程仍保持可离线完成。
 
 验收证据与剩余交付见 [Phase 1 收口记录](./PHASE1_CLOSEOUT.md)。

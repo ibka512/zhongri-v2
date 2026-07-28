@@ -100,7 +100,7 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **Task 019：日语五十音与浏览器 TTS 最小切片**；Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）已经完成负责人真实 v1 数据手工验收，Task 016/017/018 已由负责人在 GitHub Pages 验收。Task 019 只提供基础平假名辨认/听辨练习和浏览器内置朗读回退，不执行迁移激活、不写入 LearningEvent，也不接入远程音频或 AI。
+当前任务是 **Task 019：日语五十音与浏览器 TTS 最小切片**；Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）已经完成负责人真实 v1 数据手工验收，Task 016/017/018 已由负责人在 GitHub Pages 验收。Task 019 代码已实现，待负责人 Pages 验收；本切片只提供基础平假名辨认/听辨练习和浏览器内置朗读回退，不执行迁移激活、不写入 LearningEvent，也不接入远程音频或 AI。
 
 Task 015 已完成 canonical corpus Schema、固定 9,828/5,906/3,922 目标、真实资产导入、fail-closed 完整性验证、脱敏 source snapshot contract、只读浏览器 source adapter、source-aware staging、确定性 canonical idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、全域 isolated 纵向转换、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23/V25 证据入口、负责人批准 synthetic fixture 的端到端 activation/rollback 验收和负责人真实 v1 数据手工验收；真实备份不入库。Task 016/017/018 按 ADR-038/039/040 已完成实现并通过负责人 Pages 验收；Task 019 按 ADR-041 补上最小五十音/TTS 入口，不修改 FSRS 参数或接入 AI。
 
