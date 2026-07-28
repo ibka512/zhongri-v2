@@ -31,13 +31,13 @@ Task013 的代码实现已经合并，本地浏览器断网复测已通过，当
 LearningEvent 重放画像与 ReviewState，网站根入口优先安排当天到期复习和最近仍答错的词，
 再稳定补足五词。
 
-当前工作项是 Task 021：Phase 1 双语学习闭环收口。Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）的 canonical corpus、迁移契约和负责人真实 v1 数据验收已完成；Task 016/017/018/019/020 已在 GitHub Pages 验收，Task 021 已冻结合同与 ADR，正在实现。GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并。
+当前工作项是 Task 021：Phase 1 双语学习闭环收口。Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）的 canonical corpus、迁移契约和负责人真实 v1 数据验收已完成；Task 016/017/018/019/020 已在 GitHub Pages 验收，Task 021 已实现并通过本地全量验证，待负责人 Pages 验收。GOV-001 已通过 [PR #22](https://github.com/ibka512/zhongri-v2/pull/22) 合并。
 
 尚未实现真实 v1 逐域迁移与激活、AI、FSRS 参数训练或远程真实音频；Task 021 只处理双语复习投影保留和英语今日课程闭环，不新增 Schema 或 AI。
 
 ## 开发状态
 
-**Task 021 - Phase 1 双语学习闭环收口实施中；Task 016/017/018/019/020 已验收，Phase 1 收口继续进行。**
+**Task 021 - Phase 1 双语学习闭环收口已实现，待负责人验收；Task 016/017/018/019/020 已验收，Phase 1 收口继续进行。**
 
 - Task 001：工程初始化，已完成。
 - Task 002：核心 Schema 冻结，已完成。
@@ -60,7 +60,7 @@ LearningEvent 重放画像与 ReviewState，网站根入口优先安排当天到
 - Task 018：内容中心首个只读切片，已由负责人在 GitHub Pages 验收。
 - Task 019：日语五十音与浏览器 TTS 最小切片，已由负责人在 GitHub Pages 验收。
 - Task 020：英语音标最小切片，已实现、通过本地全量验证并由负责人 Pages 验收。
-- Task 021：Phase 1 双语学习闭环收口，合同与 ADR 已冻结，代码实施中。
+- Task 021：Phase 1 双语学习闭环收口，已实现并通过本地全量验证，待负责人 Pages 验收。
 
 详细状态见 [开发状态](./docs/development/STATUS.md) 和 [Phase 1 收口记录](./docs/development/PHASE1_CLOSEOUT.md)。
 
