@@ -2,7 +2,7 @@
 
 ## 状态
 
-本地 PWA 底座已实现，待独立 Gateway 授权与联调（2026-07-28）
+PWA 底座与独立 Gateway 本地实现已完成，待远端发布与真实联调（2026-07-28）
 
 ## 背景
 
@@ -20,9 +20,10 @@ Task 021 已完成日语/英语共用学习闭环，基础课程必须在离线�
   题目候选，不能直接写 `LearningEvent`、`LearnerProfile`、`ReviewState` 或 `TodayPlan`。
 - Gateway 暴露固定健康检查和白名单任务端点，不开放任意 prompt/model、外部 URL 或通用代理；供应商
   失败映射为稳定失败结果，PWA 回退到现有规则课程。
-- 真实 Secret、生产 Worker、真实供应商联调和跨仓库发布必须在负责人明确授权后执行；在此之前只允许
-  本地 Schema、mock、contract test 和文档工作。本轮负责人只授权了 `zhongri-v2` 本地实现，因此
-  仍不创建 Gateway 仓库、不配置 Secret、不调用供应商。
+- 独立 Gateway 已在本地 `work/zhongri-ai-gateway` 完成本地 Worker 工程、Mock provider、DeepSeek
+  adapter、稳定错误映射和 Wrangler dry-run；远端仓库创建/推送尚未完成。
+- 真实 Secret、生产 Worker 和真实供应商联调仍必须单独确认；在此之前只允许本地 mock、contract test
+  和文档工作，不配置 Secret、不调用供应商。
 
 ## 影响
 

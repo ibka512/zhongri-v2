@@ -4,10 +4,13 @@
 
 ## 当前状态
 
-负责人已授权“Task 014 本地实现”（2026-07-28）。`zhongri-v2` 本地底座已完成：AI Task
-Protocol v1、`AIGateway` Port、HTTP adapter、运行时公开 URL 配置、有效/无效 fixture、contract
-tests 和 JSON Schema 导出均已落地；`npm run verify` 通过（53 个测试文件、220 个测试）。本轮不创建
-独立 Gateway 仓库、不申请或配置 Cloudflare Secret、不调用 DeepSeek API、不部署 Worker。
+负责人已授权 Task 014 的 Gateway 本地施工（2026-07-28）。`zhongri-v2` 本地底座和独立
+`zhongri-ai-gateway` Worker 工程均已完成：前者包含 AI Task Protocol v1、`AIGateway` Port、HTTP
+adapter、运行时公开 URL 配置、fixture、contract tests 和 JSON Schema 导出；后者固定
+`/health`、`/v1/tasks/generate-questions`、Prompt Registry、Mock provider、DeepSeek adapter、请求/响应
+校验、稳定 failure mapping、CORS 和 secret 扫描。独立工程路径为
+`work/zhongri-ai-gateway`，当前提交 `f27cb6e`；其 `npm run verify`（13 tests）和 Wrangler dry-run
+均通过。GitHub 远端仓库尚未创建/推送，Cloudflare Secret、真实 DeepSeek API 和生产部署均未执行。
 
 ## 背景
 
@@ -68,7 +71,7 @@ Schema、408/429/4xx/5xx、超时和网络不可用均会拒绝或映射为不�
 
 ## 下一阶段前置
 
-- 负责人另行明确是否允许创建/使用独立 `zhongri-ai-gateway` GitHub 仓库，并授权 Gateway Worker
-  施工；当前授权只覆盖 `zhongri-v2` 本地实现。
+- 远端发布前，负责人需明确 GitHub 仓库可见性和发布目标；当前本地工程已准备好，但尚未向远端
+  创建/推送代码。
 - 若需要真实联调，负责人另行提供 Cloudflare 账户/Worker 权限和 Secret 配置；本地 mock/contract 测试
-  不需要真实密钥。
+  不需要真实密钥。真实 Secret、真实 API 请求和生产部署仍需单独确认。
