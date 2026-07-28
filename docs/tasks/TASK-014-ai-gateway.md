@@ -11,7 +11,7 @@ adapter、运行时公开 URL 配置、fixture、contract tests、跨仓 fixture
 校验、稳定 failure mapping、CORS 和 secret 扫描。独立工程路径为
 `work/zhongri-ai-gateway`，当前提交 `dd96d75`（代码基线 `f27cb6e`）；其 `npm run verify`（15 tests）和 Wrangler dry-run
 均通过。公开远端已创建并推送为 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway)，
-`main` 核对为 `dd96d75`。Worker 已部署到 [`zhongri-ai-gateway.moyu54433.workers.dev`](https://zhongri-ai-gateway.moyu54433.workers.dev)，`GET /health` 返回 200；主仓库的 `npm run verify:gateway-contract` 已通过。Cloudflare Secret 尚未配置，真实 DeepSeek API 尚未调用。
+`main` 核对为 `dd96d75`。Worker 已部署到 [`zhongri-ai-gateway.moyu54433.workers.dev`](https://zhongri-ai-gateway.moyu54433.workers.dev)，`GET /health` 返回 200；主仓库的 `npm run verify:gateway-contract` 已通过。Cloudflare Secret `DEEPSEEK_API_KEY` 已配置，合成 fixture 已通过生产端点发起真实联调，但 Worker 到 DeepSeek 的出站 `fetch` 以 `TypeError` 失败并返回稳定 `unavailable`，尚未获得供应商 HTTP 响应。
 
 ## 背景
 
@@ -74,5 +74,5 @@ Schema、408/429/4xx/5xx、超时和网络不可用均会拒绝或映射为不�
 
 - 远端仓库已按负责人授权创建为公开仓库并推送；后续修改必须继续保持密钥不入 Git，并在两个仓库
   同步协议 fixture/Schema。
-- 若需要真实联调，负责人另行提供 Cloudflare 账户/Worker 权限和 Secret 配置；本地 mock/contract 测试
-  不需要真实密钥。真实 Secret、真实 API 请求和生产部署仍需单独确认。
+- 真实 Secret 与生产部署已由负责人单独确认；下一步必须先确定不暴露 PWA Key 的 Cloudflare→DeepSeek
+  出站方案，再重新执行合成联调。当前不切换为用户在浏览器输入 API Key，也不删除离线回退。

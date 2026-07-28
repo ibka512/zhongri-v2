@@ -9,7 +9,7 @@
 - 稳定基线提交：`cc2b694`（Task 021 代码、验证记录、远端发布和交接状态已推送到远端 main）
 - 当前实现提交：`7519191`（`zhongri-v2` 的跨仓 AI 契约测试）+ 独立工程 `work/zhongri-ai-gateway@dd96d75`（代码基线 `f27cb6e`，含 Worker、共享 fixture、必需 Secret 声明、Mock provider、DeepSeek adapter、固定端点与验证脚本）
 - 当前任务：Task 014 · DeepSeek AI Gateway 与结构化任务协议（Issue #20 / ADR-044）
-- 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016/017/018/019/020/021 已实现并通过负责人 Pages 验收；Task 014 的 PWA 底座与独立 Gateway Worker 本地工程均已完成并发布，双端契约测试已通过，Worker 已完成初次部署且 `/health` 返回 200。Gateway 当前提交为 `dd96d75`（代码基线 `f27cb6e`），`npm run verify`（15 tests）、主仓库 `npm run verify:gateway-contract` 和 Wrangler dry-run 均已通过；公开远端为 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway)，Worker 地址为 [`zhongri-ai-gateway.moyu54433.workers.dev`](https://zhongri-ai-gateway.moyu54433.workers.dev)；Cloudflare Secret 尚未配置，真实 DeepSeek API 尚未调用。英语 TTS、账号同步和迁移激活仍不在本任务范围
+- 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016/017/018/019/020/021 已实现并通过负责人 Pages 验收；Task 014 的 PWA 底座与独立 Gateway Worker 本地工程均已完成并发布，双端契约测试已通过，Worker `/health` 返回 200。Gateway 当前提交为 `dd96d75`（代码基线 `f27cb6e`），`npm run verify`（15 tests）、主仓库 `npm run verify:gateway-contract` 和 Wrangler dry-run 均已通过；公开远端为 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway)，Worker 地址为 [`zhongri-ai-gateway.moyu54433.workers.dev`](https://zhongri-ai-gateway.moyu54433.workers.dev)；Cloudflare Secret `DEEPSEEK_API_KEY` 已配置，合成真实联调返回 `unavailable`，临时安全 tail 确认 Worker→DeepSeek 出站 `fetch` 以 `TypeError` 失败，未收到供应商 HTTP 响应；调试标志已移除并重新部署干净版本 `452527c6-179e-4b0b-9209-d8c32f21679a`。英语 TTS、账号同步和迁移激活仍不在本任务范围
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
 - 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；Task 018 的 `38fd7f8`、`9dc2c7f`、`ac1cf49` 已推送且由负责人 Pages 验收。Task 019 的 `04a97ee`、`c855e30`、`7a56f37`、`3a6e55f` 已推送到远端 main，并已由负责人在 GitHub Pages 验收。Task 020 的 `234878b`、`877bc19`、`dfb3260`、`db8322e`、`e0d83eb` 已推送到远端 main，负责人已完成 Pages 验收。Task 021 的 `6f13716`、`3ce1532`、`1e1d2bf`、`cc2b694` 已推送到远端 main，远端核对为 `cc2b694`，负责人已完成 Pages 验收。Task 014 PWA 提交 `783807e` 与交接提交 `d45b19c` 已推送到远端 main；跨仓契约测试提交 `7519191` 已推送到 `zhongri-v2`；独立 Gateway 公开仓库 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway) 的 `main` 已推送并核对为 `dd96d75`，Worker 已部署并通过 `/health` 验证。
 - 发布阻塞记录：普通环境的本地代理端口曾不可用；改用已恢复的外部网络通道后，Task 021 已成功推送并以 `git ls-remote` 核对远端 `HEAD`/`main` 为 `cc2b694`。
@@ -134,7 +134,7 @@
 - Task 019 代码已完成并推送，且已由负责人 Pages 验收。
 - Task 020 代码已完成本地验证、推送到远端并由负责人 Pages 验收。
 - Task 021 已完成本地实现、全量验证、推送并由负责人 Pages 验收。
-- Task 014 的 `zhongri-v2` 与独立 Gateway 本地实现均已完成并通过验证；Gateway 远端仓库创建/推送、Cloudflare Secret、真实供应商联调和生产部署仍未执行。
+- Task 014 的 `zhongri-v2` 与独立 Gateway 本地实现均已完成并通过验证；Gateway 远端仓库、Cloudflare Secret、生产部署和合成真实联调均已执行，当前阻塞在 Cloudflare→DeepSeek 出站网络；旧的误建 `sk-…` Secret 名称尚未清理。
 - Phase 1 综合验收。
 
 ## 已验证命令
@@ -145,7 +145,7 @@
 npm run verify
 ```
 
-独立 Gateway（`work/zhongri-ai-gateway`）：13 个测试通过，且 `WRANGLER_WRITE_LOGS=false npx wrangler deploy --dry-run --outdir=dist` 通过；干跑未部署 Worker，也未写入 Secret。
+独立 Gateway（`work/zhongri-ai-gateway`）：15 个测试通过，`npm run verify`、`WRANGLER_WRITE_LOGS=false npx wrangler deploy` 和生产 `/health` 验证通过；合成真实联调返回稳定 `unavailable`，未记录 Secret 值。
 
 ## 下一个 AI 的固定启动步骤
 
@@ -162,8 +162,8 @@ npm run verify
 
 ## 下一项工作
 
-1. 在本机终端执行 `npx wrangler secret put DEEPSEEK_API_KEY` 并直接输入 Secret（不要发送给 AI）；完成后再做真实 `generateQuestions` 联调。
-2. 在 Gateway 缺失、离线或失败时保持 `/#/today` 规则课程可用；不要把 AI 输出直接写入学习事实。
+1. 不要重复配置 Secret；先确定不暴露 PWA Key 的 Cloudflare→DeepSeek 出站方案（例如经负责人批准的受控 egress/relay），再重新做合成 `generateQuestions` 联调。
+2. 在 Gateway 缺失、离线或失败时保持 `/#/today` 规则课程可用；不要改成浏览器输入 API Key，也不要把 AI 输出直接写入学习事实。
 
 ## 交接规则
 

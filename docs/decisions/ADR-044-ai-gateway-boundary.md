@@ -2,7 +2,7 @@
 
 ## 状态
 
-PWA 底座与独立 Gateway 已实现、发布并完成 Worker 健康检查，待 Secret/真实联调（2026-07-29）
+PWA 底座与独立 Gateway 已实现、发布并完成 Worker 健康检查；Secret 已配置，真实联调被 Cloudflare→DeepSeek 出站网络阻塞（2026-07-29）
 
 ## 背景
 
@@ -25,8 +25,9 @@ Task 021 已完成日语/英语共用学习闭环，基础课程必须在离线�
   [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway)。
 - 两仓共享 `contracts/ai-task-protocol-v1.json`；两个仓库各自用本地 Zod Schema 解析该 fixture，
   `zhongri-v2` 的 `npm run verify:gateway-contract` 额外比较两份 fixture 的 SHA，防止跨仓协议样例漂移。
-- 真实 Secret、生产 Worker 和真实供应商联调仍必须单独确认；在此之前只允许本地 mock、contract test
-  和文档工作，不配置 Secret、不调用供应商。
+- 真实 Secret、生产 Worker 和真实供应商联调已在负责人单独确认后执行；合成请求确认 Secret 已进入
+  Worker，但 Cloudflare→DeepSeek 出站 `fetch` 抛出 `TypeError`，因此继续保留稳定 failure 和本地规则回退。
+  后续出站方案必须单独评估，不把 Key 下沉到 PWA。
 
 ## 影响
 
@@ -57,3 +58,14 @@ Task 021 已完成日语/英语共用学习闭环，基础课程必须在离线�
   fixture、未知字段、关联校验、空/非 JSON、超时、429、4xx、5xx 和网络失败。
 - `npm run verify`：53 个测试文件、220 个测试、默认构建和 Pages 构建均通过；构建产物不包含
   `DEEPSEEK_API_KEY`。
+
+## 真实联调证据
+
+- Worker：[`zhongri-ai-gateway.moyu54433.workers.dev`](https://zhongri-ai-gateway.moyu54433.workers.dev)，
+  `/health` 返回 200。
+- 合成 fixture：`contracts/ai-task-protocol-v1.json` 的 `request`，`requestId=ai-request-ja-001`；生产端点
+  返回 HTTP 200 的协议 failure `unavailable`。
+- Cloudflare Secret 列表包含 `DEEPSEEK_API_KEY`；未读取或记录 Secret 值。临时安全 tail 只记录了
+  `deepseek_fetch_failed`、`timedOut=false`、`errorName=TypeError`，随后已移除调试标志并重新部署干净版本。
+- 当前结论：合同、Worker 路由和 Secret 绑定均已验证；阻塞点是 Cloudflare 到 DeepSeek 的出站路径，
+  尚未取得供应商 HTTP 响应。
