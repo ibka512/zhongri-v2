@@ -9,7 +9,7 @@
 adapter、运行时公开 URL 配置、fixture、contract tests 和 JSON Schema 导出；后者固定
 `/health`、`/v1/tasks/generate-questions`、Prompt Registry、Mock provider、DeepSeek adapter、请求/响应
 校验、稳定 failure mapping、CORS 和 secret 扫描。独立工程路径为
-`work/zhongri-ai-gateway`，当前提交 `f27cb6e`；其 `npm run verify`（13 tests）和 Wrangler dry-run
+`work/zhongri-ai-gateway`，当前交接提交 `c56918e`（代码基线 `f27cb6e`）；其 `npm run verify`（13 tests）和 Wrangler dry-run
 均通过。GitHub 远端仓库尚未创建/推送，Cloudflare Secret、真实 DeepSeek API 和生产部署均未执行。
 
 ## 背景
