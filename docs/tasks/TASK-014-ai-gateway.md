@@ -11,7 +11,7 @@ adapter、运行时公开 URL 配置、fixture、contract tests、跨仓 fixture
 校验、稳定 failure mapping、CORS 和 secret 扫描。独立工程路径为
 `work/zhongri-ai-gateway`，当前提交 `dcea4f7`（代码基线 `f27cb6e`）；其 `npm run verify`（15 tests）和 Wrangler dry-run
 均通过。公开远端已创建并推送为 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway)，
-`main` 核对为 `dcea4f7`。Worker 已部署到 [`zhongri-ai-gateway.moyu54433.workers.dev`](https://zhongri-ai-gateway.moyu54433.workers.dev)，`GET /health` 返回 200；主仓库的 `npm run verify:gateway-contract` 已通过。Cloudflare Secret `DEEPSEEK_API_KEY` 已配置，合成 fixture 已通过生产端点发起真实联调，但 Worker 到 DeepSeek 的出站 `fetch` 以 `TypeError` 失败并返回稳定 `unavailable`，尚未获得供应商 HTTP 响应。
+代码基线为 `dcea4f7`。Worker 已部署到 [`zhongri-ai-gateway.moyu54433.workers.dev`](https://zhongri-ai-gateway.moyu54433.workers.dev)，`GET /health` 返回 200；主仓库的 `npm run verify:gateway-contract` 已通过。Cloudflare Secret `DEEPSEEK_API_KEY` 已配置，合成 fixture 已通过生产端点发起真实联调，但 Worker 到 DeepSeek 的出站 `fetch` 以 `TypeError` 失败并返回稳定 `unavailable`，尚未获得供应商 HTTP 响应。
 
 ## 背景
 
