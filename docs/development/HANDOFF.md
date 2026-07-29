@@ -7,7 +7,7 @@
 - 稳定基线：`origin/main`（已包含 GOV-001 PR #22、Task 015 第一小步 PR #24、交接 PR #25、发布清理 PR #26、完整资产 PR #27、交接 PR #28、source snapshot PR #29、source adapter PR #31、交接 PR #32、canonical idMap PR #33、disposition report PR #34、Legacy Source Reader PR #35、交接 PR #36、核心域纵向切片 PR #37、staging orchestration PR #39/#40、负责人真实 v1 数据验收记录 `07ef6f9`、Task 016 推送记录 `819799b`、Task 017 推送记录 `d182a25`、Task 018 推送记录 `9dc2c7f` 和负责人 Pages 验收确认）
 - 当前交接分支：`main`
 - 稳定基线提交：`cc2b694`（Task 021 代码、验证记录、远端发布和交接状态已推送到远端 main）
-- 当前实现提交：`7519191`（`zhongri-v2` 的跨仓 AI 契约测试）+ 独立工程 `work/zhongri-ai-gateway@860aad0`（含 Worker、共享 fixture、必需 Secret 声明、Mock provider、DeepSeek adapter、受限官方 AI Gateway 出口配置、固定端点与验证脚本）
+- 当前实现提交：`ce24e35`（含 `7519191` 的跨仓 AI 契约测试和本次交接文档收口）+ 独立工程 `work/zhongri-ai-gateway@860aad0`（含 Worker、共享 fixture、必需 Secret 声明、Mock provider、DeepSeek adapter、受限官方 AI Gateway 出口配置、固定端点与验证脚本）
 - 当前任务：Task 014 · DeepSeek AI Gateway 与结构化任务协议（Issue #20 / ADR-044）
 - 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016/017/018/019/020/021 已实现并通过负责人 Pages 验收；Task 014 的 PWA 底座与独立 Gateway Worker 本地工程均已完成并发布，双端契约测试已通过，Worker `/health` 返回 200。Gateway 当前提交为 `860aad0`，独立 Gateway `npm run verify`（17 tests）、主仓库 `npm run verify:gateway-contract` 和生产部署均已通过；公开远端为 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway)，Worker 地址为 [`zhongri-ai-gateway.moyu54433.workers.dev`](https://zhongri-ai-gateway.moyu54433.workers.dev)；Cloudflare Secret `DEEPSEEK_API_KEY` 已配置，网关 `zhongri-deepseek` 已启用，合成 fixture 连续两次返回 HTTP 200 的合同 `success`，最终 Worker 版本为 `2594b989-f42b-4c49-b806-8dd9265f0c82`。英语 TTS、账号同步和迁移激活仍不在本任务范围
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
