@@ -1,10 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import type { GenerateQuestionsOutcome } from '../../application/ai';
 import type { TodayCourseSession } from '../../app/todayCourse';
 import type { StudySessionSnapshot } from '../../application/study';
-import { EventType, JudgementStatus, QuestionType, type TodayPlan } from '../../schemas/v1';
+import {
+  EventType,
+  JudgementStatus,
+  QuestionType,
+  type AIQuestionCandidate,
+  type TodayPlan,
+} from '../../schemas/v1';
 import { Button, Card, Progress } from '../../ui/components';
+import { AIBubble, type AIBubbleState } from '../../ui/components/ai';
 import { ChoiceAnswer, Feedback, QuestionFrame, TextAnswer } from '../../ui/components/learning';
 import './today-course.css';
 
@@ -25,6 +33,20 @@ function pronunciationLabel(word: TodayCourseSession['words'][number]): string {
 
 function hasStarted(snapshot: StudySessionSnapshot): boolean {
   return snapshot.status !== 'answering' || snapshot.currentIndex > 0 || snapshot.events.length > 0;
+}
+
+function aiFailureReason(
+  outcome: Extract<GenerateQuestionsOutcome, { status: 'fallback' }>,
+): string {
+  if (outcome.reason === 'gateway-not-configured') {
+    return '当前环境未配置 Gateway';
+  }
+
+  if (outcome.reason === 'timeout' || outcome.reason === 'rate-limited') {
+    return 'Gateway 稍后可以重试';
+  }
+
+  return '本地规则课程继续可用';
 }
 
 function RestartControl({
@@ -103,6 +125,10 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [aiState, setAiState] = useState<AIBubbleState>('idle');
+  const [aiMessage, setAiMessage] = useState('需要时，可以请求一组和今天词条相关的 AI 练习预览。');
+  const [aiReason, setAiReason] = useState('按需调用，不影响今日课程');
+  const [aiQuestions, setAiQuestions] = useState<readonly AIQuestionCandidate[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -160,7 +186,39 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
     setSnapshot(restartedCourse.useCase.getSnapshot());
     setTextAnswer('');
     setSubmissionError(null);
+    setAiState('idle');
+    setAiMessage('需要时，可以请求一组和今天词条相关的 AI 练习预览。');
+    setAiReason('按需调用，不影响今日课程');
+    setAiQuestions([]);
     setView('plan');
+  };
+
+  const requestAiQuestions = () => {
+    setAiState('thinking');
+    setAiReason('正在请求 Gateway');
+    setAiQuestions([]);
+    void course
+      .requestAiQuestions()
+      .then((outcome) => {
+        if (outcome.status === 'success') {
+          setAiState('success');
+          setAiReason('已通过协议校验，仅用于预览');
+          setAiQuestions(outcome.response.result.questions);
+          setAiMessage(
+            `AI 已生成 ${outcome.response.result.questions.length} 道结构化练习预览，不会替换今日课程。`,
+          );
+          return;
+        }
+
+        setAiState('suggestion');
+        setAiReason(aiFailureReason(outcome));
+        setAiMessage('AI 暂时不可用，已保留本地规则课程。你仍然可以直接开始今日学习。');
+      })
+      .catch(() => {
+        setAiState('suggestion');
+        setAiReason('本地规则课程继续可用');
+        setAiMessage('AI 暂时不可用，已保留本地规则课程。你仍然可以直接开始今日学习。');
+      });
   };
 
   const courseLanguageLabel = languageLabel(course.plan.language);
@@ -233,6 +291,42 @@ export function TodayCoursePage({ createCourse, restartCourse }: TodayCoursePage
               <li>3 道选择 · 2 道输入</li>
               <li>答题后立即查看读音与释义</li>
             </ul>
+            <section aria-labelledby="today-ai-enhancement-title" className="today-course__ai">
+              <h3 id="today-ai-enhancement-title">按需加练</h3>
+              <AIBubble
+                actions={
+                  aiState === 'success'
+                    ? []
+                    : [
+                        {
+                          id: 'generate-ai-preview',
+                          label: aiState === 'suggestion' ? '重试 AI 预览' : '生成 AI 练习预览',
+                          onSelect: requestAiQuestions,
+                        },
+                      ]
+                }
+                message={aiMessage}
+                reason={aiReason}
+                source="AI 练习预览"
+                state={aiState}
+              />
+              {aiQuestions.length > 0 && (
+                <div aria-label="AI 练习预览内容" className="today-course__ai-preview">
+                  <h4>预览内容</h4>
+                  <ul>
+                    {aiQuestions.map(({ itemId, question }) => (
+                      <li key={question.id}>
+                        <span>{question.prompt.content}</span>
+                        <small>
+                          {question.prompt.instruction ?? '结构化练习'} · 关联词条 {itemId}
+                        </small>
+                      </li>
+                    ))}
+                  </ul>
+                  <p>这组内容不会替换今日题目，也不会写入答题记录。</p>
+                </div>
+              )}
+            </section>
             <Button className="today-course__primary-action" onClick={() => setView('lesson')}>
               {isContinuing ? '继续今日课程' : '开始今日课程'}
             </Button>

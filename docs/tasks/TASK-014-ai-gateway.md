@@ -13,6 +13,8 @@ adapter、运行时公开 URL 配置、fixture、contract tests、跨仓 fixture
 均通过。公开远端已创建并推送为 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway)，
 代码基线为 `860aad0`。Worker 已部署到 [`zhongri-ai-gateway.moyu54433.workers.dev`](https://zhongri-ai-gateway.moyu54433.workers.dev)，`GET /health` 返回 200；主仓库的 `npm run verify:gateway-contract` 已通过。Cloudflare Secret `DEEPSEEK_API_KEY` 已配置，Cloudflare AI Gateway 网关 `zhongri-deepseek` 已启用，合成 fixture 连续两次真实联调均返回 HTTP 200 的合同 `success`。Gateway 的 `DEEPSEEK_BASE_URL` 只接受官方 Cloudflare AI Gateway DeepSeek 地址；模型紧凑/嵌套候选均经过受限转换后再做完整 Schema 校验。
 
+本轮已把成功路径接入 PWA 的按需增强入口：`GenerateQuestionsUseCase` 只发送最小画像摘要和今日 5 个 canonical 词条，`/#/today` 计划页的“生成 AI 练习预览”按钮才会触发请求。通过完整协议校验的候选只读展示，不替换 `TodayPlan`、不创建 `LearningEvent`；未配置、离线、超时、429 或其他 failure 都保留现有规则课程。GitHub Pages workflow 仅注入公开 Gateway URL，不注入任何供应商 Secret。
+
 ## 背景
 
 Phase 1 的固定课程、LearningEvent、画像与复习安排已经可以在 AI 不可用时独立运行。Phase 2
@@ -38,6 +40,7 @@ Phase 1 的固定课程、LearningEvent、画像与复习安排已经可以在 A
 - Zod 单一来源的 request/result/failure/trace metadata Schema 与 JSON Schema 导出。
 - `AIGateway` Port、HTTP adapter、公开 Gateway URL 配置和错误分类。
 - `generateQuestions` 最小上下文与输出约束；有效/无效 fixture 和 contract tests。
+- PWA 应用层按需调用与只读预览入口；AI 候选不进入正式今日题目或学习事实。
 - 不把 AI 输出直接写入 `LearningEvent`、`LearnerProfile`、`ReviewState` 或 `TodayPlan`。
 - ADR、状态文档、回滚说明和下一个 AI handoff。
 
@@ -66,7 +69,7 @@ Schema、408/429/4xx/5xx、超时和网络不可用均会拒绝或映射为不�
 1. 两个仓库均通过 format、lint、typecheck、test、build；`zhongri-v2` 的 `npm run verify` 通过。
 2. 非白名单任务、任意 prompt/model、外部 URL、未知字段和超限请求均被拒绝。
 3. 空响应、截断、超时、429、5xx 和 Schema 错误返回稳定 `AIResult` failure，且不泄漏上游细节。
-4. PWA 在 Gateway 缺失、离线或失败时保持当前学习闭环可用。
+4. PWA 在 Gateway 缺失、离线或失败时保持当前学习闭环可用；按需预览成功时也不改变当前学习事实。
 5. 浏览器构建产物和两个仓库均不包含 `DEEPSEEK_API_KEY`。
 6. Draft PR 链接本 Task、ADR、fixture、contract test、回滚与部署前置条件。
 
@@ -74,5 +77,6 @@ Schema、408/429/4xx/5xx、超时和网络不可用均会拒绝或映射为不�
 
 - 远端仓库已按负责人授权创建为公开仓库并推送；后续修改必须继续保持密钥不入 Git，并在两个仓库
   同步协议 fixture/Schema。
-- 真实 Secret、生产部署和 Cloudflare AI Gateway 网关已由负责人单独确认；下一步把成功路径接入 PWA
-  的按需增强入口。当前不切换为用户在浏览器输入 API Key，也不删除离线回退。
+- 真实 Secret、生产部署和 Cloudflare AI Gateway 网关已由负责人单独确认；PWA 按需预览入口已实现，待
+  GitHub Pages 发布后由负责人验收成功、失败回退和今日课程不受影响。当前不切换为用户在浏览器输入 API Key，
+  也不删除离线回退。

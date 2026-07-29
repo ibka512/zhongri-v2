@@ -38,6 +38,8 @@ jobs:
         run: npm run test
 
       - name: Build GitHub Pages artifact
+        env:
+          VITE_AI_GATEWAY_URL: https://zhongri-ai-gateway.moyu54433.workers.dev
         run: npm run build:pages
 
       - name: Configure Pages

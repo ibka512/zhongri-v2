@@ -4,8 +4,10 @@ import {
   type DailyCourse,
   type DailyCoursePriority,
 } from '../application/course';
+import { GenerateQuestionsUseCase, type GenerateQuestionsOutcome } from '../application/ai';
 import { projectLearningState } from '../application/profile';
 import { StudyUseCase } from '../application/study';
+import { AIGatewayHttpClient, readAIGatewayRuntimeConfig } from '../infrastructure/ai';
 import { FsrsReviewScheduler } from '../infrastructure/review';
 import { cryptoIdGenerator, webClock } from '../infrastructure/system';
 import {
@@ -21,6 +23,13 @@ import { appPersistence } from './persistence';
 import { localUserId } from './user';
 
 const reviewScheduler = new FsrsReviewScheduler();
+const runtimeGatewayUrl = readAIGatewayRuntimeConfig().gatewayUrl;
+const runtimeGateway = runtimeGatewayUrl
+  ? new AIGatewayHttpClient({
+      baseUrl: runtimeGatewayUrl,
+      gatewayVersion: 'worker-v1',
+    })
+  : null;
 
 export interface TodayCourseSession extends DailyCourse {
   insights: {
@@ -28,6 +37,7 @@ export interface TodayCourseSession extends DailyCourse {
     profile: LearnerProfile;
     recentIncorrectWords: readonly CanonicalWord[];
   };
+  requestAiQuestions: () => Promise<GenerateQuestionsOutcome>;
   useCase: StudyUseCase;
 }
 
@@ -110,6 +120,7 @@ async function createCourseForDate(
     estimatedMinutes,
     language,
   });
+  const generateQuestions = new GenerateQuestionsUseCase(runtimeGateway);
   const input = {
     items: course.items,
     sessionId: course.plan.id,
@@ -154,6 +165,18 @@ async function createCourseForDate(
       profile: historicalProjection.profile,
       recentIncorrectWords,
     },
+    requestAiQuestions: () =>
+      generateQuestions.execute({
+        contentVersion: course.plan.sourceContentVersion,
+        dailyMinutes: settings?.dailyMinutes ?? 5,
+        focus: settings?.focus ?? 'balanced',
+        language,
+        manifestId: course.plan.sourceManifestId,
+        profile: historicalProjection.profile,
+        requestId: cryptoIdGenerator.nextId(),
+        targetCount: Math.min(3, course.words.length),
+        words: course.words,
+      }),
     useCase,
   };
 }

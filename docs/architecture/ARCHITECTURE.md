@@ -207,6 +207,17 @@ Task012 当时不包含 LearnerProfile、FSRS、AI Gateway、完整 canonical �
 5. Today Plan 只消费当天零点前的投影，按到期复习、最近错误、基础补位的顺序选满五词。
 6. UI 只接收 Application 提供的画像摘要，不直接访问 Dexie 或 FSRS。
 
-当前仅实现 AI Gateway 的本地协议、Port 和 HTTP adapter 底座，不连接独立 Worker 或供应商；FSRS 参数
-训练、FSRS 重算、完整 canonical 资产或迁移业务域激活仍不在当前运行时范围。旧 FSRS 目前只进入不激活
-的 adapter-version isolated payload。
+## Task014 AI Gateway 与按需预览
+
+1. `GenerateQuestionsUseCase` 位于 Application 层，接收今日课程提供的最小画像摘要、当前 5 个
+   canonical 词条和版本信息，构造并校验 `generateQuestions` request；页面不能直接调用网络。
+2. `AIGatewayPort` 只有固定的 `generateQuestions` 能力，`AIGatewayHttpClient` 负责公开 Gateway URL、
+   超时、响应关联校验和稳定 failure mapping；供应商密钥永远不进入 PWA。
+3. `/today` 计划页只有用户明确点击“生成 AI 练习预览”才发起请求。成功候选在完整 Schema 校验后以
+   只读预览展示；不替换 `TodayPlan`，不创建 `LearningEvent`，不修改 `LearnerProfile` 或 `ReviewState`。
+4. Gateway 未配置、离线、超时、429、5xx 或无效响应时，Application 返回 fallback，UI 保留同一条本地
+   规则课程；AI 请求不是今日课程的前置条件。
+5. GitHub Pages workflow 只注入公开 `VITE_AI_GATEWAY_URL`；默认本地构建未配置 URL 时仍走同一 fallback。
+
+FSRS 参数训练、FSRS 重算、完整 canonical 资产或迁移业务域激活仍不在当前运行时范围。旧 FSRS 目前只进入
+不激活的 adapter-version isolated payload。

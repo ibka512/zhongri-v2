@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
+import type { GenerateQuestionsOutcome } from '../../src/application/ai';
 import { createAppRoutes } from '../../src/app/router';
 import type { TodayCourseSession } from '../../src/app/todayCourse';
 import { createDailyCourse } from '../../src/application/course';
@@ -16,6 +17,7 @@ import {
   LearnerSettingsSchema,
   QuestionType,
 } from '../../src/schemas/v1';
+import { validGenerateQuestionsResponse } from '../fixtures/ai-task-protocol';
 import { ThemeProvider } from '../../src/ui/theme';
 
 const repository: CanonicalContentRepositoryPort = {
@@ -48,7 +50,14 @@ const bilingualRepository: CanonicalContentRepositoryPort = {
     null,
 };
 
-function createHarness(language: 'ja' | 'en' = 'ja') {
+function createHarness(
+  language: 'ja' | 'en' = 'ja',
+  aiOutcome: GenerateQuestionsOutcome = {
+    status: 'fallback',
+    reason: 'gateway-not-configured',
+    response: null,
+  },
+) {
   const persistence = new InMemoryStudyPersistence();
   const dailyCourse = createDailyCourse(bilingualRepository, '2026-07-24', [], { language });
   let id = 0;
@@ -95,11 +104,13 @@ function createHarness(language: 'ja' | 'en' = 'ja') {
   const createCourse = async (): Promise<TodayCourseSession> => ({
     ...dailyCourse,
     insights,
+    requestAiQuestions: async () => aiOutcome,
     useCase: await StudyUseCase.startOrResume(input, dependencies),
   });
   const restartCourse = async (): Promise<TodayCourseSession> => ({
     ...dailyCourse,
     insights,
+    requestAiQuestions: async () => aiOutcome,
     useCase: await StudyUseCase.restart(input, dependencies),
   });
 
@@ -187,6 +198,56 @@ describe('TodayCoursePage', () => {
     expect(screen.getByText('5', { selector: 'strong' })).toBeInTheDocument();
     expect(screen.getAllByRole('listitem')).toHaveLength(5);
     expect(await persistence.findBySessionId(dailyCourse.plan.id)).toHaveLength(10);
+  });
+
+  it('requests AI practice only on demand and keeps it outside the learning session', async () => {
+    const { createCourse, dailyCourse, persistence, restartCourse } = createHarness('ja', {
+      status: 'success',
+      response: validGenerateQuestionsResponse,
+    });
+
+    render(
+      <MemoryRouter>
+        <ThemeProvider initialTheme="light">
+          <TodayCoursePage createCourse={createCourse} restartCourse={restartCourse} />
+        </ThemeProvider>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByRole('button', { name: '生成 AI 练习预览' })).toBeInTheDocument();
+    expect(screen.queryByText(/AI 已生成/)).not.toBeInTheDocument();
+    expect(await persistence.findBySessionId(dailyCourse.plan.id)).toHaveLength(0);
+
+    fireEvent.click(screen.getByRole('button', { name: '生成 AI 练习预览' }));
+
+    expect(
+      await screen.findByText('AI 已生成 2 道结构化练习预览，不会替换今日课程。'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('時計')).toBeInTheDocument();
+    expect(screen.getByText('电话')).toBeInTheDocument();
+    expect(screen.getByText('这组内容不会替换今日题目，也不会写入答题记录。')).toBeInTheDocument();
+    expect(await persistence.findBySessionId(dailyCourse.plan.id)).toHaveLength(0);
+    expect(screen.getByRole('button', { name: '开始今日课程' })).toBeInTheDocument();
+  });
+
+  it('shows the local fallback when the on-demand Gateway request fails', async () => {
+    const { createCourse, restartCourse } = createHarness();
+
+    render(
+      <MemoryRouter>
+        <ThemeProvider initialTheme="light">
+          <TodayCoursePage createCourse={createCourse} restartCourse={restartCourse} />
+        </ThemeProvider>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: '生成 AI 练习预览' }));
+
+    expect(
+      await screen.findByText('AI 暂时不可用，已保留本地规则课程。你仍然可以直接开始今日学习。'),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/当前环境未配置 Gateway/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '开始今日课程' })).toBeInTheDocument();
   });
 
   it('completes the English course through the same plan, answer, and event loop', async () => {

@@ -3,7 +3,8 @@
 ## 状态
 
 PWA 底座与独立 Gateway 已实现、发布并完成 Worker 健康检查；Secret 与官方 Cloudflare AI Gateway 网关已配置，
-合成真实联调连续两次成功（2026-07-29）
+合成真实联调连续两次成功（2026-07-29）。今日计划页的 PWA 按需 AI 练习只读预览已接入，待负责人完成
+GitHub Pages 成功与失败回退验收。
 
 ## 背景
 
@@ -31,6 +32,9 @@ Task 021 已完成日语/英语共用学习闭环，基础课程必须在离线�
   关闭；不把 Key 下沉到 PWA。
 - DeepSeek 返回的完整或紧凑候选结构都会先经过受限转换，再通过完整结果 Schema 和请求匹配校验；失败时
   仍返回稳定 failure 并保留本地规则回退。
+- PWA 通过 `GenerateQuestionsUseCase` 在 Application 层组装最小 request；用户明确点击今日计划页的按需
+  入口后才请求 Gateway。成功结果只做只读预览，不替换 `TodayPlan`，不写 `LearningEvent`、`LearnerProfile`
+  或 `ReviewState`；失败结果回到规则课程。
 
 ## 影响
 
@@ -57,8 +61,12 @@ Task 021 已完成日语/英语共用学习闭环，基础课程必须在离线�
   并导出按需 JSON Schema。
 - `src/ports/ai/AIGateway.ts` 只暴露白名单 `generateQuestions`；
   `src/infrastructure/ai/AIGatewayHttpClient.ts` 固定端点、超时、Content-Type 和稳定失败映射。
+- `src/application/ai/GenerateQuestionsUseCase.ts` 只组装最小画像/内容上下文并把 failure 转成 PWA fallback；
+  `/today` 计划页的 AI 练习预览只读展示通过校验的候选，不触碰学习事实。
 - `tests/schemas/ai-task-protocol.test.ts` 与 `tests/infrastructure/ai-gateway.test.ts` 覆盖有效/无效
   fixture、未知字段、关联校验、空/非 JSON、超时、429、4xx、5xx 和网络失败。
+- `tests/application/ai-generate-questions.test.ts` 与 `tests/ui/today-course.test.tsx` 覆盖最小上下文、
+  成功预览、未配置 Gateway 回退和学习事件不变。
 - `npm run verify`：主仓库全量验证、独立 Gateway 17 个测试、默认构建和 Pages 构建均通过；构建产物不包含
   `DEEPSEEK_API_KEY`。
 
@@ -70,5 +78,5 @@ Task 021 已完成日语/英语共用学习闭环，基础课程必须在离线�
   连续两次返回 HTTP 200 的协议 `success`，耗时约 3.8–4.2 秒。
 - Cloudflare Secret 列表包含 `DEEPSEEK_API_KEY`；未读取或记录 Secret 值。最终 Worker 版本为
   `2594b989-f42b-4c49-b806-8dd9265f0c82`，Gateway 代码提交为 `860aad0`。
-- 当前结论：合同、Worker 路由、Secret 绑定、官方 AI Gateway 出口和真实合成成功路径均已验证；下一步
-  是把成功路径接入 PWA 的按需增强入口，同时保持本地规则回退。
+- 当前结论：合同、Worker 路由、Secret 绑定、官方 AI Gateway 出口、真实合成成功路径和 PWA 按需预览接线均
+  已验证；下一步由负责人在 GitHub Pages 验收成功预览、失败回退和今日课程不受影响。
