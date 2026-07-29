@@ -2,7 +2,8 @@
 
 ## 状态
 
-PWA 底座与独立 Gateway 已实现、发布并完成 Worker 健康检查；Secret 已配置，真实联调被 Cloudflare→DeepSeek 出站网络阻塞（2026-07-29）
+PWA 底座与独立 Gateway 已实现、发布并完成 Worker 健康检查；Secret 与官方 Cloudflare AI Gateway 网关已配置，
+合成真实联调连续两次成功（2026-07-29）
 
 ## 背景
 
@@ -25,10 +26,11 @@ Task 021 已完成日语/英语共用学习闭环，基础课程必须在离线�
   [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway)。
 - 两仓共享 `contracts/ai-task-protocol-v1.json`；两个仓库各自用本地 Zod Schema 解析该 fixture，
   `zhongri-v2` 的 `npm run verify:gateway-contract` 额外比较两份 fixture 的 SHA，防止跨仓协议样例漂移。
-- 真实 Secret、生产 Worker 和真实供应商联调已在负责人单独确认后执行；合成请求确认 Secret 已进入
-  Worker，但 Cloudflare→DeepSeek 出站 `fetch` 抛出 `TypeError`，因此继续保留稳定 failure 和本地规则回退。
-  Gateway 代码已准备只允许官方 Cloudflare AI Gateway DeepSeek 地址的 `DEEPSEEK_BASE_URL`，但在网关
-  创建并验证前不启用；不把 Key 下沉到 PWA。
+- 真实 Secret、生产 Worker 和真实供应商联调已在负责人单独确认后执行；Cloudflare AI Gateway 网关
+  `zhongri-deepseek` 已创建并使用官方 DeepSeek provider 路径，网关请求日志关闭，Authenticated Gateway
+  关闭；不把 Key 下沉到 PWA。
+- DeepSeek 返回的完整或紧凑候选结构都会先经过受限转换，再通过完整结果 Schema 和请求匹配校验；失败时
+  仍返回稳定 failure 并保留本地规则回退。
 
 ## 影响
 
@@ -57,7 +59,7 @@ Task 021 已完成日语/英语共用学习闭环，基础课程必须在离线�
   `src/infrastructure/ai/AIGatewayHttpClient.ts` 固定端点、超时、Content-Type 和稳定失败映射。
 - `tests/schemas/ai-task-protocol.test.ts` 与 `tests/infrastructure/ai-gateway.test.ts` 覆盖有效/无效
   fixture、未知字段、关联校验、空/非 JSON、超时、429、4xx、5xx 和网络失败。
-- `npm run verify`：53 个测试文件、220 个测试、默认构建和 Pages 构建均通过；构建产物不包含
+- `npm run verify`：主仓库全量验证、独立 Gateway 17 个测试、默认构建和 Pages 构建均通过；构建产物不包含
   `DEEPSEEK_API_KEY`。
 
 ## 真实联调证据
@@ -65,8 +67,8 @@ Task 021 已完成日语/英语共用学习闭环，基础课程必须在离线�
 - Worker：[`zhongri-ai-gateway.moyu54433.workers.dev`](https://zhongri-ai-gateway.moyu54433.workers.dev)，
   `/health` 返回 200。
 - 合成 fixture：`contracts/ai-task-protocol-v1.json` 的 `request`，`requestId=ai-request-ja-001`；生产端点
-  返回 HTTP 200 的协议 failure `unavailable`。
-- Cloudflare Secret 列表包含 `DEEPSEEK_API_KEY`；未读取或记录 Secret 值。临时安全 tail 只记录了
-  `deepseek_fetch_failed`、`timedOut=false`、`errorName=TypeError`，随后已移除调试标志并重新部署干净版本。
-- 当前结论：合同、Worker 路由和 Secret 绑定均已验证；直连阻塞点是 Cloudflare 到 DeepSeek 的出站路径，
-  尚未取得供应商 HTTP 响应；下一步通过官方 AI Gateway 出口配置重跑合成联调。
+  连续两次返回 HTTP 200 的协议 `success`，耗时约 3.8–4.2 秒。
+- Cloudflare Secret 列表包含 `DEEPSEEK_API_KEY`；未读取或记录 Secret 值。最终 Worker 版本为
+  `2594b989-f42b-4c49-b806-8dd9265f0c82`，Gateway 代码提交为 `860aad0`。
+- 当前结论：合同、Worker 路由、Secret 绑定、官方 AI Gateway 出口和真实合成成功路径均已验证；下一步
+  是把成功路径接入 PWA 的按需增强入口，同时保持本地规则回退。

@@ -100,16 +100,16 @@ Infrastructure Adapters
 
 ## 当前任务
 
-当前任务是 **Task 014：DeepSeek AI Gateway 与结构化任务协议** 的跨仓实现收口；Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）已完成负责人真实 v1 数据手工验收，Task 016/017/018/019/020/021 已由负责人在 GitHub Pages 验收。`zhongri-v2` 与公开仓库 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway) 均已完成本地实现、双端契约测试、远端发布和 Worker 部署，Gateway 代码基线为 `cc9231f`，`/health` 返回 200；Cloudflare Secret `DEEPSEEK_API_KEY` 已配置，但合成真实联调在 Worker→DeepSeek 出站 `fetch` 阶段失败并返回 `unavailable`。Gateway 已加入只允许官方 Cloudflare AI Gateway 地址的 `DEEPSEEK_BASE_URL` 配置，但尚未启用。
+当前任务是 **Task 014：DeepSeek AI Gateway 与结构化任务协议** 的跨仓实现收口；Task 015（[Issue #23](https://github.com/ibka512/zhongri-v2/issues/23)）已完成负责人真实 v1 数据手工验收，Task 016/017/018/019/020/021 已由负责人在 GitHub Pages 验收。`zhongri-v2` 与公开仓库 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway) 均已完成本地实现、双端契约测试、远端发布和 Worker 部署，Gateway 代码基线为 `860aad0`，`/health` 返回 200；Cloudflare Secret `DEEPSEEK_API_KEY` 已配置，网关 `zhongri-deepseek` 已启用，合成 fixture 连续两次真实联调返回合同 `success`。Gateway 的 `DEEPSEEK_BASE_URL` 仍只允许官方 Cloudflare AI Gateway DeepSeek 地址。
 
-Task 015 已完成 canonical corpus Schema、固定 9,828/5,906/3,922 目标、真实资产导入、fail-closed 完整性验证、脱敏 source snapshot contract、只读浏览器 source adapter、source-aware staging、确定性 canonical idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、全域 isolated 纵向转换、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23/V25 证据入口、负责人批准 synthetic fixture 的端到端 activation/rollback 验收和负责人真实 v1 数据手工验收；真实备份不入库。Task 016/017/018/019/020/021 按 ADR-038/039/040/041/042/043 已完成实现并通过负责人 Pages 验收；Task 014 已按 Issue #20、TASK-014 和 ADR-044 完成本地协议 Schema、Port、HTTP adapter、运行时 URL 配置、fixture、contract tests、Worker 部署和 Secret 配置，但真实供应商联调被 Worker→DeepSeek 出站 `fetch` 阻塞，不写入学习事实。
+Task 015 已完成 canonical corpus Schema、固定 9,828/5,906/3,922 目标、真实资产导入、fail-closed 完整性验证、脱敏 source snapshot contract、只读浏览器 source adapter、source-aware staging、确定性 canonical idMap、统一 disposition/quarantine 报告、只读 Legacy Source Reader、显式设备来源选择与 IDB/localStorage 分歧报告、全域 isolated 纵向转换、inline archive payload、独立 migrationArchives 存储、只验证的 V01–V25 报告、统一 staging orchestration、持久化 staged payload 重建验证、显式 activation gate、V23/V25 证据入口、负责人批准 synthetic fixture 的端到端 activation/rollback 验收和负责人真实 v1 数据手工验收；真实备份不入库。Task 016/017/018/019/020/021 按 ADR-038/039/040/041/042/043 已完成实现并通过负责人 Pages 验收；Task 014 已按 Issue #20、TASK-014 和 ADR-044 完成本地协议 Schema、Port、HTTP adapter、运行时 URL 配置、fixture、contract tests、Worker 部署、Secret 配置和真实合成联调，不写入学习事实。
 
 Task 013 的实现与决策见 [ADR-011](./decisions/ADR-011-replayable-profile-fsrs.md)，其验收证据见 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
 
 ## 下一步路线
 
 1. 负责人已验收 Task 021，双语核心闭环总结记录在 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
-2. Task 014 两仓实现、Secret 配置和合成真实联调已完成；下一步在 Cloudflare 控制台创建 DeepSeek AI Gateway 网关，再设置受限的 `DEEPSEEK_BASE_URL` 并重跑合成联调。继续保持基础课程离线可用，不切换为用户输入 API Key。
+2. Task 014 两仓实现、Secret 配置和连续两次合成真实联调已完成；下一步把 Gateway 成功路径接入 PWA 的按需增强入口。继续保持基础课程离线可用，不切换为用户输入 API Key。
 
 详细验收证据见 [Phase 1 收口记录](./development/PHASE1_CLOSEOUT.md)。
 
