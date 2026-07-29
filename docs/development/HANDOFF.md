@@ -11,7 +11,7 @@
 - 当前任务：Task 014 · DeepSeek AI Gateway 与结构化任务协议（Issue #20 / ADR-044）
 - 当前状态：Task 015 的 9,828 条 canonical corpus、全域 isolated 转换、V01–V25 验证、activation/rollback 边界和负责人真实 v1 数据手工验收已完成；Task 016/017/018/019/020/021 已实现并通过负责人 Pages 验收；Task 014 的 PWA 底座与独立 Gateway Worker 本地工程均已完成并发布，双端契约测试已通过，Worker `/health` 返回 200。Gateway 当前提交为 `860aad0`，独立 Gateway `npm run verify`（17 tests）、主仓库 `npm run verify:gateway-contract` 和生产部署均已通过；公开远端为 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway)，Worker 地址为 [`zhongri-ai-gateway.moyu54433.workers.dev`](https://zhongri-ai-gateway.moyu54433.workers.dev)；Cloudflare Secret `DEEPSEEK_API_KEY` 已配置，网关 `zhongri-deepseek` 已启用，合成 fixture 连续两次返回 HTTP 200 的合同 `success`，最终 Worker 版本为 `2594b989-f42b-4c49-b806-8dd9265f0c82`。PWA 当前实现提交为 `4dfb18c`：`/#/today` 计划页的用户主动按钮会调用 Gateway 并只读展示通过协议校验的候选，未配置/失败时保留规则课程；AI 不替换 `TodayPlan`，不写学习事实。英语 TTS、账号同步和迁移激活仍不在本任务范围
 - 产品阶段：Phase 1 收口；Task 013 代码已合并，本地浏览器断网启动/恢复复测已完成
-- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；Task 018 的 `38fd7f8`、`9dc2c7f`、`ac1cf49` 已推送且由负责人 Pages 验收。Task 019 的 `04a97ee`、`c855e30`、`7a56f37`、`3a6e55f` 已推送到远端 main，并已由负责人在 GitHub Pages 验收。Task 020 的 `234878b`、`877bc19`、`dfb3260`、`db8322e`、`e0d83eb` 已推送到远端 main，负责人已完成 Pages 验收。Task 021 的 `6f13716`、`3ce1532`、`1e1d2bf`、`cc2b694` 已推送到远端 main，远端核对为 `cc2b694`，负责人已完成 Pages 验收。Task 014 PWA 协议底座提交 `783807e` 与交接提交 `d45b19c` 已推送到远端 main；跨仓契约测试提交 `7519191` 已推送到 `zhongri-v2`；本轮按需预览接线提交为 `4dfb18c`（待推送），独立 Gateway 公开仓库 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway) 的最终代码基线为 `860aad0`，Worker 版本 `2594b989-f42b-4c49-b806-8dd9265f0c82` 已通过 `/health` 和连续两次合成联调。
+- 发布状态：PR #27、PR #28、PR #29、PR #31、PR #33、PR #34、PR #35、PR #37、PR #39、PR #40 均已通过 CI 并合并；Task 018 的 `38fd7f8`、`9dc2c7f`、`ac1cf49` 已推送且由负责人 Pages 验收。Task 019 的 `04a97ee`、`c855e30`、`7a56f37`、`3a6e55f` 已推送到远端 main，并已由负责人在 GitHub Pages 验收。Task 020 的 `234878b`、`877bc19`、`dfb3260`、`db8322e`、`e0d83eb` 已推送到远端 main，负责人已完成 Pages 验收。Task 021 的 `6f13716`、`3ce1532`、`1e1d2bf`、`cc2b694` 已推送到远端 main，远端核对为 `cc2b694`，负责人已完成 Pages 验收。Task 014 PWA 协议底座提交 `783807e` 与交接提交 `d45b19c` 已推送到远端 main；跨仓契约测试提交 `7519191` 已推送到 `zhongri-v2`；本轮按需预览接线提交为 `4dfb18c`，交接记录为 `6854e39`，均已推送到远端 main，独立 Gateway 公开仓库 [`ibka512/zhongri-ai-gateway`](https://github.com/ibka512/zhongri-ai-gateway) 的最终代码基线为 `860aad0`，Worker 版本 `2594b989-f42b-4c49-b806-8dd9265f0c82` 已通过 `/health` 和连续两次合成联调。
 - 发布阻塞记录：普通环境的本地代理端口曾不可用；改用已恢复的外部网络通道后，Task 021 已成功推送并以 `git ls-remote` 核对远端 `HEAD`/`main` 为 `cc2b694`。
 
 ## 本轮已完成
@@ -135,7 +135,7 @@
 - Task 019 代码已完成并推送，且已由负责人 Pages 验收。
 - Task 020 代码已完成本地验证、推送到远端并由负责人 Pages 验收。
 - Task 021 已完成本地实现、全量验证、推送并由负责人 Pages 验收。
-- Task 014 的 `zhongri-v2` 与独立 Gateway 本地实现均已完成并通过验证；Gateway 远端仓库当前为 `860aad0`，Cloudflare Secret、生产部署、官方 AI Gateway 网关和连续两次合成真实联调均已完成，PWA 按需预览提交 `4dfb18c` 待推送及 Pages 验收，旧的误建 Secret 名称尚未清理。
+- Task 014 的 `zhongri-v2` 与独立 Gateway 本地实现均已完成并通过验证；Gateway 远端仓库当前为 `860aad0`，Cloudflare Secret、生产部署、官方 AI Gateway 网关和连续两次合成真实联调均已完成，PWA 按需预览提交 `4dfb18c` 已推送，待 Pages 验收，旧的误建 Secret 名称尚未清理。
 - Phase 1 综合验收。
 
 ## 已验证命令
